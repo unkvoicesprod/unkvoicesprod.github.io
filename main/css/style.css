@@ -10,8 +10,6 @@ body {
     line-height: 1.6;
     background: linear-gradient(135deg, #0a0a0a, #111, #0f0f0f);
     color: #e0e0e0;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
 }
 
 /* Componentes com efeito glass */
@@ -121,12 +119,4 @@ footer {
     background: #111;
     border-top: 1px solid #222;
     margin-top: 2rem;
-}
-
-/* Container principal dos cards */
-#conteudo {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    padding: 20px;
 }

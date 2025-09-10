@@ -3,21 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Posts</title>
+  <title>Posts - UNK Voices</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/conteudo.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <nav>
-    <div class="logo">UNKVoices</div>
-    <div class="search-bar">
-      <input type="text" id="search" placeholder="Pesquisar...">
-    </div>
-    <div class="menu">...</div>
-  </nav>
+  <header class="glass">
+    <nav class="navbar">
+      <div class="logo"><img src="assets/logo.jpg" alt="Logo"></div>
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="beats.html">Beats</a></li>
+        <li><a href="kits.html">Kits</a></li>
+        <li><a href="loja.html">Loja</a></li>
+        <li><a href="posts.html" class="active">Posts</a></li>
+      </ul>
+    </nav>
+  </header>
 
-  <!-- Filtros -->
-  <div class="filters">
+  <main>
+    <input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
+    <div class="filters">
     <select id="filtro-genero" title="Filtrar por gênero">
       <option value="">Todos os gêneros</option>
     </select>
@@ -30,12 +36,15 @@
     <select id="filtro-tipo" title="Filtrar por tipo">
       <option value="">Todos os tipos</option>
     </select>
-  </div>
+    </div>
 
-  <!-- Container de cards -->
-  <div id="conteudo-container"></div>
+    <!-- Container de cards -->
+    <div id="conteudo-container" class="grid-dynamic"></div>
+  </main>
 
-  <!-- Scripts -->
+  <footer class="glass">
+    <p>&copy; 2025 UNK Voices</p>
+  </footer>
   <script src="js/conteudo.js"></script>
 </body>
 

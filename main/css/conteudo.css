@@ -1,29 +1,16 @@
-/* ================= NAVBAR ================= */
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #0d1117;
-    padding: 15px 30px;
-    color: white;
-    flex-wrap: wrap;
-    /* faz a navbar quebrar em telas menores */
-}
-
-.search-bar {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    margin: 10px 0;
-}
-
-.search-bar input {
+/* ================= BARRA DE PESQUISA (Página de Posts) ================= */
+.search-bar-full {
     width: 100%;
-    max-width: 400px;
+    max-width: 600px;
     padding: 8px 12px;
     border-radius: 8px;
     border: none;
     outline: none;
+    display: block;
+    margin: 2rem auto 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #f0f0f0;
 }
 
 /* ================= FILTROS ================= */
@@ -41,7 +28,7 @@ nav {
 }
 
 /* ================= GRID DE CARDS ================= */
-#conteudo-container {
+.grid-dynamic {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 25px;
