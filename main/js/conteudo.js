@@ -1,116 +1,190 @@
-let conteudoGlobal = [];
 
-async function carregarConteudo() {
-    const response = await fetch("data/conteudo.json");
-    conteudoGlobal = await response.json();
-    popularFiltros();
-    renderizarConteudo(conteudoGlobal);
-}
-
-function renderizarConteudo(lista) {
-    const container = document.getElementById("conteudo-container");
-    container.innerHTML = "";
-
-    lista.forEach(item => {
-        const card = document.createElement("div");
-        card.classList.add("card");
-
-        // Badge pela categoria
-        let badgeClass = "";
-        if (item.categoria.toLowerCase().includes("beat")) badgeClass = "beat";
-        else if (item.categoria.toLowerCase().includes("kit")) badgeClass = "kit";
-        else badgeClass = "post";
-
-        // Botão Baixar ou Comprar
-        let actionButton = item.preco === 0
-            ? `<button class="download">⬇ Baixar</button>`
-            : `<button class="download">🛒 Comprar</button>`;
-
-        // Botão Play só em beats.html
-        let playButton = "";
-        if (window.location.pathname.includes("beats.html")) {
-            playButton = `<button class="play">▶ Play</button>`;
-        }
-
-        // Montagem do card
-        card.innerHTML = `
-      <img src="${item.capa}" alt="${item.titulo}">
-      <div class="card-content">
-        <span class="badge ${badgeClass}">${item.categoria}</span>
-        <h3 class="accordion-title">${item.titulo}</h3>
-        <p><strong>${item.genero}</strong> - ${item.ano}</p>
-        <p>${item.descricao}</p>
-        <div class="extra"><p>${item.conteudo}</p></div>
-        <div class="card-footer">
-          ${actionButton}
-          ${playButton}
-        </div>
-      </div>
-    `;
-
-        // Accordion no título
-        const titulo = card.querySelector(".accordion-title");
-        const extra = card.querySelector(".extra");
-
-        titulo.addEventListener("click", () => {
-            if (card.classList.contains("active")) {
-                card.classList.remove("active");
-                extra.style.maxHeight = null;
-            } else {
-                card.classList.add("active");
-                extra.style.maxHeight = extra.scrollHeight + "px";
-            }
-        });
-
-        container.appendChild(card);
-    });
+/*
+Chaves do JSON {
+Beats   /   Kits    /   Posts
 }
 
 
 
-function popularFiltros() {
-    preencherSelect("filtro-genero", [...new Set(conteudoGlobal.map(i => i.genero))]);
-    preencherSelect("filtro-categoria", [...new Set(conteudoGlobal.map(i => i.categoria))]);
-    preencherSelect("filtro-ano", [...new Set(conteudoGlobal.map(i => i.ano))]);
-    preencherSelect("filtro-tipo", [...new Set(conteudoGlobal.map(i => i.tipo))]);
-}
+*/
 
-function preencherSelect(id, valores) {
-    const select = document.getElementById(id);
-    valores.forEach(v => {
-        const opt = document.createElement("option");
-        opt.value = v;
-        opt.textContent = v;
-        select.appendChild(opt);
-    });
-}
-
-function aplicarFiltros() {
-    const termo = document.getElementById("search").value.toLowerCase();
-    const genero = document.getElementById("filtro-genero").value;
-    const categoria = document.getElementById("filtro-categoria").value;
-    const ano = document.getElementById("filtro-ano").value;
-    const tipo = document.getElementById("filtro-tipo").value;
-
-    const filtrados = conteudoGlobal.filter(item =>
-        (termo === "" || item.titulo.toLowerCase().includes(termo) ||
-            item.descricao.toLowerCase().includes(termo) ||
-            item.conteudo.toLowerCase().includes(termo)) &&
-        (genero === "" || item.genero === genero) &&
-        (categoria === "" || item.categoria === categoria) &&
-        (ano === "" || item.ano.toString() === ano) &&
-        (tipo === "" || item.tipo === tipo)
-    );
-
-    renderizarConteudo(filtrados);
-}
 
 document.addEventListener("DOMContentLoaded", () => {
-    carregarConteudo();
+    // Estado da aplicação
+    let allContent = [];
 
-    document.getElementById("search").addEventListener("input", aplicarFiltros);
-    document.getElementById("filtro-genero").addEventListener("change", aplicarFiltros);
-    document.getElementById("filtro-categoria").addEventListener("change", aplicarFiltros);
-    document.getElementById("filtro-ano").addEventListener("change", aplicarFiltros);
-    document.getElementById("filtro-tipo").addEventListener("change", aplicarFiltros);
+    // Cache de elementos do DOM para evitar múltiplas buscas
+    const elements = {
+        container: document.getElementById("conteudo-container"),
+        search: document.getElementById("search"),
+        filtroGenero: document.getElementById("filtro-genero"),
+        filtroCategoria: document.getElementById("filtro-categoria"),
+        filtroAno: document.getElementById("filtro-ano"),
+        filtroTipo: document.getElementById("filtro-tipo"),
+    };
+
+    // Função principal que inicia a aplicação
+    async function init() {
+        try {
+            const response = await fetch("data/conteudo.json");
+            if (!response.ok) {
+                throw new Error(`Erro HTTP: ${response.status}`);
+            }
+            allContent = await response.json();
+
+            setupEventListeners();
+            populateFilters();
+            renderPageContent();
+        } catch (error) {
+            console.error("Falha ao carregar o conteúdo:", error);
+            elements.container.innerHTML = `<p class="error-message">Não foi possível carregar o conteúdo. Tente novamente mais tarde.</p>`;
+        }
+    }
+
+    function renderContent(list) {
+        if (!list.length) {
+            elements.container.innerHTML = `<p class="no-results">Nenhum item encontrado.</p>`;
+            return;
+        }
+
+        elements.container.innerHTML = list.map(item => {
+            // Mapeia a categoria para a classe CSS do badge
+            const badgeClassMap = {
+                "beats": "beat",
+                "kits & plugins": "kit",
+                "posts": "post"
+            };
+            const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'post';
+
+            const actionButton = item.preco === 0
+                ? `<button class="download">⬇ Baixar</button>`
+                : `<button class="download">🛒 Comprar</button>`;
+
+            const playButton = window.location.pathname.includes("beats.html")
+                ? `<button class="play">▶ Play</button>`
+                : "";
+
+            return `
+                <div class="card">
+                    <img src="${item.capa}" alt="${item.titulo}">
+                    <div class="card-content">
+                        <span class="badge ${badgeClass}">${item.categoria}</span>
+                        <h3 class="accordion-title">${item.titulo}</h3>
+                        <p><strong>${item.genero}</strong> - ${item.ano}</p>
+                        <p>${item.descricao}</p>
+                        <div class="extra"><p>${item.conteudo}</p></div>
+                        <div class="card-footer">
+                            ${actionButton}
+                            ${playButton}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function populateFilters() {
+        const getUniqueValues = (key) => [...new Set(allContent.map(item => item[key]).filter(Boolean))];
+
+        fillSelect(elements.filtroGenero, getUniqueValues('genero'));
+        fillSelect(elements.filtroCategoria, getUniqueValues('categoria'));
+        fillSelect(elements.filtroAno, getUniqueValues('ano').sort((a, b) => b - a)); // Ordena anos do mais recente para o mais antigo
+        fillSelect(elements.filtroTipo, getUniqueValues('tipo'));
+    }
+
+    function fillSelect(selectElement, values) {
+        if (!selectElement) return;
+        const fragment = document.createDocumentFragment();
+        values.forEach(value => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = value;
+            fragment.appendChild(option);
+        });
+        selectElement.appendChild(fragment);
+    }
+
+    function applyFilters() {
+        const searchTerm = elements.search.value.toLowerCase();
+        const selected = {
+            genero: elements.filtroGenero.value,
+            categoria: elements.filtroCategoria.value,
+            ano: elements.filtroAno.value,
+            tipo: elements.filtroTipo.value,
+        };
+
+        const filtered = allContent.filter(item => {
+            const matchesSearch = searchTerm === "" ||
+                item.titulo.toLowerCase().includes(searchTerm) ||
+                item.descricao.toLowerCase().includes(searchTerm) ||
+                item.conteudo.toLowerCase().includes(searchTerm);
+
+            const matchesFilters =
+                (selected.genero === "" || item.genero === selected.genero) &&
+                (selected.categoria === "" || item.categoria === selected.categoria) &&
+                (selected.ano === "" || item.ano.toString() === selected.ano) &&
+                (selected.tipo === "" || item.tipo === selected.tipo);
+
+            return matchesSearch && matchesFilters;
+        });
+
+        renderContent(filtered);
+    }
+
+    function handleAccordionClick(event) {
+        const title = event.target.closest('.accordion-title');
+        if (!title) return;
+
+        const card = title.closest('.card');
+        const extra = card.querySelector('.extra');
+
+        card.classList.toggle('active');
+
+        if (card.classList.contains('active')) {
+            extra.style.maxHeight = extra.scrollHeight + 'px';
+        } else {
+            extra.style.maxHeight = null;
+        }
+    }
+
+    function setupEventListeners() {
+        // Delegação de eventos para os cliques no acordeão
+        elements.container.addEventListener('click', handleAccordionClick);
+
+        // Listeners para os filtros
+        elements.search.addEventListener("input", applyFilters);
+        Object.values(elements).filter(el => el && el.tagName === 'SELECT').forEach(select => {
+            select.addEventListener('change', applyFilters);
+        });
+    }
+
+    // Inicia a aplicação
+    init();
+    function getPageFilter() {
+        if (window.location.pathname.includes("beats.html")) return "Beats";
+        if (window.location.pathname.includes("kits.html")) return "Kits & Plugins";
+        if (window.location.pathname.includes("loja.html")) return "Loja";
+        if (window.location.pathname.includes("posts.html")) return "Posts";
+        if (window.location.pathname.includes("index.html") || window.location.pathname.endsWith("/")) return "Home";
+        return "";
+    }
+
+    function renderPageContent() {
+        const filter = getPageFilter();
+
+        let filtered = allContent;
+
+        if (filter === "Home") {
+            // Exemplo: mostra apenas os 3 mais recentes
+            filtered = allContent.slice(0, 3);
+        } else if (filter === "Loja") {
+            // Loja = só itens com preço > 0
+            filtered = allContent.filter(item => item.preco > 0);
+        } else if (filter) {
+            filtered = allContent.filter(item => item.categoria === filter);
+        }
+
+        renderContent(filtered);
+    }
+
 });

@@ -147,9 +147,11 @@
 .card .extra {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.4s ease;
+    transition: max-height 0.4s ease-out, margin-top 0.4s ease-out;
+    /* Adiciona transição para margin-top */
 }
 
 .card.active .extra {
     margin-top: 10px;
+    /* max-height é definido via JS para um valor dinâmico */
 }

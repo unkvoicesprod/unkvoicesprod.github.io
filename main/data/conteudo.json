@@ -34,5 +34,18 @@
     "ano": 2023,
     "tipo": "post",
     "preco": 0
-  }
+  },
+  {
+  "id": 4,
+  "titulo": "Beat Drill Supreme",
+  "descricao": "Energia pesada para drill.",
+  "conteudo": "MP3 + WAV + STEMS.",
+  "capa": "assets/img/drill.jpg",
+  "genero": "Drill",
+  "categoria": "Beats",
+  "ano": 2025,
+  "tipo": "produto",
+  "preco": 29
+}
+
 ]
