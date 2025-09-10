@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             setupEventListeners();
             populateFilters();
-            renderPageContent();
+            applyFilters(); // Chamada inicial para renderizar o conteúdo da página
         } catch (error) {
             console.error("Falha ao carregar o conteúdo:", error);
             elements.container.innerHTML = `<p class="error-message">Não foi possível carregar o conteúdo. Tente novamente mais tarde.</p>`;
@@ -38,6 +38,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderContent(list) {
+        // Esconde os filtros na página inicial, pois ela tem conteúdo fixo
+        if (getPageFilter().home) {
+            document.querySelector('.filters').style.display = 'none';
+            document.querySelector('.search-bar-full').style.display = 'none';
+        }
         if (!list.length) {
             elements.container.innerHTML = `<p class="no-results">Nenhum item encontrado.</p>`;
             return;
@@ -48,7 +53,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const badgeClassMap = {
                 "beats": "beat",
                 "kits & plugins": "kit",
-                "posts": "post"
+                "posts": "post",
+                "post": "post" // Adicionado para compatibilidade com "Post" singular
             };
             const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'post';
 
@@ -101,6 +107,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function applyFilters() {
+        const pageFilter = getPageFilter();
+
         const searchTerm = elements.search.value.toLowerCase();
         const selected = {
             genero: elements.filtroGenero.value,
@@ -109,7 +117,20 @@ document.addEventListener("DOMContentLoaded", () => {
             tipo: elements.filtroTipo.value,
         };
 
-        const filtered = allContent.filter(item => {
+        let baseContent = allContent;
+
+        // 1. Aplicar o filtro base da página
+        if (pageFilter.home) {
+            baseContent = [...allContent]
+                .sort((a, b) => b.ano - a.ano || b.id - a.id)
+                .slice(0, 3);
+        } else if (pageFilter.categoria) {
+            baseContent = allContent.filter(item => item.categoria === pageFilter.categoria);
+        } else if (pageFilter.preco === ">0") {
+            baseContent = allContent.filter(item => item.preco > 0);
+        }
+
+        const filtered = baseContent.filter(item => {
             const matchesSearch = searchTerm === "" ||
                 item.titulo.toLowerCase().includes(searchTerm) ||
                 item.descricao.toLowerCase().includes(searchTerm) ||
@@ -124,7 +145,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return matchesSearch && matchesFilters;
         });
 
-        renderContent(filtered);
+        // Se for a página inicial, não aplicar filtros de utilizador, mostrar apenas o conteúdo base
+        if (pageFilter.home) {
+            renderContent(baseContent);
+        } else {
+            renderContent(filtered);
+        }
     }
 
     function handleAccordionClick(event) {
@@ -154,52 +180,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Inicia a aplicação
-    init();
     function getPageFilter() {
         if (window.location.pathname.includes("beats.html")) return { categoria: "Beats" };
         if (window.location.pathname.includes("kits.html")) return { categoria: "Kits & Plugins" };
         if (window.location.pathname.includes("loja.html")) return { preco: ">0" };
         if (window.location.pathname.includes("posts.html")) return { categoria: "Posts" };
-        if (window.location.pathname.includes("index.html") || window.location.pathname.endsWith("/")) return { home: true };
+        if (window.location.pathname.includes("index.html") || window.location.pathname.endsWith('/')) return { home: true };
         return {};
     }
 
-    function renderPageContent() {
-        const filter = getPageFilter();
-        let filtered = allContent;
-
-        if (filter.home) {
-            // últimos 3 posts ordenados por ano/ID
-            filtered = [...allContent]
-                .sort((a, b) => b.ano - a.ano || b.id - a.id)
-                .slice(0, 3);
-        } else if (filter.categoria) {
-            filtered = allContent.filter(item => item.categoria === filter.categoria);
-        } else if (filter.preco === ">0") {
-            filtered = allContent.filter(item => item.preco > 0);
-        }
-
-        renderContent(filtered);
-    }
-
-
-    function renderPageContent() {
-        const filter = getPageFilter();
-
-        let filtered = allContent;
-
-        if (filter === "Home") {
-            // Exemplo: mostra apenas os 3 mais recentes
-            filtered = allContent.slice(0, 3);
-        } else if (filter === "Loja") {
-            // Loja = só itens com preço > 0
-            filtered = allContent.filter(item => item.preco > 0);
-        } else if (filter) {
-            filtered = allContent.filter(item => item.categoria === filter);
-        }
-
-        renderContent(filtered);
-    }
-
+    // Inicia a aplicação
+    init();
 });
