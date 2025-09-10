@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "titulo": "Trap Beat 2025",
+    "descricao": "Beat estilo trap moderno.",
+    "conteudo": "Download disponível em várias versões.",
+    "capa": "assets/img/beat1.jpg",
+    "genero": "Trap",
+    "categoria": "Beats",
+    "ano": 2025,
+    "tipo": "produto",
+    "preco": 0
+  },
+  {
+    "id": 2,
+    "titulo": "Pack de Samples Afro",
+    "descricao": "Samples de percussão africana.",
+    "conteudo": "Inclui mais de 300 sons WAV.",
+    "capa": "assets/img/hihatsmidipackvol1.jpg",
+    "genero": "Afro",
+    "categoria": "Kits & Plugins",
+    "ano": 2024,
+    "tipo": "produto",
+    "preco": 15
+  },
+  {
+    "id": 3,
+    "titulo": "Tutorial de Mixagem",
+    "descricao": "Dicas para mixagem de vocais no rap.",
+    "conteudo": "Explicação passo a passo.",
+    "capa": "assets/img/unkvoices - Gold Xpand Bank 2025.jpg",
+    "genero": "Rap",
+    "categoria": "Posts",
+    "ano": 2023,
+    "tipo": "post",
+    "preco": 0
+  },
+  {
+    "id": 4,
+    "titulo": "Tutorial de Mixagem",
+    "descricao": "Dicas para mixagem de vocais no rap.",
+    "conteudo": "Explicação passo a passo.",
+    "capa": "assets/img/unkvoices - Gold Xpand Bank 2025.jpg",
+    "genero": "Rap",
+    "categoria": "Posts",
+    "ano": 2023,
+    "tipo": "post",
+    "preco": 0
+  }
+]

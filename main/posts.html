@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Posts</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">UNKVoices</div>
+    <div class="search-bar">
+      <input type="text" id="search" placeholder="Pesquisar...">
+    </div>
+    <div class="menu">...</div>
+  </nav>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <select id="filtro-genero" title="Filtrar por gênero">
+      <option value="">Todos os gêneros</option>
+    </select>
+    <select id="filtro-categoria" title="Filtrar por categoria">
+      <option value="">Todas as categorias</option>
+    </select>
+    <select id="filtro-ano" title="Filtrar por ano">
+      <option value="">Todos os anos</option>
+    </select>
+    <select id="filtro-tipo" title="Filtrar por tipo">
+      <option value="">Todos os tipos</option>
+    </select>
+  </div>
+
+  <!-- Container de cards -->
+  <div id="conteudo-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/conteudo.js"></script>
+</body>
+
+</html>

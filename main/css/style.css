@@ -1,0 +1,132 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    background: linear-gradient(135deg, #0a0a0a, #111, #0f0f0f);
+    color: #e0e0e0;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Componentes com efeito glass */
+.glass {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 255, 153, 0.1);
+}
+
+
+/* Navbar */
+header {
+    background: #111;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #222;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar .logo img {
+    height: 50px;
+    border-radius: 8px;
+}
+
+.navbar .menu {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+
+.navbar .menu a {
+    text-decoration: none;
+    color: #f0f0f0;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.navbar .menu a:hover {
+    color: #00ff99;
+}
+
+/* Hero section */
+.hero {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(to right, #111, #222);
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.hero p {
+    margin-bottom: 2rem;
+    font-size: 1.2rem;
+    color: #ccc;
+}
+
+.btn {
+    display: inline-block;
+    background: #00ff99;
+    color: #111;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background: #00cc77;
+}
+
+/* Features */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    padding: 3rem 2rem;
+}
+
+.feature {
+    background: #181818;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+.feature h2 {
+    margin-bottom: 1rem;
+    color: #00ff99;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background: #111;
+    border-top: 1px solid #222;
+    margin-top: 2rem;
+}
+
+/* Container principal dos cards */
+#conteudo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}

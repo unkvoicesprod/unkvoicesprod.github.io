@@ -1,0 +1,168 @@
+/* ================= NAVBAR ================= */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0d1117;
+    padding: 15px 30px;
+    color: white;
+    flex-wrap: wrap;
+    /* faz a navbar quebrar em telas menores */
+}
+
+.search-bar {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.search-bar input {
+    width: 100%;
+    max-width: 400px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+}
+
+/* ================= FILTROS ================= */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    justify-content: center;
+}
+
+.filters select {
+    padding: 8px;
+    border-radius: 6px;
+}
+
+/* ================= GRID DE CARDS ================= */
+#conteudo-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    padding: 20px;
+}
+
+/* ================= CARD BASE ================= */
+.card {
+    background: #111827;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(255, 0, 153, 0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 0 25px rgba(0, 255, 153, 0.35);
+}
+
+/* ================= IMAGEM ================= */
+.card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+/* ================= CONTEÚDO ================= */
+.card-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* BADGE (Beat, Kit, Post) */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #fff;
+}
+
+.badge.beat {
+    background: #ff007f;
+}
+
+/* rosa neon */
+.badge.kit {
+    background: #8b5cf6;
+}
+
+/* roxo neon */
+.badge.post {
+    background: #00ff99;
+}
+
+/* verde neon */
+
+/* ================= TEXTO ================= */
+.card-content h3 {
+    margin: 0 0 6px;
+    font-size: 1.1rem;
+    color: #fff;
+    cursor: pointer;
+    /* indica que é clicável (accordion) */
+}
+
+.card-content p {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-bottom: 8px;
+}
+
+/* ================= FOOTER ================= */
+.card-footer {
+    margin-top: auto;
+    display: flex;
+    gap: 10px;
+}
+
+.card-footer button {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.card-footer .download {
+    background: #00ff99;
+    color: #111;
+}
+
+.card-footer .download:hover {
+    background: #00cc77;
+}
+
+.card-footer .play {
+    background: #ff007f;
+    color: #fff;
+}
+
+.card-footer .play:hover {
+    background: #cc0066;
+}
+
+/* ================= ACCORDION ================= */
+.card .extra {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+}
+
+.card.active .extra {
+    margin-top: 10px;
+}
