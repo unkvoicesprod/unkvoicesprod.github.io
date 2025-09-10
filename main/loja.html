@@ -26,25 +26,28 @@
       <p>Explora produtos exclusivos, beats e pacotes premium.</p>
     </section>
 
-    <section class="grid">
-      <div class="product glass">
-        <img src="assets/images/beat1.jpg" alt="Beat 1">
-        <h2>Beat Trap X</h2>
-        <p>$19.99</p>
-        <a href="#" class="btn">Comprar</a>
-      </div>
+<input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
+<div class="filters">
+  <select id="filtro-genero" title="Filtrar por gênero">
+    <option value="">Todos os gêneros</option>
+  </select>
+  <select id="filtro-categoria" title="Filtrar por categoria">
+    <option value="">Todas as categorias</option>
+  </select>
+  <select id="filtro-ano" title="Filtrar por ano">
+    <option value="">Todos os anos</option>
+  </select>
+  <select id="filtro-tipo" title="Filtrar por tipo">
+    <option value="">Todos os tipos</option>
+  </select>
+</div>
 
-      <div class="product glass">
-        <img src="assets/images/hihatsmidipackvol1.jpg" alt="Hi-Hats">
-        <h2>Hi-Hats MIDI Pack Vol.1</h2>
-        <p>$9.99</p>
-        <a href="#" class="btn">Comprar</a>
-      </div>
-    </section>
+<!-- Container de cards -->
+<div id="conteudo-container" class="grid-dynamic"></div>
+
   </main>
 
   <footer class="glass">
-    <p>&copy; 2025 UNK Voices</p>
-  </footer>
+    <p>&copy; 2025 UNKVOICES</p>
 </body>
 </html>

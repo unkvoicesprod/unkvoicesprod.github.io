@@ -26,7 +26,7 @@
   {
     "id": 3,
     "titulo": "Tutorial de Mixagem",
-    "descricao": "Dicas para mixagem de vocais no rap.Dicas para mixagem de vocais no rap.Dicas para mixagem de vocais no rap.Dicas para mixagem de vocais no rap.",
+    "descricao": "Dicas para mixagem de vocais no rap.",
     "conteudo": "Explicação passo a passo.",
     "capa": "assets/img/unkvoices - Gold Xpand Bank 2025.jpg",
     "genero": "Rap",
@@ -40,9 +40,21 @@
   "titulo": "Beat Drill Supreme",
   "descricao": "Energia pesada para drill.",
   "conteudo": "MP3 + WAV + STEMS.",
-  "capa": "assets/img/drill.jpg",
+  "capa": "assets/img/beat1.jpg",
   "genero": "Drill",
   "categoria": "Beats",
+  "ano": 2025,
+  "tipo": "produto",
+  "preco": 29
+},
+  {
+  "id": 5,
+  "titulo": "Beat Drill Supreme",
+  "descricao": "Energia pesada para drill.",
+  "conteudo": "MP3 + WAV + STEMS.",
+  "capa": "assets/img/beat1.jpg",
+  "genero": "Drill",
+  "categoria": "Post",
   "ano": 2025,
   "tipo": "produto",
   "preco": 29

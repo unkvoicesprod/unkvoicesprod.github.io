@@ -1,11 +1,7 @@
 
 /*
-Chaves do JSON {
+Chaves do JSON
 Beats   /   Kits    /   Posts
-}
-
-
-
 */
 
 
@@ -161,13 +157,32 @@ document.addEventListener("DOMContentLoaded", () => {
     // Inicia a aplicação
     init();
     function getPageFilter() {
-        if (window.location.pathname.includes("beats.html")) return "Beats";
-        if (window.location.pathname.includes("kits.html")) return "Kits & Plugins";
-        if (window.location.pathname.includes("loja.html")) return "Loja";
-        if (window.location.pathname.includes("posts.html")) return "Posts";
-        if (window.location.pathname.includes("index.html") || window.location.pathname.endsWith("/")) return "Home";
-        return "";
+        if (window.location.pathname.includes("beats.html")) return { categoria: "Beats" };
+        if (window.location.pathname.includes("kits.html")) return { categoria: "Kits & Plugins" };
+        if (window.location.pathname.includes("loja.html")) return { preco: ">0" };
+        if (window.location.pathname.includes("posts.html")) return { categoria: "Posts" };
+        if (window.location.pathname.includes("index.html") || window.location.pathname.endsWith("/")) return { home: true };
+        return {};
     }
+
+    function renderPageContent() {
+        const filter = getPageFilter();
+        let filtered = allContent;
+
+        if (filter.home) {
+            // últimos 3 posts ordenados por ano/ID
+            filtered = [...allContent]
+                .sort((a, b) => b.ano - a.ano || b.id - a.id)
+                .slice(0, 3);
+        } else if (filter.categoria) {
+            filtered = allContent.filter(item => item.categoria === filter.categoria);
+        } else if (filter.preco === ">0") {
+            filtered = allContent.filter(item => item.preco > 0);
+        }
+
+        renderContent(filtered);
+    }
+
 
     function renderPageContent() {
         const filter = getPageFilter();

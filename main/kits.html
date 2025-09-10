@@ -26,18 +26,29 @@
       <p>Bibliotecas e packs para elevar a tua produção.</p>
     </section>
 
-    <section class="grid">
-      <div class="product glass">
-        <img src="assets/images/unkvoices - Gold Xpand Bank 2025.jpg" alt="Xpand Bank">
-        <h2>Gold Xpand Bank 2025</h2>
-        <p>$29.99</p>
-        <a href="#" class="btn">Comprar</a>
-      </div>
-    </section>
+<input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
+<div class="filters">
+  <select id="filtro-genero" title="Filtrar por gênero">
+    <option value="">Todos os gêneros</option>
+  </select>
+  <select id="filtro-categoria" title="Filtrar por categoria">
+    <option value="">Todas as categorias</option>
+  </select>
+  <select id="filtro-ano" title="Filtrar por ano">
+    <option value="">Todos os anos</option>
+  </select>
+  <select id="filtro-tipo" title="Filtrar por tipo">
+    <option value="">Todos os tipos</option>
+  </select>
+</div>
+
+<!-- Container de cards -->
+<div id="conteudo-container" class="grid-dynamic"></div>
+
   </main>
 
   <footer class="glass">
-    <p>&copy; 2025 UNK Voices</p>
+    <p>&copy; 2025 UNKVOICES</p>
   </footer>
 </body>
 </html>
