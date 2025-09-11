@@ -1,32 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Posts</title>
-    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <title> Pagina inicial </title>
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/conteudo.css">
 </head>
-
 <body>
-    
   <header class="glass">
     <nav class="navbar">
-      <div class="logo"><img src="assets/logo.jpg" alt="Logo"></div>
+      <div class="logo">
+        <img src="assets/logo.jpg" alt="Logo UNK Voices">
+      </div>
       <ul class="menu">
-        <li><a href="index.html">Home</a></li>
+        <li><a href="index.html" class="active">Home</a></li>
         <li><a href="beats.html">Beats</a></li>
         <li><a href="kits.html">Kits</a></li>
         <li><a href="loja.html">Loja</a></li>
-        <li><a href="posts.html" class="active">Posts</a></li>
+        <li><a href="posts.html">Posts</a></li>
       </ul>
     </nav>
   </header>
 
   <main>
-   <input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
+    <section class="hero glass">
+      <h1>Bem-vindo ao UNK Voices</h1>
+      <p>Beats, plugins e conteúdo musical num só lugar.</p>
+      <a href="loja.html" class="btn">Explorar Loja</a>
+    </section>
+
+<input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
 <div class="filters">
   <select id="filtro-genero" title="Filtrar por gênero">
     <option value="">Todos os gêneros</option>
@@ -51,7 +56,8 @@
     <p>&copy; 2025 UNKVOICES</p>
   </footer>
 
+  <script src="js/alerts.js"></script>
+  <script src="js/scripts.js"></script>
   <script src="js/conteudo.js"></script>
 </body>
-
 </html>

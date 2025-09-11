@@ -38,11 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderContent(list) {
-        // Esconde os filtros na página inicial, pois ela tem conteúdo fixo
-        if (getPageFilter().home) {
-            document.querySelector('.filters').style.display = 'none';
-            document.querySelector('.search-bar-full').style.display = 'none';
-        }
         if (!list.length) {
             elements.container.innerHTML = `<p class="no-results">Nenhum item encontrado.</p>`;
             return;
@@ -67,22 +62,30 @@ document.addEventListener("DOMContentLoaded", () => {
                 : "";
 
             return `
-                <div class="card">
-                    <img src="${item.capa}" alt="${item.titulo}">
-                    <div class="card-content">
-                        <span class="badge ${badgeClass}">${item.categoria}</span>
-                        <h3 class="accordion-title">${item.titulo}</h3>
-                        <p><strong>${item.genero}</strong> - ${item.ano}</p>
-                        <p>${item.descricao}</p>
-                        <div class="extra"><p>${item.conteudo}</p></div>
-                        <div class="card-footer">
-                            ${actionButton}
-                            ${playButton}
-                        </div>
-                    </div>
-                </div>
-            `;
+  <div class="card">
+    <img src="${item.capa}" alt="${item.titulo}" loading="lazy" decoding="async">
+    <div class="card-content">
+      <span class="badge ${badgeClass}">${item.categoria}</span>
+      <h3 class="accordion-title">${item.titulo}</h3>
+      <p><strong>${item.genero}</strong> - ${item.ano}</p>
+      <p>${item.descricao}</p>
+      <div class="extra">
+        <p><strong>Tipo:</strong> ${item.tipo}</p>
+        <p><strong>Preço:</strong> ${item.preco > 0 ? "R$ " + item.preco : "Grátis"}</p>
+        <p>${item.conteudo}</p>
+      </div>
+      <div class="card-footer">
+        ${actionButton}
+        ${playButton}
+      </div>
+    </div>
+  </div>
+`;
+
         }).join('');
+
+        const cards = elements.container.querySelectorAll('.card');
+        observeCards(cards);
     }
 
     function populateFilters() {
@@ -119,15 +122,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let baseContent = allContent;
 
-        // 1. Aplicar o filtro base da página
-        if (pageFilter.home) {
-            baseContent = [...allContent]
-                .sort((a, b) => b.ano - a.ano || b.id - a.id)
-                .slice(0, 3);
-        } else if (pageFilter.categoria) {
+        // 1. Aplicar o filtro base da página (se houver)
+        if (pageFilter.categoria) {
             baseContent = allContent.filter(item => item.categoria === pageFilter.categoria);
         } else if (pageFilter.preco === ">0") {
             baseContent = allContent.filter(item => item.preco > 0);
+        }
+
+        // Na página inicial, se não houver filtro, mostrar apenas os 3 mais recentes
+        const isFiltering = searchTerm || selected.genero || selected.categoria || selected.ano || selected.tipo;
+        if (pageFilter.home && !isFiltering) {
+            const latestContent = [...allContent]
+                .sort((a, b) => b.ano - a.ano || b.id - a.id)
+                .slice(0, 3);
+            renderContent(latestContent);
+            return; // Interrompe a função para mostrar apenas os itens mais recentes
         }
 
         const filtered = baseContent.filter(item => {
@@ -145,12 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return matchesSearch && matchesFilters;
         });
 
-        // Se for a página inicial, não aplicar filtros de utilizador, mostrar apenas o conteúdo base
-        if (pageFilter.home) {
-            renderContent(baseContent);
-        } else {
-            renderContent(filtered);
-        }
+        renderContent(filtered);
     }
 
     function handleAccordionClick(event) {
@@ -187,6 +191,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (window.location.pathname.includes("posts.html")) return { categoria: "Posts" };
         if (window.location.pathname.includes("index.html") || window.location.pathname.endsWith('/')) return { home: true };
         return {};
+    }
+
+    function observeCards(cards) {
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target); // Deixa de observar o elemento após a animação
+                }
+            });
+        }, { threshold: 0.1 }); // A animação começa quando 10% do card está visível
+
+        cards.forEach(card => {
+            observer.observe(card);
+        });
     }
 
     // Inicia a aplicação
