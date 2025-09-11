@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentFilteredContent = [];
     let currentPage = 1;
     const itemsPerPage = 5;
+    // Estado do player de áudio
+    const audioPlayer = new Audio();
+    let currentlyPlaying = {
+        button: null,
+        timeoutId: null,
+    };
 
     // Cache de elementos do DOM para evitar múltiplas buscas
     const elements = {
@@ -38,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             allContent = await response.json();
 
+            setupAudioPlayer();
             const appliedFromURL = applyFiltersFromURL();
             setupEventListeners();
             populateFilters();
@@ -91,7 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const buttonText = item.preco === 0 ? '⬇ Baixar' : '🛒 Comprar';
                 const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="download">${buttonText}</a>` : '';
-                const playButton = window.location.pathname.includes("beats.html") ? `<button class="play">▶ Play</button>` : "";
+                const playButton = (window.location.pathname.includes("beats.html") && item.audioPreview)
+                    ? `<button class="play" data-audio-src="${item.audioPreview}">▶ Play</button>`
+                    : "";
 
                 return `
                 <div class="card" data-id="${item.id}">
@@ -257,6 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setupEventListeners() {
         // Delegação de eventos para os cliques no acordeão
+        elements.container.addEventListener('click', handleCardClick);
         elements.container.addEventListener('click', handleAccordionClick);
 
         // Listeners para os filtros
@@ -280,6 +290,52 @@ document.addEventListener("DOMContentLoaded", () => {
         if (elements.clearFiltersBtn) {
             elements.clearFiltersBtn.addEventListener('click', resetFilters);
         }
+    }
+
+    function setupAudioPlayer() {
+        // Quando o áudio termina ou é pausado, reseta o estado do botão
+        audioPlayer.addEventListener('ended', resetPlayerState);
+        audioPlayer.addEventListener('pause', resetPlayerState);
+    }
+
+    function resetPlayerState() {
+        if (currentlyPlaying.button) {
+            currentlyPlaying.button.textContent = '▶ Play';
+        }
+        if (currentlyPlaying.timeoutId) {
+            clearTimeout(currentlyPlaying.timeoutId);
+        }
+        currentlyPlaying.button = null;
+        currentlyPlaying.timeoutId = null;
+    }
+
+    function handleCardClick(event) {
+        const playButton = event.target.closest('.play');
+        if (!playButton) return;
+
+        event.stopPropagation(); // Impede que o acordeão abra ao clicar em "Play"
+
+        const audioSrc = playButton.dataset.audioSrc;
+        const isCurrentlyPlayingThis = currentlyPlaying.button === playButton;
+
+        // Pausa o player atual (isso também chama resetPlayerState via evento 'pause')
+        audioPlayer.pause();
+
+        // Se o botão clicado já estava tocando, a ação era apenas parar.
+        if (isCurrentlyPlayingThis) {
+            return;
+        }
+
+        // Inicia a reprodução do novo áudio
+        audioPlayer.src = audioSrc;
+        audioPlayer.currentTime = 0;
+        audioPlayer.play();
+
+        playButton.textContent = '❚❚ Pause';
+        currentlyPlaying.button = playButton;
+
+        // Define o tempo limite de 30 segundos
+        currentlyPlaying.timeoutId = setTimeout(() => audioPlayer.pause(), 30000);
     }
 
     function handleFilterChange(event) {

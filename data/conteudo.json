@@ -10,7 +10,8 @@
     "ano": 2025,
     "tipo": "produto",
     "preco": 0,
-    "link": "#"
+    "link": "#",
+    "audioPreview": "assets/audio/beat1_preview.mp3"
   },
   {
     "id": 2,
@@ -49,7 +50,8 @@
   "ano": 2025,
   "tipo": "produto",
   "preco": 29,
-  "link": "#"
+  "link": "#",
+  "audioPreview": "assets/audio/beat_drill_supreme_preview.mp3"
 },
   {
   "id": 5,
