@@ -5,29 +5,68 @@
     box-sizing: border-box;
 }
 
+:root {
+    /* Palette */
+    --color-background: #111;
+    --color-background-gradient-start: #0a0a0a;
+    --color-background-gradient-end: #0f0f0f;
+    --color-surface-1: #181818;
+    /* feature background */
+    --color-surface-2: #111827;
+    /* card background */
+    --color-surface-hover: #1f2937;
+    /* select hover */
+
+    --color-text-primary: #f0f0f0;
+    --color-text-secondary: #ccc;
+    --color-text-on-accent: #111;
+    --color-white: #fff;
+
+    --color-border: #222;
+
+    --color-accent-green: #00ff99;
+    --color-accent-green-hover: #00cc77;
+    --color-accent-pink: #ff007f;
+    --color-accent-pink-hover: #cc0066;
+    --color-accent-purple: #8b5cf6;
+
+    /* Effects */
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow-green: rgba(0, 255, 153, 0.1);
+
+    --card-shadow-pink: rgba(255, 0, 153, 0.15);
+    --card-shadow-green-hover: rgba(0, 255, 153, 0.35);
+
+    --filter-shadow-green: rgba(0, 255, 153, 0.3);
+    --filter-shadow-green-hover: rgba(0, 255, 153, 0.5);
+
+    --option-bg: hsla(221, 39%, 11%, 0.418);
+}
+
 body {
     font-family: 'Segoe UI', sans-serif;
     line-height: 1.6;
-    background: linear-gradient(135deg, #0a0a0a, #111, #0f0f0f);
-    color: #e0e0e0;
+    background: linear-gradient(135deg, var(--color-background-gradient-start), var(--color-background), var(--color-background-gradient-end));
+    color: var(--color-text-primary);
 }
 
 /* Componentes com efeito glass */
 .glass {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: 12px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 4px 20px rgba(0, 255, 153, 0.1);
+    box-shadow: 0 4px 20px var(--glass-shadow-green);
 }
 
 
 /* Navbar */
 header {
-    background: #111;
+    background: var(--color-background);
     padding: 1rem 2rem;
-    border-bottom: 1px solid #222;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .navbar {
@@ -49,20 +88,20 @@ header {
 
 .navbar .menu a {
     text-decoration: none;
-    color: #f0f0f0;
+    color: var(--color-text-primary);
     font-weight: bold;
     transition: color 0.2s;
 }
 
 .navbar .menu a:hover {
-    color: #00ff99;
+    color: var(--color-accent-green);
 }
 
 /* Hero section */
 .hero {
     text-align: center;
     padding: 4rem 2rem;
-    background: linear-gradient(to right, #111, #222);
+    background: linear-gradient(to right, var(--color-background), var(--color-border));
 }
 
 .hero h1 {
@@ -73,13 +112,13 @@ header {
 .hero p {
     margin-bottom: 2rem;
     font-size: 1.2rem;
-    color: #ccc;
+    color: var(--color-text-secondary);
 }
 
 .btn {
     display: inline-block;
-    background: #00ff99;
-    color: #111;
+    background: var(--color-accent-green);
+    color: var(--color-text-on-accent);
     padding: 0.75rem 1.5rem;
     border-radius: 8px;
     text-decoration: none;
@@ -88,7 +127,7 @@ header {
 }
 
 .btn:hover {
-    background: #00cc77;
+    background: var(--color-accent-green-hover);
 }
 
 /* Features */
@@ -100,7 +139,7 @@ header {
 }
 
 .feature {
-    background: #181818;
+    background: var(--color-surface-1);
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -109,14 +148,14 @@ header {
 
 .feature h2 {
     margin-bottom: 1rem;
-    color: #00ff99;
+    color: var(--color-accent-green);
 }
 
 /* Footer */
 footer {
     text-align: center;
     padding: 1.5rem;
-    background: #111;
-    border-top: 1px solid #222;
+    background: var(--color-background);
+    border-top: 1px solid var(--color-border);
     margin-top: 2rem;
 }

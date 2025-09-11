@@ -28,7 +28,8 @@
       <p>Explora produtos exclusivos, beats e pacotes premium.</p>
     </section>
 
-<input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
+    <input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
+    <button id="toggle-filters-btn" class="toggle-filters-btn">☰ Filtrar</button>
 <div class="filters">
   <select id="filtro-genero" title="Filtrar por gênero">
     <option value="">Todos os gêneros</option>
@@ -42,10 +43,12 @@
   <select id="filtro-tipo" title="Filtrar por tipo">
     <option value="">Todos os tipos</option>
   </select>
+  <button id="clear-filters-btn" class="clear-filters-btn">Limpar Filtros</button>
 </div>
 
 <!-- Container de cards -->
 <div id="conteudo-container" class="grid-dynamic"></div>
+<div id="pagination-container" class="pagination"></div>
 
   </main>
 

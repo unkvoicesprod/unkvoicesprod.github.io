@@ -8,9 +8,11 @@
     outline: none;
     display: block;
     margin: 2rem auto 1rem;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--glass-border);
+    /* Reutilizando variável com cor similar */
     border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #f0f0f0;
+    /* Mantido por ser único */
+    color: var(--color-text-primary);
 }
 
 /* ================= FILTROS ================= */
@@ -32,10 +34,10 @@
 
 /* ================= CARD BASE ================= */
 .card {
-    background: #111827;
+    background: var(--color-surface-2);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 0 20px rgba(255, 0, 153, 0.15);
+    box-shadow: 0 0 20px var(--card-shadow-pink);
     display: flex;
     flex-direction: column;
 
@@ -52,11 +54,16 @@
 
 .card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 0 25px rgba(0, 255, 153, 0.35);
+    box-shadow: 0 0 25px var(--card-shadow-green-hover);
 }
 
 /* ================= IMAGEM ================= */
-.card img {
+/* Novo container para a imagem para manter a proporção e o tamanho fixo */
+.card-image-container {
+    height: 180px;
+}
+
+.card-image-container img {
     width: 100%;
     height: 180px;
     object-fit: cover;
@@ -78,21 +85,21 @@
     font-size: 0.8rem;
     font-weight: bold;
     margin-bottom: 10px;
-    color: #fff;
+    color: var(--color-white);
 }
 
 .badge.beat {
-    background: #ff007f;
+    background: var(--color-accent-pink);
 }
 
 /* rosa neon */
 .badge.kit {
-    background: #8b5cf6;
+    background: var(--color-accent-purple);
 }
 
 /* roxo neon */
 .badge.post {
-    background: #00ff99;
+    background: var(--color-accent-green);
 }
 
 /* verde neon */
@@ -101,14 +108,14 @@
 .card-content h3 {
     margin: 0 0 6px;
     font-size: 1.1rem;
-    color: #fff;
+    color: var(--color-white);
     cursor: pointer;
     /* indica que é clicável (accordion) */
 }
 
 .card-content p {
     font-size: 0.9rem;
-    color: #ccc;
+    color: var(--color-text-secondary);
     margin-bottom: 8px;
 }
 
@@ -119,7 +126,8 @@
     gap: 10px;
 }
 
-.card-footer button {
+.card-footer button,
+.card-footer a {
     flex: 1;
     padding: 8px 12px;
     border: none;
@@ -127,24 +135,39 @@
     font-weight: bold;
     cursor: pointer;
     transition: background 0.3s;
+    text-decoration: none;
+    text-align: center;
+    display: inline-block;
+    font-size: 0.9rem;
+}
+
+.card-footer .post-action {
+    color: var(--color-accent-green);
+    font-weight: bold;
+    cursor: pointer;
 }
 
 .card-footer .download {
-    background: #00ff99;
-    color: #111;
+    background: var(--color-accent-green);
+    color: var(--color-text-on-accent);
 }
 
 .card-footer .download:hover {
-    background: #00cc77;
+    background: var(--color-accent-green-hover);
 }
 
 .card-footer .play {
-    background: #ff007f;
-    color: #fff;
+    background: var(--color-accent-pink);
+    color: var(--color-white);
 }
 
 .card-footer .play:hover {
-    background: #cc0066;
+    background: var(--color-accent-pink-hover);
+}
+
+/* Torna o card de post clicável */
+.card-post {
+    cursor: pointer;
 }
 
 /* ================= ACCORDION ================= */
@@ -164,20 +187,160 @@
     padding: 10px 14px;
     border-radius: 12px;
     border: none;
-    background: #111827;
-    color: #00ff99;
+    background: var(--color-surface-2);
+    color: var(--color-accent-green);
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 0 2px rgba(0, 255, 153, 0.3);
+    box-shadow: 0 0 2px var(--filter-shadow-green);
     transition: all 0.3s ease;
 }
 
 .filters select:hover {
-    background: #1f2937;
-    box-shadow: 0 0 5px rgba(0, 255, 153, 0.5);
+    background: var(--color-surface-hover);
+    box-shadow: 0 0 5px var(--filter-shadow-green-hover);
 }
 
 .filters option {
-    background: hsla(221, 39%, 11%, 0.418);
-    color: #f0f0f0;
+    background: var(--option-bg);
+    color: var(--color-text-primary);
+}
+
+/* ================= BOTÃO DE LIMPAR FILTROS ================= */
+.clear-filters-btn {
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--color-accent-pink);
+    background: transparent;
+    color: var(--color-accent-pink);
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.clear-filters-btn:hover {
+    background: var(--color-accent-pink);
+    color: var(--color-white);
+}
+
+/* ================= BOTÃO DE FILTROS RESPONSIVO ================= */
+.toggle-filters-btn {
+    display: none;
+    /* Escondido por padrão em telas grandes */
+    width: 90%;
+    max-width: 600px;
+    margin: 1rem auto;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: bold;
+    background: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.toggle-filters-btn:hover {
+    background: var(--color-accent-green-hover);
+}
+
+/* ================= MEDIA QUERIES PARA RESPONSIVIDADE ================= */
+@media (max-width: 768px) {
+    .toggle-filters-btn {
+        display: block;
+        /* Mostra o botão em telas pequenas */
+    }
+
+    .filters {
+        display: none;
+        /* Esconde os filtros por padrão em telas pequenas */
+        flex-direction: column;
+    }
+
+    .filters.is-open {
+        display: flex;
+        /* Mostra os filtros quando a classe .is-open é adicionada */
+    }
+}
+
+/* ================= PAGINAÇÃO ================= */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 2rem 0;
+}
+
+.pagination button {
+    min-width: 40px;
+    height: 40px;
+    padding: 5px 10px;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    background: var(--color-surface-2);
+    color: var(--color-text-secondary);
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.pagination button:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-accent-green);
+}
+
+.pagination button.active {
+    background: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+    border-color: var(--color-accent-green);
+}
+
+/* ================= LOADER ANIMATION ================= */
+.loader {
+    border: 5px solid var(--color-surface-2);
+    /* Cinza escuro para a base */
+    border-top: 5px solid var(--color-accent-green);
+    /* Verde neon para o spinner */
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 5rem auto;
+    /* Centraliza e dá espaço */
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* ================= MENSAGEM "NENHUM RESULTADO" ================= */
+.no-results-container {
+    grid-column: 1 / -1;
+    /* Ocupa toda a largura do grid */
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--color-text-secondary);
+    border: 2px dashed var(--color-surface-hover);
+    border-radius: 16px;
+    margin: 20px;
+}
+
+.no-results-container .icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.no-results-container h4 {
+    font-size: 1.5rem;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
 }

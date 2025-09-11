@@ -1,7 +1,7 @@
 [
   {
     "id": 1,
-    "titulo": "Trap Beat 2025",
+    "titulo": "Trap B00eat 20k-025",
     "descricao": "Beat estilo trap moderno.Beat estilo trap moderno.Beat estilo trap moderno.Beat estilo trap moderno.Beat estilo trap moderno.Beat estilo trap moderno.",
     "conteudo": "Download disponível em várias versões.",
     "capa": "assets/img/beat1.jpg",
@@ -9,11 +9,12 @@
     "categoria": "Beats",
     "ano": 2025,
     "tipo": "produto",
-    "preco": 0
+    "preco": 0,
+    "link": "#"
   },
   {
     "id": 2,
-    "titulo": "Pack de Samples Afro",
+    "titulo": "Pac0k de S0amples Afro",
     "descricao": "Samples de percussão africana.Samples de percussão africana.Samples de percussão africana.Samples de percussão africana.Samples de percussão africana.",
     "conteudo": "Inclui mais de 300 sons WAV.",
     "capa": "assets/img/hihatsmidipackvol1.jpg",
@@ -21,11 +22,12 @@
     "categoria": "Kits & Plugins",
     "ano": 2024,
     "tipo": "produto",
-    "preco": 15
+    "preco": 15,
+    "link": "#"
   },
   {
     "id": 3,
-    "titulo": "Tutorial de Mixagem",
+    "titulo": "Tuto000agem",
     "descricao": "Dicas para mixagem de vocais no rap.",
     "conteudo": "Explicação passo a passo.",
     "capa": "assets/img/unkvoices - Gold Xpand Bank 2025.jpg",
@@ -33,7 +35,8 @@
     "categoria": "Posts",
     "ano": 2023,
     "tipo": "post",
-    "preco": 0
+    "preco": 0,
+    "link": "#"
   },
   {
   "id": 4,
@@ -45,7 +48,8 @@
   "categoria": "Beats",
   "ano": 2025,
   "tipo": "produto",
-  "preco": 29
+  "preco": 29,
+  "link": "#"
 },
   {
   "id": 5,
@@ -57,7 +61,8 @@
   "categoria": "Posts",
   "ano": 2025,
   "tipo": "produto",
-  "preco": 29
+  "preco": 29.99,
+  "link": "#"
 }
 
 ]
