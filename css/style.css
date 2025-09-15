@@ -56,8 +56,8 @@ body {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
-    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
     box-shadow: 0 4px 20px var(--glass-shadow-green);
 }
 
@@ -76,8 +76,9 @@ header {
 }
 
 .navbar .logo img {
-    height: 50px;
+    height: 35px;
     border-radius: 8px;
+    display: inline-flex;
 }
 
 .navbar .menu {
@@ -120,7 +121,7 @@ header {
     background: var(--color-accent-green);
     color: var(--color-text-on-accent);
     padding: 0.75rem 1.5rem;
-    border-radius: 8px;
+    border-radius: 20px;
     text-decoration: none;
     font-weight: bold;
     transition: background 0.3s;

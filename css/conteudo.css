@@ -1,9 +1,9 @@
 /* ================= BARRA DE PESQUISA (Página de Posts) ================= */
 .search-bar-full {
-    width: 100%;
+    width: 90%;
     max-width: 600px;
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 10px 20px;
+    border-radius: 26px;
     border: none;
     outline: none;
     display: block;
@@ -37,7 +37,7 @@
     background: var(--color-surface-2);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 0 20px var(--card-shadow-pink);
+    box-shadow: 0 0 2px var(--card-shadow-pink);
     display: flex;
     flex-direction: column;
 
@@ -54,7 +54,7 @@
 
 .card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 0 25px var(--card-shadow-green-hover);
+    box-shadow: 0 0 10px var(--card-shadow-green-hover);
 }
 
 /* ================= IMAGEM ================= */
@@ -81,11 +81,13 @@
 .badge {
     display: inline-block;
     padding: 4px 10px;
-    border-radius: 50px;
+    border-radius: 5px;
+    text-align: center;
     font-size: 0.8rem;
     font-weight: bold;
     margin-bottom: 10px;
     color: var(--color-white);
+    width: auto;
 }
 
 .badge.beat {
@@ -184,20 +186,22 @@
 }
 
 .filters select {
-    padding: 10px 14px;
+    padding: 10px 10;
     border-radius: 12px;
     border: none;
     background: var(--color-surface-2);
     color: var(--color-accent-green);
     font-weight: bold;
+    text-align: center;
     cursor: pointer;
     box-shadow: 0 0 2px var(--filter-shadow-green);
     transition: all 0.3s ease;
 }
 
 .filters select:hover {
+    color: #fff;
     background: var(--color-surface-hover);
-    box-shadow: 0 0 5px var(--filter-shadow-green-hover);
+    box-shadow: 0 0 2px var(--filter-shadow-green-hover);
 }
 
 .filters option {
