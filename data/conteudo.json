@@ -27,16 +27,29 @@
   },
   {
     "id": 3,
-    "titulo": "[FREE] Yeat Type Beat - urus prod.Unkvoices 2025 ",
+    "titulo": "[FREE] Yeat x Bnyx Type Beat - urus prod.Unkvoices 2025 ",
     "descricao": "Free beat inspirado em yeat e Bnyx",
-    "conteudo": " ",
-    "capa": "assets/img/unkvoices - Gold Xpand Bank 2025.jpg",
+    "conteudo": " Ranger type beat, Hard Beat ",
+    "capa": "https://i.redd.it/yeat-x-synthetic-might-just-be-better-than-yeat-x-bnyx-v0-yjbx949lwstc1.jpg?width=500&format=pjpg&auto=webp&s=dc9b2fcdc890264443bf7546510c89f24c53614a",
     "genero": "Rap",
     "categoria": "Beats",
     "ano": 2025,
     "tipo": "Beats",
     "preco":0,
-    "link": "#"
+    "link": "https://www.mediafire.com/file/2710fj1x1oin70t/%255BFREE%255D_Yeat_x_Bnyx_Type_Beat_-_urus_prod.unkvoices_2025.mp3/file"
+  },
+  {
+    "id": 4,
+    "titulo": "[FREE] Kanye West Type Beat - Bully Prod. unkvoices 2025  ",
+    "descricao": "Free beat inspirado em Ye e Kanye West",
+    "conteudo": " ",
+    "capa": "https://i9.ytimg.com/vi_webp/5ieN9Xmsk8M/mq2.webp?sqp=CLDEocYG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgTig6MA8=&rs=AOn4CLAagmbB-wxgZ7WVrVbaf1JZqB-pAQ",
+    "genero": "Rap",
+    "categoria": "Beats",
+    "ano": 2025,
+    "tipo": "Beats",
+    "preco":0,
+    "link": "https://www.mediafire.com/file/tbrfl22s2cgo208/%255BFREE%255D_Kanye_West_Type_Beat_-_Bully_Prod._unkvoices_2025_.mp3/file"
   }
 
 ]
