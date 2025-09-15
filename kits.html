@@ -79,7 +79,25 @@
   <footer class="glass">
     <p>&copy; 2025 UNKVOICES</p>
   </footer>
-
+  
+  <div id="global-player" class="global-player glass hidden">
+    <img id="player-cover" src="assets/logo.jpg" alt="Capa do Beat">
+    <div class="track-info">
+        <p id="player-title">Selecione um beat</p>
+    </div>
+    <div class="player-controls">
+        <button id="player-play-pause" class="control-btn" aria-label="Play/Pause">▶</button>
+    </div>
+    <div class="progress-container">
+        <span id="player-current-time">0:00</span>
+        <input type="range" id="player-progress" value="0" step="1" min="0" max="30" aria-label="Progresso da música">
+        <span id="player-duration">0:30</span>
+    </div>
+    <button id="player-close" class="close-btn" aria-label="Fechar Player">&times;</button>
+    <audio id="global-audio-player" preload="metadata"></audio>
+  </div>
+  
   <script src="js/conteudo.js"></script>
+  <script src="js/global-player.js"></script>
 </body>
 </html>

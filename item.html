@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!-- As meta tags serão preenchidas por JavaScript -->
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Metadados Padrão (Fallback) -->
+  <title>UNKVOICES</title>
+  <meta name="description" content="Beats, plugins e conteúdo musical num só lugar.">
+  <meta property="og:title" content="UNKVOICES">
+  <meta property="og:description" content="Beats, plugins e conteúdo musical num só lugar.">
+  <meta property="og:image" content="https://unkvoices.github.io/assets/logo.jpg">
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:image" content="https://unkvoices.github.io/assets/logo.jpg">
+
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/conteudo.css">
+  <style>
+    /* Estilos específicos para a página de item */
+    .item-detail-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+    .item-detail-container img {
+      width: 300px;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: 0 0 20px var(--card-shadow-pink);
+    }
+    .item-info {
+      flex: 1;
+    }
+    .item-info h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    .item-info .price {
+      font-size: 1.5rem;
+      color: var(--color-accent-green);
+      font-weight: bold;
+      margin: 1rem 0;
+    }
+    .item-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .item-actions .btn {
+        flex: 1;
+    }
+    @media (max-width: 768px) {
+      .item-detail-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      .item-detail-container img {
+        width: 100%;
+        max-width: 350px;
+        height: auto;
+      }
+      .item-info h1 {
+        font-size: 2rem;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="glass">
+    <nav class="navbar">
+      <div class="logo"> <a href="index.html"><img src="assets/logo.jpg" alt="Logo"></a></div>
+      <ul class="menu">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="beats.html">Beats</a></li>
+        <li><a href="kits.html">Kits</a></li>
+        <li><a href="loja.html">Loja</a></li>
+        <li><a href="posts.html">Posts</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- O conteúdo do item será inserido aqui pelo JavaScript -->
+    <div id="item-detail-container">
+        <div class="loader"></div>
+    </div>
+  </main>
+
+  <footer class="glass">
+    <p>&copy; 2025 UNKVOICES</p>
+  </footer>
+  
+  <div id="global-player" class="global-player glass hidden">
+    <img id="player-cover" src="assets/logo.jpg" alt="Capa do Beat">
+    <div class="track-info">
+        <p id="player-title">Selecione um beat</p>
+    </div>
+    <div class="player-controls">
+        <button id="player-play-pause" class="control-btn" aria-label="Play/Pause">▶</button>
+    </div>
+    <div class="progress-container">
+        <span id="player-current-time">0:00</span>
+        <input type="range" id="player-progress" value="0" step="1" min="0" max="30" aria-label="Progresso da música">
+        <span id="player-duration">0:30</span>
+    </div>
+    <button id="player-close" class="close-btn" aria-label="Fechar Player">&times;</button>
+    <audio id="global-audio-player" preload="metadata"></audio>
+  </div>
+  
+  <script src="js/item-detail.js"></script>
+  <script src="js/global-player.js"></script>
+</body>
+</html>

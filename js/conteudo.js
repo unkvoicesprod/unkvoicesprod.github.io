@@ -11,12 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentFilteredContent = [];
     let currentPage = 1;
     const itemsPerPage = 5;
-    // Estado do player de áudio
-    const audioPlayer = new Audio();
-    let currentlyPlaying = {
-        button: null,
-        timeoutId: null,
-    };
 
     // Cache de elementos do DOM para evitar múltiplas buscas
     const elements = {
@@ -44,7 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             allContent = await response.json();
 
-            setupAudioPlayer();
             const appliedFromURL = applyFiltersFromURL();
             setupEventListeners();
             populateFilters();
@@ -76,52 +69,48 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isPost) {
                 // --- LÓGICA DE RENDERIZAÇÃO PARA POSTS ---
                 return `
-                <div class="card card-post" data-id="${item.id}">
+                <a href="item.html?id=${item.id}" class="card card-post" data-id="${item.id}">
                     <div class="card-image-container">
                     <img src="${imagePath}" alt="${item.titulo}" loading="lazy" decoding="async" width="320" height="180">
                     </div>
                     <div class="card-content">
-                    <h3 class="accordion-title">${item.titulo}</h3>
-                    <div class="extra">
-                        <p>${item.descricao}</p>
-                        <p>${item.conteudo}</p>
-                    </div>
+                    <h3>${item.titulo}</h3>
                     <div class="card-footer">
-                        <span class="post-action">Ver mais...</span>
                     </div>
                     </div>
-                </div>`;
+                </a>`;
             } else {
                 // --- LÓGICA DE RENDERIZAÇÃO PARA OUTROS ITENS (BEATS, KITS) ---
                 const badgeClassMap = { "beats": "beat", "kits & plugins": "kit" };
                 const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'kit';
 
-                const buttonText = item.preco === 0 ? '⬇ Baixar' : '🛒 Comprar';
-                const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="download">${buttonText}</a>` : '';
-                const playButton = (window.location.pathname.includes("beats.html") && item.audioPreview)
-                    ? `<button class="play" data-audio-src="${item.audioPreview}">▶ Play</button>`
+                const actionButtonText = item.preco === 0 ? '⬇ Baixar' : '🛒 Comprar';
+                const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="download">${actionButtonText}</a>` : '';
+
+                // Botão de play que será sobreposto na imagem
+                const playOverlayButton = item.audioPreview
+                    ? `<button class="play-overlay-btn" aria-label="Tocar prévia de ${item.titulo}">▶</button>`
                     : "";
 
                 return `
-                <div class="card" data-id="${item.id}">
-                    <div class="card-image-container">
-                    <img src="${imagePath}" alt="${item.titulo}" loading="lazy" decoding="async" width="320" height="180">
+                <div class="card" data-id="${item.id}" data-audio-src="${item.audioPreview || ''}" data-title="${item.titulo}" data-cover="${imagePath}">
+                    <a href="item.html?id=${item.id}" class="card-link-wrapper">
+                        <div class="card-image-container">
+                            <img src="${imagePath}" alt="${item.titulo}" loading="lazy" decoding="async" width="320" height="180">
+                        </div>
+                        <div class="card-content">
+                            <span class="badge ${badgeClass}">${item.categoria}</span>
+                            <h3>${item.titulo}</h3>
+                            <p><strong>${item.genero}</strong> - ${item.ano}</p>
+                        </div>
+                    </a>
+                    <div class="card-footer-wrapper">
+                         <div class="card-footer">
+                            ${actionButton}
+                         </div>
                     </div>
-                    <div class="card-content">
-                    <span class="badge ${badgeClass}">${item.categoria}</span>
-                    <h3 class="accordion-title">${item.titulo}</h3>
-                    <p><strong>${item.genero}</strong> - ${item.ano}</p>
-                    <p>${item.descricao}</p>
-                    <p><strong>Preço:</strong> ${item.preco > 0 ? "R$ " + item.preco.toFixed(2) : "Grátis"}</p>
-                    <div class="extra">
-                        <p>${item.conteudo}</p>
-                    </div>
-                    <div class="card-footer">
-                        ${actionButton}
-                        ${playButton}
-                    </div>
-                    </div>
-                </div>`;
+                </div>
+                `;
             }
 
         }).join('');
@@ -199,18 +188,6 @@ document.addEventListener("DOMContentLoaded", () => {
             tipo: elements.filtroTipo.value,
         };
 
-        // Na página inicial, se não houver filtro, mostrar apenas os 3 mais recentes
-        const isFiltering = searchTerm || selected.genero || selected.categoria || selected.ano || selected.tipo;
-        if (pageFilter.home && !isFiltering) {
-            const latestContent = [...allContent]
-                .sort((a, b) => b.ano - a.ano || b.id - a.id)
-                .slice(0, 3);
-
-            elements.paginationContainer.innerHTML = ''; // Limpa paginação na home
-            renderContent(latestContent);
-            return; // Interrompe a função para mostrar apenas os itens mais recentes
-        }
-
         const filtered = allContent.filter(item => {
             // 1. Aplicar o filtro base da página (se houver)
             const matchesPageFilter =
@@ -242,32 +219,9 @@ document.addEventListener("DOMContentLoaded", () => {
         updateURL(); // Atualiza a URL com os filtros atuais
     }
 
-    function handleAccordionClick(event) {
-        const target = event.target;
-        const card = target.closest('.card');
-        if (!card) return;
-
-        // Se for um card de post, o card inteiro ativa o acordeão.
-        // Se for outro tipo de card, apenas o título ativa.
-        const isPostCardClick = card.classList.contains('card-post');
-        const isTitleClick = target.closest('.accordion-title');
-
-        if (!isPostCardClick && !isTitleClick) return;
-
-        const extra = card.querySelector('.extra');
-        card.classList.toggle('active');
-
-        if (card.classList.contains('active')) {
-            extra.style.maxHeight = extra.scrollHeight + 'px';
-        } else {
-            extra.style.maxHeight = null;
-        }
-    }
-
     function setupEventListeners() {
-        // Delegação de eventos para os cliques no acordeão
+        // Delegação de eventos para os cliques nos cards (play, etc.)
         elements.container.addEventListener('click', handleCardClick);
-        elements.container.addEventListener('click', handleAccordionClick);
 
         // Listeners para os filtros
         elements.search.addEventListener("input", applyFilters);
@@ -292,50 +246,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function setupAudioPlayer() {
-        // Quando o áudio termina ou é pausado, reseta o estado do botão
-        audioPlayer.addEventListener('ended', resetPlayerState);
-        audioPlayer.addEventListener('pause', resetPlayerState);
-    }
-
-    function resetPlayerState() {
-        if (currentlyPlaying.button) {
-            currentlyPlaying.button.textContent = '▶ Play';
-        }
-        if (currentlyPlaying.timeoutId) {
-            clearTimeout(currentlyPlaying.timeoutId);
-        }
-        currentlyPlaying.button = null;
-        currentlyPlaying.timeoutId = null;
-    }
-
     function handleCardClick(event) {
-        const playButton = event.target.closest('.play');
+        const playButton = event.target.closest('.play-overlay-btn');
         if (!playButton) return;
 
-        event.stopPropagation(); // Impede que o acordeão abra ao clicar em "Play"
+        event.preventDefault(); // Impede que o link do card seja seguido ao clicar em "Play"
+        event.stopPropagation();
 
-        const audioSrc = playButton.dataset.audioSrc;
-        const isCurrentlyPlayingThis = currentlyPlaying.button === playButton;
+        const card = playButton.closest('.card');
+        const trackData = {
+            audioSrc: card.dataset.audioSrc,
+            title: card.dataset.title,
+            cover: card.dataset.cover
+        };
 
-        // Pausa o player atual (isso também chama resetPlayerState via evento 'pause')
-        audioPlayer.pause();
+        if (!trackData.audioSrc) return;
 
-        // Se o botão clicado já estava tocando, a ação era apenas parar.
-        if (isCurrentlyPlayingThis) {
-            return;
-        }
-
-        // Inicia a reprodução do novo áudio
-        audioPlayer.src = audioSrc;
-        audioPlayer.currentTime = 0;
-        audioPlayer.play();
-
-        playButton.textContent = '❚❚ Pause';
-        currentlyPlaying.button = playButton;
-
-        // Define o tempo limite de 30 segundos
-        currentlyPlaying.timeoutId = setTimeout(() => audioPlayer.pause(), 30000);
+        // Dispara um evento customizado com os dados da música
+        document.dispatchEvent(new CustomEvent('playTrack', { detail: trackData }));
     }
 
     function handleFilterChange(event) {
