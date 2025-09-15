@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const badgeClassMap = { "beats": "beat", "kits & plugins": "kit" };
                 const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'kit';
 
-                const actionButtonText = item.preco === 0 ? '⬇ Baixar' : '🛒 Comprar';
+                const actionButtonText = item.preco === 0 ? 'Download <i class="fa-solid fa-download"></i>' : '🛒 Comprar';
                 const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="download">${actionButtonText}</a>` : '';
 
                 // Botão de play que será sobreposto na imagem
