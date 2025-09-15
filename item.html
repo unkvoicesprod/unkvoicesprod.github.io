@@ -10,50 +10,97 @@
   <meta name="description" content="Beats, plugins e conteúdo musical num só lugar.">
   <meta property="og:title" content="UNKVOICES">
   <meta property="og:description" content="Beats, plugins e conteúdo musical num só lugar.">
+  <meta property="og:url" content="https://unkvoices.github.io">
   <meta property="og:image" content="https://unkvoices.github.io/assets/logo.jpg">
   <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="UNKVOICES">
+  <meta property="twitter:description" content="Beats, plugins e conteúdo musical num só lugar.">
+  <meta property="twitter:url" content="https://unkvoices.github.io">
   <meta property="twitter:image" content="https://unkvoices.github.io/assets/logo.jpg">
 
   <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/conteudo.css">
   <style>
-    /* Estilos específicos para a página de item */
+    /* Animações de carregamento */
+    @keyframes image-load-animation {
+      from {
+        opacity: 0;
+        transform: scale(0.95) rotate(-3deg);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+    }
+    @keyframes content-fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    /* Estilos aprimorados para a página de item */
     .item-detail-container {
-      max-width: 800px;
-      margin: 2rem auto;
+      max-width: 900px;
+      margin: 4rem auto;
       padding: 2rem;
       display: flex;
-      gap: 2rem;
+      gap: 3rem;
       align-items: flex-start;
+      background: var(--color-surface-2);
+      border-radius: 24px;
+      box-shadow: 0 0 30px var(--card-shadow-pink);
+      border: 1px solid var(--glass-border);
     }
     .item-detail-container img {
-      width: 300px;
-      height: 300px;
+      width: 350px;
+      height: 350px;
       object-fit: cover;
       border-radius: 16px;
-      box-shadow: 0 0 20px var(--card-shadow-pink);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      animation: image-load-animation 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     }
     .item-info {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      /* Começa invisível e com um atraso para a animação funcionar */
+      opacity: 0; 
+      animation: content-fade-in 0.8s 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     }
     .item-info h1 {
       font-size: 2.5rem;
       margin-bottom: 1rem;
+      color: var(--color-white);
+      line-height: 1.2;
+    }
+    .item-info p {
+        color: var(--color-text-secondary);
+        margin-bottom: 1rem;
+        line-height: 1.6;
     }
     .item-info .price {
-      font-size: 1.5rem;
+      font-size: 2rem;
       color: var(--color-accent-green);
       font-weight: bold;
-      margin: 1rem 0;
+      margin: 1.5rem 0;
     }
     .item-actions {
       display: flex;
       gap: 1rem;
-      margin-top: 1.5rem;
+      margin-top: auto; /* Empurra os botões para o final */
     }
     .item-actions .btn {
         flex: 1;
+        font-size: 1rem;
+    }
+    .item-info .badge {
+        margin-bottom: 1rem;
     }
     @media (max-width: 768px) {
       .item-detail-container {
@@ -62,13 +109,31 @@
       }
       .item-detail-container img {
         width: 100%;
-        max-width: 350px;
+        max-width: 300px;
         height: auto;
       }
       .item-info h1 {
         font-size: 2rem;
         text-align: center;
       }
+      .item-info .badge {
+          align-self: center;
+      }
+    }
+
+    /* Estilos para a seção de itens relacionados */
+    .related-items-section {
+        max-width: 1200px;
+        margin: 4rem auto;
+        padding: 0 2rem;
+        opacity: 0; /* Começa invisível para animação */
+        animation: content-fade-in 1s 0.5s forwards;
+    }
+    .related-items-section h2 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        color: var(--color-accent-green);
     }
   </style>
 </head>
@@ -92,6 +157,13 @@
     <div id="item-detail-container">
         <div class="loader"></div>
     </div>
+
+    <!-- Seção de Itens Relacionados -->
+    <section id="related-items-section" class="related-items-section" style="display: none;">
+      <h2>Itens Relacionados</h2>
+      <div id="related-items-container" class="grid-dynamic">
+      </div>
+    </section>
   </main>
 
   <footer class="glass">
