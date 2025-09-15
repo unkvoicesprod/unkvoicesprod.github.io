@@ -2,54 +2,48 @@
   {
     "id": 1,
     "titulo": "Fl Studio 24 Producer Edition",
-    "descricao": " Produza, grave e mixe sem limites com o poder do FL Studio",
-    "conteudo": "Software de audio",
+    "descricao": "Produza, grave e mixe sem limites com o poder do FL Studio",
     "capa": "assets/img/FLStudio24.webp",
     "genero": "Software",
     "categoria": "DAW",
     "ano": 2025,
-    "tipo": "Win",
     "preco": 178.99,
     "link": "#"
   },
   {
     "id": 2,
     "titulo": "Hi Hats MIDI Pack Vol.1",
-    "descricao": "Samples de percussão africana.",
-    "conteudo": "Inclui mais de 50 MIDI File.",
+    "descricao": "Inclui mais de 50 arquivos MIDI para elevar suas produções.",
     "capa": "assets/img/hihatsmidipackvol1.jpg",
     "genero": "Pack",
     "categoria": "Kits",
     "ano": 2025,
-    "tipo": "kits",
     "preco": 4.99,
     "link": "#"
   },
   {
     "id": 3,
     "titulo": "[FREE] Yeat x Bnyx Type Beat - urus prod.Unkvoices 2025 ",
-    "descricao": "Free beat inspirado em yeat e Bnyx",
-    "conteudo": " Ranger type beat, Hard Beat ",
+    "descricao": "Free beat inspirado em Yeat e Bnyx. Ranger type beat, Hard Beat.",
     "capa": "https://i.redd.it/yeat-x-synthetic-might-just-be-better-than-yeat-x-bnyx-v0-yjbx949lwstc1.jpg?width=500&format=pjpg&auto=webp&s=dc9b2fcdc890264443bf7546510c89f24c53614a",
     "genero": "Rap",
     "categoria": "Beats",
     "ano": 2025,
-    "tipo": "Beats",
     "preco":0,
-    "link": "https://www.mediafire.com/file/2710fj1x1oin70t/%255BFREE%255D_Yeat_x_Bnyx_Type_Beat_-_urus_prod.unkvoices_2025.mp3/file"
+    "link": "https://www.mediafire.com/file/2710fj1x1oin70t/%255BFREE%255D_Yeat_x_Bnyx_Type_Beat_-_urus_prod.unkvoices_2025.mp3/file",
+    "audioPreview": "https://www.mediafire.com/file/2710fj1x1oin70t/%255BFREE%255D_Yeat_x_Bnyx_Type_Beat_-_urus_prod.unkvoices_2025.mp3/file"
   },
   {
     "id": 4,
     "titulo": "[FREE] Kanye West Type Beat - Bully Prod. unkvoices 2025  ",
-    "descricao": "Free beat inspirado em Ye e Kanye West",
-    "conteudo": " ",
+    "descricao": "Free beat inspirado em Ye e Kanye West. Estilo Vultures.",
     "capa": "https://i9.ytimg.com/vi_webp/5ieN9Xmsk8M/mq2.webp?sqp=CLDEocYG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgTig6MA8=&rs=AOn4CLAagmbB-wxgZ7WVrVbaf1JZqB-pAQ",
     "genero": "Rap",
     "categoria": "Beats",
     "ano": 2025,
-    "tipo": "Beats",
     "preco":0,
-    "link": "https://www.mediafire.com/file/tbrfl22s2cgo208/%255BFREE%255D_Kanye_West_Type_Beat_-_Bully_Prod._unkvoices_2025_.mp3/file"
+    "link": "https://www.mediafire.com/file/tbrfl22s2cgo208/%255BFREE%255D_Kanye_West_Type_Beat_-_Bully_Prod._unkvoices_2025_.mp3/file",
+    "audioPreview": "https://www.mediafire.com/file/tbrfl22s2cgo208/%255BFREE%255D_Kanye_West_Type_Beat_-_Bully_Prod._unkvoices_2025_.mp3/file"
   }
 
 ]

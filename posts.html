@@ -51,24 +51,14 @@
 
     <div class="filters">
   <select id="filtro-genero" title="Filtrar por gênero">
-    <option value="">Gêneros</option>
+    <option value="">Gênero</option>
   </select>
   <select id="filtro-categoria" title="Filtrar por categoria">
-    <option value="">Categorias</option>
+    <option value="">Categoria</option>
   </select>
   <select id="filtro-ano" title="Filtrar por ano">
-    <option value="">Anos</option>
+    <option value="">Ano</option>
   </select>
-    <select id="filtro-tipo" title="Filtrar por tipo">
-    <option value="">Tipos</option>
-  </select>
-  <button id="clear-filters-btn" class="clear-filters-btn">Limpar</button>
-</div>
-
-<!-- Container de cards -->
-<div id="conteudo-container" class="grid-dynamic"></div>
-<div id="pagination-container" class="pagination"></div>
-
   </main>
 
   <footer class="glass">
@@ -81,7 +71,9 @@
         <p id="player-title">Selecione um beat</p>
     </div>
     <div class="player-controls">
+        <button id="player-prev" class="control-btn small" aria-label="Anterior">«</button>
         <button id="player-play-pause" class="control-btn" aria-label="Play/Pause">▶</button>
+        <button id="player-next" class="control-btn small" aria-label="Próximo">»</button>
     </div>
     <div class="progress-container">
         <span id="player-current-time">0:00</span>

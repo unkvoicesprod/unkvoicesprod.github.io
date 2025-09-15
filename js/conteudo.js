@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let allContent = [];
     let currentFilteredContent = [];
     let currentPage = 1;
-    const itemsPerPage = 5;
+    const itemsPerPage = 4;
 
     // Cache de elementos do DOM para evitar múltiplas buscas
     const elements = {
@@ -19,11 +19,11 @@ document.addEventListener("DOMContentLoaded", () => {
         filtroGenero: document.getElementById("filtro-genero"),
         filtroCategoria: document.getElementById("filtro-categoria"),
         filtroAno: document.getElementById("filtro-ano"),
-        filtroTipo: document.getElementById("filtro-tipo"),
         filtersContainer: document.querySelector(".filters"),
         toggleFiltersBtn: document.getElementById("toggle-filters-btn"),
         paginationContainer: document.getElementById("pagination-container"),
         clearFiltersBtn: document.getElementById("clear-filters-btn"),
+        resultsCounter: document.getElementById("results-counter"),
     };
 
     // Função principal que inicia a aplicação
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
             hasParams = true;
         }
 
-        ['genero', 'categoria', 'ano', 'tipo'].forEach(key => {
+        ['genero', 'categoria', 'ano'].forEach(key => {
             const filterElement = elements[`filtro${key.charAt(0).toUpperCase() + key.slice(1)}`];
             const value = params.get(key);
             if (value && filterElement) {
@@ -162,7 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
         fillSelect(elements.filtroGenero, getUniqueValues('genero'));
         fillSelect(elements.filtroCategoria, getUniqueValues('categoria'));
         fillSelect(elements.filtroAno, getUniqueValues('ano').sort((a, b) => b - a)); // Ordena anos do mais recente para o mais antigo
-        fillSelect(elements.filtroTipo, getUniqueValues('tipo'));
     }
 
     function fillSelect(selectElement, values) {
@@ -185,7 +184,6 @@ document.addEventListener("DOMContentLoaded", () => {
             genero: elements.filtroGenero.value,
             categoria: elements.filtroCategoria.value,
             ano: elements.filtroAno.value,
-            tipo: elements.filtroTipo.value,
         };
 
         const filtered = allContent.filter(item => {
@@ -199,14 +197,12 @@ document.addEventListener("DOMContentLoaded", () => {
             // 2. Aplicar filtros do usuário (pesquisa e selects)
             const matchesSearch = searchTerm === "" ||
                 item.titulo.toLowerCase().includes(searchTerm) ||
-                item.descricao.toLowerCase().includes(searchTerm) ||
-                item.conteudo.toLowerCase().includes(searchTerm);
+                item.descricao.toLowerCase().includes(searchTerm);
 
             const matchesFilters =
                 (selected.genero === "" || item.genero === selected.genero) &&
                 (selected.categoria === "" || item.categoria === selected.categoria) &&
-                (selected.ano === "" || item.ano.toString() === selected.ano) &&
-                (selected.tipo === "" || item.tipo === selected.tipo);
+                (selected.ano === "" || item.ano.toString() === selected.ano);
 
             return matchesSearch && matchesFilters;
         });
@@ -214,9 +210,24 @@ document.addEventListener("DOMContentLoaded", () => {
         currentFilteredContent = filtered;
         currentPage = 1;
 
+        updateResultsCounter();
         setupPagination();
         displayPage(currentPage);
         updateURL(); // Atualiza a URL com os filtros atuais
+    }
+
+    function updateResultsCounter() {
+        if (!elements.resultsCounter) return;
+
+        const count = currentFilteredContent.length;
+        if (count > 0) {
+            const resultText = count === 1 ? 'resultado encontrado' : 'resultados encontrados';
+            elements.resultsCounter.innerHTML = `<strong>${count}</strong> ${resultText}`;
+            elements.resultsCounter.style.display = 'block';
+        } else {
+            // Esconde o contador se não houver resultados (a mensagem "Nenhum resultado" já é exibida)
+            elements.resultsCounter.style.display = 'none';
+        }
     }
 
     function setupEventListeners() {
@@ -224,12 +235,8 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.container.addEventListener('click', handleCardClick);
 
         // Listeners para os filtros
-        elements.search.addEventListener("input", applyFilters);
+        elements.search.addEventListener("input", handleFilterChange);
         Object.values(elements).filter(el => el && el.tagName === 'SELECT').forEach(select => {
-            // Em vez de chamar applyFilters diretamente, chama a função de animação
-            // que por sua vez chama applyFilters.
-            // Se a função de animação não existir no seu código, use a linha comentada.
-            // select.addEventListener('change', applyFilters);
             select.addEventListener('change', handleFilterChange);
         });
 
@@ -244,6 +251,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (elements.clearFiltersBtn) {
             elements.clearFiltersBtn.addEventListener('click', resetFilters);
         }
+
+        // Listener para destacar a faixa que está a tocar
+        document.addEventListener('trackChanged', handleTrackHighlight);
     }
 
     function handleCardClick(event) {
@@ -254,16 +264,24 @@ document.addEventListener("DOMContentLoaded", () => {
         event.stopPropagation();
 
         const card = playButton.closest('.card');
-        const trackData = {
-            audioSrc: card.dataset.audioSrc,
-            title: card.dataset.title,
-            cover: card.dataset.cover
-        };
+        const clickedId = card.dataset.id;
 
-        if (!trackData.audioSrc) return;
+        // Cria a playlist apenas com itens que têm áudio
+        const playlist = currentFilteredContent
+            .filter(item => item.audioPreview)
+            .map(item => ({
+                id: item.id,
+                title: item.titulo,
+                cover: item.capa,
+                audioSrc: item.audioPreview
+            }));
+
+        const startIndex = playlist.findIndex(track => track.id.toString() === clickedId);
+
+        if (startIndex === -1) return; // Não deveria acontecer
 
         // Dispara um evento customizado com os dados da música
-        document.dispatchEvent(new CustomEvent('playTrack', { detail: trackData }));
+        document.dispatchEvent(new CustomEvent('playPlaylist', { detail: { playlist, startIndex } }));
     }
 
     function handleFilterChange(event) {
@@ -280,12 +298,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }, { once: true });
     }
 
+    function handleTrackHighlight(event) {
+        const { trackId } = event.detail;
+
+        // Remove o destaque de todos os cards
+        const allCards = elements.container.querySelectorAll('.card');
+        allCards.forEach(card => card.classList.remove('is-playing'));
+
+        if (trackId) {
+            // Adiciona o destaque ao card que está a tocar
+            const playingCard = elements.container.querySelector(`.card[data-id="${trackId}"]`);
+            if (playingCard) {
+                playingCard.classList.add('is-playing');
+            }
+        }
+    }
+
     function resetFilters() {
         elements.search.value = '';
         if (elements.filtroGenero) elements.filtroGenero.value = '';
         if (elements.filtroCategoria) elements.filtroCategoria.value = '';
         if (elements.filtroAno) elements.filtroAno.value = '';
-        if (elements.filtroTipo) elements.filtroTipo.value = '';
 
         // Re-aplica os filtros (agora vazios) para resetar a visualização
         applyFilters();
@@ -301,7 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
             genero: elements.filtroGenero.value,
             categoria: elements.filtroCategoria.value,
             ano: elements.filtroAno.value,
-            tipo: elements.filtroTipo.value,
         };
 
         for (const [key, value] of Object.entries(selected)) {

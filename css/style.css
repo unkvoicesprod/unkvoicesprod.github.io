@@ -202,6 +202,12 @@ footer {
     font-size: 0.9rem;
 }
 
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .player-controls .control-btn {
     background: var(--color-accent-green);
     color: var(--color-text-on-accent);
@@ -220,6 +226,12 @@ footer {
 
 .player-controls .control-btn:hover {
     background: var(--color-accent-green-hover);
+}
+
+.player-controls .control-btn.small {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
 }
 
 .progress-container {

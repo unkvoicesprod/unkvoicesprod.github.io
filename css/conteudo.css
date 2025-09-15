@@ -24,6 +24,17 @@
     justify-content: center;
 }
 
+/* ================= CONTADOR DE RESULTADOS ================= */
+.results-counter {
+    text-align: center;
+    margin: -10px 0 20px 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    display: none;
+    /* Escondido por padrão, mostrado via JS */
+}
+
+
 /* ================= GRID DE CARDS ================= */
 .grid-dynamic {
     display: grid;
@@ -60,6 +71,18 @@
 .card:hover {
     transform: translateY(-6px);
     box-shadow: 0 0 10px var(--card-shadow-green-hover);
+}
+
+/* Estilo para o card que está a tocar */
+.card.is-playing {
+    box-shadow: 0 0 15px var(--color-accent-green), 0 0 5px var(--color-accent-green-hover);
+    transform: translateY(-6px);
+    /* Mesmo que o hover para evitar saltos */
+}
+
+.card.is-playing:hover {
+    /* Mantém o mesmo estilo no hover para evitar piscar */
+    box-shadow: 0 0 15px var(--color-accent-green), 0 0 5px var(--color-accent-green-hover);
 }
 
 /* ================= IMAGEM ================= */
@@ -242,6 +265,26 @@
     background: var(--option-bg);
     color: var(--color-text-primary);
 }
+
+/* ================= ANIMAÇÃO DE FILTRO ================= */
+.filters select.is-animating {
+    animation: filter-flash-select 0.6s ease;
+}
+
+@keyframes filter-flash-select {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 2px var(--filter-shadow-green);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 12px var(--filter-shadow-green-hover);
+    }
+}
+
 
 /* ================= BOTÃO DE LIMPAR FILTROS ================= */
 .clear-filters-btn {
