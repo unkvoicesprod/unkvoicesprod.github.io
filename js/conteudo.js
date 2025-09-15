@@ -63,55 +63,40 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         elements.container.innerHTML = list.map(item => {
-            const isPost = item.categoria.toLowerCase() === 'posts';
             const imagePath = item.capa;
 
-            if (isPost) {
-                // --- LÓGICA DE RENDERIZAÇÃO PARA POSTS ---
-                return `
-                <a href="item.html?id=${item.id}" class="card card-post" data-id="${item.id}">
+            // --- LÓGICA DE RENDERIZAÇÃO PARA ITENS (BEATS, KITS) ---
+            const badgeClassMap = { "beats": "beat", "kits & plugins": "kit" };
+            const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'kit';
+
+            const actionButtonText = item.preco === 0 ? '<i class="fa-solid fa-download"></i> Download' : '<i class="fa-solid fa-cart-shopping"></i> Comprar';
+            const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="download">${actionButtonText}</a>` : '';
+
+            // Botão de play que será sobreposto na imagem
+            const playOverlayButton = item.audioPreview
+                ? `<button class="play-overlay-btn" aria-label="Tocar prévia de ${item.titulo}">▶</button>`
+                : "";
+
+            return `
+            <div class="card" data-id="${item.id}" data-audio-src="${item.audioPreview || ''}" data-title="${item.titulo}" data-cover="${imagePath}">
+                <a href="item.html?id=${item.id}" class="card-link-wrapper">
                     <div class="card-image-container">
-                    <img src="${imagePath}" alt="${item.titulo}" loading="lazy" decoding="async" width="320" height="180">
+                        <img src="${imagePath}" alt="${item.titulo}" loading="lazy" decoding="async" width="320" height="180">
+                        ${playOverlayButton}
                     </div>
                     <div class="card-content">
-                    <h3>${item.titulo}</h3>
-                    <div class="card-footer">
+                        <span class="badge ${badgeClass}">${item.categoria}</span>
+                        <h3>${item.titulo}</h3>
+                        <p><strong>${item.genero}</strong> - ${item.ano}</p>
                     </div>
-                    </div>
-                </a>`;
-            } else {
-                // --- LÓGICA DE RENDERIZAÇÃO PARA OUTROS ITENS (BEATS, KITS) ---
-                const badgeClassMap = { "beats": "beat", "kits & plugins": "kit" };
-                const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'kit';
-
-                const actionButtonText = item.preco === 0 ? '<i class="fa-solid fa-download"></i> Download' : '<i class="fa-solid fa-cart-shopping"></i> Comprar';
-                const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="download">${actionButtonText}</a>` : '';
-
-                // Botão de play que será sobreposto na imagem
-                const playOverlayButton = item.audioPreview
-                    ? `<button class="play-overlay-btn" aria-label="Tocar prévia de ${item.titulo}">▶</button>`
-                    : "";
-
-                return `
-                <div class="card" data-id="${item.id}" data-audio-src="${item.audioPreview || ''}" data-title="${item.titulo}" data-cover="${imagePath}">
-                    <a href="item.html?id=${item.id}" class="card-link-wrapper">
-                        <div class="card-image-container">
-                            <img src="${imagePath}" alt="${item.titulo}" loading="lazy" decoding="async" width="320" height="180">
-                        </div>
-                        <div class="card-content">
-                            <span class="badge ${badgeClass}">${item.categoria}</span>
-                            <h3>${item.titulo}</h3>
-                            <p><strong>${item.genero}</strong> - ${item.ano}</p>
-                        </div>
-                    </a>
-                    <div class="card-footer-wrapper">
-                         <div class="card-footer">
-                            ${actionButton}
-                         </div>
-                    </div>
+                </a>
+                <div class="card-footer-wrapper">
+                     <div class="card-footer">
+                        ${actionButton}
+                     </div>
                 </div>
-                `;
-            }
+            </div>
+            `;
 
         }).join('');
 
@@ -370,7 +355,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (window.location.pathname.includes("beats.html")) return { categoria: "Beats" };
         if (window.location.pathname.includes("kits.html")) return { categoria: "Kits & Plugins" };
         if (window.location.pathname.includes("loja.html")) return { preco: ">0" };
-        if (window.location.pathname.includes("posts.html")) return { categoria: "Posts" };
         if (window.location.pathname.includes("index.html") || window.location.pathname.endsWith('/')) return { home: true };
         return {};
     }

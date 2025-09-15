@@ -1,4 +1,3 @@
-/* ================= BARRA DE PESQUISA (Página de Posts) ================= */
 .search-bar-full {
     width: 90%;
     max-width: 600px;
@@ -162,11 +161,6 @@
     background: var(--color-accent-purple);
 }
 
-/* roxo neon */
-.badge.post {
-    background: var(--color-accent-green);
-}
-
 /* verde neon */
 
 /* ================= TEXTO ================= */
@@ -213,12 +207,6 @@
     font-size: 0.9rem;
 }
 
-.card-footer .post-action {
-    color: var(--color-accent-green);
-    font-weight: bold;
-    cursor: pointer;
-}
-
 .card-footer .download {
     background: var(--color-accent-green);
     color: var(--color-text-on-accent);
@@ -235,11 +223,6 @@
 
 .card-footer .play:hover {
     background: var(--color-accent-pink-hover);
-}
-
-/* Torna o card de post clicável */
-.card-post {
-    cursor: pointer;
 }
 
 .filters select {

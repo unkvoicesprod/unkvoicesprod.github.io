@@ -210,7 +210,7 @@ function renderRelatedItems(currentItem, allContent) {
 
 function createRelatedItemCard(item) {
     const imagePath = new URL(item.capa, window.location.href).href;
-    const badgeClassMap = { "beats": "beat", "kits": "kit", "software": "kit", "posts": "post" };
+    const badgeClassMap = { "beats": "beat", "kits": "kit", "software": "kit" };
     const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'kit';
 
     // Card simplificado apenas com link para a página do item
