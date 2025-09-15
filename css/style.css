@@ -51,6 +51,10 @@ body {
     color: var(--color-text-primary);
 }
 
+body.welcome-active {
+    overflow: hidden;
+}
+
 /* Componentes com efeito glass */
 .glass {
     background: var(--glass-bg);
@@ -294,4 +298,119 @@ footer {
 
 .close-btn:hover {
     color: var(--color-white);
+}
+
+/* ================= CUSTOM ALERT ================= */
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.custom-alert-overlay:not(.hidden) {
+    opacity: 1;
+}
+
+.custom-alert-overlay.hidden {
+    pointer-events: none;
+}
+
+.custom-alert-box {
+    padding: 2rem;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.custom-alert-overlay:not(.hidden) .custom-alert-box {
+    transform: scale(1);
+}
+
+.custom-alert-box p {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-text-primary);
+}
+
+.custom-alert-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.custom-alert-actions .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--color-accent-pink);
+    color: var(--color-accent-pink);
+    padding: 0.75rem 1.5rem;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-alert-actions .btn-secondary:hover {
+    background: var(--color-accent-pink);
+    color: var(--color-white);
+}
+
+/* ================= WELCOME SCREEN ================= */
+.welcome-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(10, 10, 10, 0.5);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.welcome-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.welcome-box {
+    text-align: center;
+    padding: 2rem 3rem;
+    transform: scale(0.95);
+    opacity: 0;
+    animation: welcome-fade-in 0.6s 0.2s ease-out forwards;
+}
+
+.welcome-box h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-accent-green);
+}
+
+.welcome-box p {
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    color: var(--color-text-secondary);
+}
+
+@keyframes welcome-fade-in {
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }

@@ -92,14 +92,19 @@ function renderItemDetails(item) {
     if (playDetailBtn) {
         playDetailBtn.addEventListener('click', () => {
             const infoDiv = document.querySelector('.item-info');
-            const trackData = {
-                audioSrc: infoDiv.dataset.audioSrc,
-                title: infoDiv.dataset.title,
-                cover: infoDiv.dataset.cover
-            };
+            if (!infoDiv.dataset.audioSrc) return;
 
-            if (!trackData.audioSrc) return;
-            document.dispatchEvent(new CustomEvent('playTrack', { detail: trackData }));
+            // Cria uma playlist com apenas este item
+            const playlist = [{
+                id: item.id,
+                title: item.titulo,
+                cover: item.capa,
+                audioSrc: item.audioPreview,
+                link: item.link,
+                preco: item.preco
+            }];
+
+            document.dispatchEvent(new CustomEvent('playPlaylist', { detail: { playlist, startIndex: 0 } }));
         });
     }
 }

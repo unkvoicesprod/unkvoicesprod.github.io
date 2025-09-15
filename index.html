@@ -29,6 +29,21 @@
   <link rel="stylesheet" href="css/conteudo.css">
 </head>
 <body>
+  <div id="welcome-overlay" class="welcome-overlay">
+    <div class="welcome-box glass">
+      <h1>Bem-vindo à UNKVOICES</h1>
+      <p>O seu universo de produção musical.</p>
+      <button id="enter-site-btn" class="btn">Entrar</button>
+    </div>
+  </div>
+  <script>
+    // Script para o ecrã de boas-vindas
+    document.body.classList.add('welcome-active');
+    document.getElementById('enter-site-btn').addEventListener('click', () => {
+      document.getElementById('welcome-overlay').classList.add('hidden');
+      document.body.classList.remove('welcome-active');
+    });
+  </script>
   <header class="glass">
     <nav class="navbar">
      <div class="logo"> <a href="index.html"><img src="assets/logo.jpg" alt="Logo"></a></div>
@@ -93,6 +108,16 @@
     </div>
     <button id="player-close" class="close-btn" aria-label="Fechar Player">&times;</button>
     <audio id="global-audio-player" preload="metadata"></audio>
+  </div>
+  
+  <div id="custom-alert-overlay" class="custom-alert-overlay hidden">
+    <div id="custom-alert-box" class="custom-alert-box glass">
+      <p id="custom-alert-message"></p>
+      <div class="custom-alert-actions">
+        <button id="custom-alert-action-btn" class="btn" aria-label="Ação do Alerta"></button>
+        <button id="custom-alert-close-btn" class="btn-secondary" aria-label="Fechar Alerta">Fechar</button>
+      </div>
+    </div>
   </div>
   
   <script src="js/alerts.js"></script>

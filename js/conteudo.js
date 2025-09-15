@@ -273,7 +273,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 id: item.id,
                 title: item.titulo,
                 cover: item.capa,
-                audioSrc: item.audioPreview
+                audioSrc: item.audioPreview,
+                link: item.link,
+                preco: item.preco
             }));
 
         const startIndex = playlist.findIndex(track => track.id.toString() === clickedId);
@@ -299,17 +301,37 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function handleTrackHighlight(event) {
-        const { trackId } = event.detail;
+        const { trackId, source } = event.detail;
 
         // Remove o destaque de todos os cards
         const allCards = elements.container.querySelectorAll('.card');
         allCards.forEach(card => card.classList.remove('is-playing'));
 
         if (trackId) {
-            // Adiciona o destaque ao card que está a tocar
-            const playingCard = elements.container.querySelector(`.card[data-id="${trackId}"]`);
+            let playingCard = elements.container.querySelector(`.card[data-id="${trackId}"]`);
+
             if (playingCard) {
+                // Se o card já está na página, destaca e rola se necessário
                 playingCard.classList.add('is-playing');
+                if (source === 'navigation') { // Só rola se a ação veio do player (next/prev)
+                    playingCard.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
+            } else {
+                // Se o card não está na página, encontra a página correta e muda para ela
+                const trackIndexInFullList = currentFilteredContent.findIndex(item => item.id.toString() === trackId.toString());
+
+                if (trackIndexInFullList !== -1) {
+                    const targetPage = Math.floor(trackIndexInFullList / itemsPerPage) + 1;
+                    if (targetPage !== currentPage) {
+                        // A função displayPage irá re-renderizar os cards.
+                        // O evento 'trackChanged' será tratado novamente pelo novo DOM,
+                        // e o card será encontrado e destacado na segunda passagem.
+                        displayPage(targetPage);
+                    }
+                }
             }
         }
     }
