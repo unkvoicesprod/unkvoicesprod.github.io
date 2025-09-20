@@ -3,7 +3,7 @@
     "id": 1,
     "titulo": "Fl Studio 24 Producer Edition",
     "descricao": "Produza, grave e mixe sem limites com o poder do FL Studio",
-    "capa": " https://github.com/unkvoicesprod/unkvoices_assets/blob/main/FLStudio24.webp?raw=true ",
+    "capa": "https://github.com/unkvoicesprod/unkvoices_assets/blob/main/FLStudio24.webp?raw=true",
     "genero": "Software",
     "categoria": "DAW",
     "ano": 2025,
@@ -14,7 +14,7 @@
     "id": 2,
     "titulo": "Hi Hats MIDI Pack Vol.1",
     "descricao": "Inclui mais de 50 arquivos MIDI para elevar suas produções.",
-    "capa": "assets/img/hihatsmidipackvol1.jpg",
+    "capa": "https://raw.githubusercontent.com/unkvoicesprod/unkvoices_assets/refs/heads/main/hihatsmidipackvol1.jpg",
     "genero": "Pack",
     "categoria": "Kits",
     "ano": 2025,
@@ -56,5 +56,17 @@
     "preco":0,
     "link": "https://bit.ly/4ngJhqL",
     "audioPreview": ""
-  }
+  },
+    {
+    "id": 6,
+    "titulo": "Xpand Banks Synth Presets",
+    "descricao": "Free beat inspirado em Jackboys (Travis Scott | Chase B | Don Toliver | Sheck Wes |Luxury Tax 50 | SoFaygo | Wallie the Sensei) Estilo Vultures.",
+    "capa": "",
+    "genero": "Rap",
+    "categoria": "Presets",
+    "ano": 2025,
+    "preco":0,
+    "link": "bit.ly/42FH1AO",
+
+  },
 ]
