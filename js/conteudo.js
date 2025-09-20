@@ -352,9 +352,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function getPageFilter() {
-        if (window.location.pathname.includes("beats.html")) return { categoria: "Beats" };
-        if (window.location.pathname.includes("kits.html")) return { categoria: "Kits & Plugins" };
-        if (window.location.pathname.includes("loja.html")) return { preco: ">0" };
+        if (window.location.pathname.includes("beats.html")) return { categorias: ["Beats"] };
+        if (window.location.pathname.includes("kits.html")) return { categorias: ["Kits", "VST", "Software"] };
+        if (window.location.pathname.includes("loja.html")) return { preco: ">0" }; // Itens com preço maior que zero
         if (window.location.pathname.includes("index.html") || window.location.pathname.endsWith('/')) return { home: true };
         return {};
     }
