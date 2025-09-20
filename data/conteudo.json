@@ -19,7 +19,7 @@
     "categoria": "Kits",
     "ano": 2025,
     "preco": 4.99,
-    "link": "#"
+    "link": " https://www.mediafire.com/file/b6mw8hnypb6l4t3/Hi-hats_MIDI_pack_prod_Unkvoices.zip/file "
   },
   {
     "id": 3,
@@ -35,7 +35,7 @@
   },
   {
     "id": 4,
-    "titulo": "[FREE] Kanye West Type Beat - Bully Prod. unkvoices 2025  ",
+    "titulo": "[FREE] Kanye West Type Beat - Bully Prod. unkvoices ",
     "descricao": "Free beat inspirado em Ye e Kanye West. Estilo Vultures.",
     "capa": "https://i.ytimg.com/vi/5ieN9Xmsk8M/mqdefault.jpg",
     "genero": "Rap",
@@ -49,7 +49,7 @@
     "id": 5,
     "titulo": "[FREE] Jackboys Type Beat - Simulation (prod. unkvoices)",
     "descricao": "Free beat inspirado em Jackboys (Travis Scott | Chase B | Don Toliver | Sheck Wes |Luxury Tax 50 | SoFaygo | Wallie the Sensei) Estilo Vultures.",
-    "capa": "",
+    "capa": " https://github.com/unkvoicesprod/unkvoices_assets/blob/main/jackboys2.webp?raw=true ",
     "genero": "Rap",
     "categoria": "Beats",
     "ano": 2025,
@@ -60,13 +60,40 @@
     {
     "id": 6,
     "titulo": "Xpand Banks Synth Presets",
-    "descricao": "Free beat inspirado em Jackboys (Travis Scott | Chase B | Don Toliver | Sheck Wes |Luxury Tax 50 | SoFaygo | Wallie the Sensei) Estilo Vultures.",
-    "capa": "",
-    "genero": "Rap",
-    "categoria": "Presets",
+    "descricao": "Free Synth preset inspired by Metro Boomin | Max Mix Elite.",
+    "capa": " https://github.com/unkvoicesprod/unkvoices_assets/blob/main/unkvoices%20-%20Gold%20Xpand%20Bank%202025.jpg?raw=true ",
+    "genero": " Pack",
+    "categoria": "Kits",
     "ano": 2025,
     "preco":0,
     "link": "bit.ly/42FH1AO"
-
+  },
+    {
+    "id": 7,
+    "titulo": "BPB Saturator VST",
+    "descricao": "Free VST Plugin BPB Saturator The Best Gain ",
+    "capa": " https://github.com/unkvoicesprod/unkvoices_assets/blob/main/BPB_Saturator_VST.webp?raw=true",
+    "genero": "Plugin",
+    "categoria": "VST",
+    "ano": 2025,
+    "preco":0,
+    "link": "https://www.mediafire.com/file/m7rf6ceapcezp6a/BPB_Saturator.dll/file"
+  },
+    {
+    "id": 8,
+    "titulo": "Xfer Serum",
+    "descricao": "A wavetable synthesizer with a truly high-quality sound, visual and creative workflow-oriented interface to make creating and altering sounds fun",
+    "capa": " https://github.com/unkvoicesprod/unkvoices_assets/blob/main/serum2.webp?raw=true",
+    "genero": "Plugin",
+    "categoria": "VST",
+    "ano": 2025,
+    "preco":0,
+    "link": "https://www.mediafire.com/file/m7rf6ceapcezp6a/BPB_Saturator.dll/file"
   }
+
+
+
+
+
+
 ]
