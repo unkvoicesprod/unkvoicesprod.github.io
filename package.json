@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/unkvoicesprod/unkvoicesprod.github.io/issues"
   },
-  "homepage": "https://github.com/unkvoicesprod/unkvoicesprod.github.io/index.html"
+  "homepage": "https://github.com/unkvoicesprod/unkvoicesprod.github.io/index.html",
+  "dependencies": {
+    "axios": "^1.12.2"
+  }
 }
