@@ -1,14 +1,14 @@
 [
   {
-    "id": 1,
-    "titulo": "Fl Studio 24 Producer Edition",
-    "descricao": "Produza, grave e mixe sem limites com o poder do FL Studio",
-    "capa": "https://github.com/unkvoicesprod/unkvoices_assets/blob/main/FLStudio24.webp?raw=true",
-    "genero": "Software",
+    "id" : 1,
+    "titulo" : "Fl Studio 24 Producer Edition",
+    "descricao" : "Produza, grave e mixe sem limites com o poder do FL Studio",
+    "capa" : "https://github.com/unkvoicesprod/unkvoices_assets/blob/main/FLStudio24.webp?raw=true",
+    "genero" : "Software",
     "categoria": "DAW",
     "ano": 2025,
-    "preco": 178.99,
-    "link": "#"
+    "preco" : 178.99,
+    "link" : "#"
   },
   {
     "id": 2,
@@ -68,5 +68,5 @@
     "preco":0,
     "link": "bit.ly/42FH1AO",
 
-  },
+  }
 ]
