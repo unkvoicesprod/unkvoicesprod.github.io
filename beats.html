@@ -1,112 +1,101 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- SEO & Metadata -->
-  <meta name="description" content="Escuta, compra e usa nos teus projetos. Beats exclusivos da UNKVOICES.">
-  <meta name="keywords" content="beats, free beats, type beats, rap beats, trap beats, UNKVOICES">
-  <meta name="author" content="UNKVOICES">
-  <title>Beats | UNKVOICES</title>
-
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://unkvoices.github.io/beats.html">
-  <meta property="og:title" content="Beats Exclusivos | UNKVOICES">
-  <meta property="og:description" content="Escuta, compra e usa nos teus projetos. Beats exclusivos da UNKVOICES.">
-  <meta property="og:image" content="https://unkvoices.github.io/assets/logo.jpg">
-
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://unkvoices.github.io/beats.html">
-  <meta property="twitter:title" content="Beats Exclusivos | UNKVOICES">
-  <meta property="twitter:description" content="Escuta, compra e usa nos teus projetos. Beats exclusivos da UNKVOICES.">
-  <meta property="twitter:image" content="https://unkvoices.github.io/assets/logo.jpg">
-
-  <link rel="icon" href="assets/logo.svg" type="image/x-icon">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/conteudo.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO & Metadata -->
+    <meta name="description" content="Escuta, compra e usa nos teus projetos. Beats exclusivos da UNKVOICES.">
+    <meta name="keywords" content="beats, free beats, type beats, rap beats, trap beats, UNKVOICES">
+    <meta name="author" content="UNKVOICES">
+    <title>Beats | UNKVOICES</title>
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://unkvoices.github.io/beats.html">
+    <meta property="og:title" content="Beats Exclusivos | UNKVOICES">
+    <meta property="og:description" content="Escuta, compra e usa nos teus projetos. Beats exclusivos da UNKVOICES.">
+    <meta property="og:image" content="https://unkvoices.github.io/assets/logo.jpg">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://unkvoices.github.io/beats.html">
+    <meta property="twitter:title" content="Beats Exclusivos | UNKVOICES">
+    <meta property="twitter:description" content="Escuta, compra e usa nos teus projetos. Beats exclusivos da UNKVOICES.">
+    <meta property="twitter:image" content="https://unkvoices.github.io/assets/logo.jpg">
+    <link rel="icon" href="assets/logo.svg" type="image/x-icon">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/conteudo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
+
 <body>
-  <header class="glass">
-    <nav class="navbar">
-     <div class="logo"> <a href="index.html"><img src="assets/logo.svg" alt="Logo"></a></div>
-      <ul class="menu">
-        <li><a href="index.html"><i class="fa-solid fa-house"></i></a></li>
-        <li><a href="beats.html" class="active">Beats <i class="fa-solid fa-music"></i></a></li>
-        <li><a href="kits.html">Kits <i class="fa-solid fa-drum"></i></a></li>
-        <li><a href="loja.html">Loja <i class="fa-solid fa-cart-shopping"></i></a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <main>
-    <section class="hero glass">
-      <h1>🎵 Beats Exclusivos</h1>
-      <p>Escuta, compra e usa nos teus projetos.</p>
-    </section>
-
-    <input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
-    <button id="toggle-filters-btn" class="toggle-filters-btn">☰ Filtrar</button>
-
-    <div class="filters">
-  <select id="filtro-genero" title="Filtrar por gênero">
-    <option value="">Gênero</option>
-  </select>
-  <select id="filtro-categoria" title="Filtrar por categoria">
-    <option value="">Categoria</option>
-  </select>
-  <select id="filtro-ano" title="Filtrar por ano">
-    <option value="">Ano</option>
-  </select>
-  <button id="clear-filters-btn" class="clear-filters-btn">Limpar</button>
-</div>
-
-<!-- Container para o contador de resultados -->
-<div id="results-counter" class="results-counter"></div>
-
-<!-- Container de cards -->
-<div id="conteudo-container" class="grid-dynamic"></div>
-<div id="pagination-container" class="pagination"></div>
-
-  </main>
-
-  <footer class="glass">
-    <p>&copy; 2025 UNKVOICES</p>
-  </footer>
-  
-  <div id="global-player" class="global-player glass hidden">
-    <img id="player-cover" src="assets/logo.jpg" alt="Capa do Beat">
-    <div class="track-info">
-        <p id="player-title">Selecione um beat</p>
+    <header class="glass">
+        <nav class="navbar">
+            <div class="logo"> <a href="index.html"><img src="assets/logo.svg" alt="Logo"></a></div>
+            <ul class="menu">
+                <li><a href="index.html"><i class="fa-solid fa-house"></i></a></li>
+                <li><a href="beats.html" class="active">Beats <i class="fa-solid fa-music"></i></a></li>
+                <li><a href="kits.html">Kits <i class="fa-solid fa-drum"></i></a></li>
+                <li><a href="loja.html">Loja <i class="fa-solid fa-cart-shopping"></i></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="hero glass">
+            <h1>🎵 Beats Exclusivos</h1>
+            <p>Escuta, compra e usa nos teus projetos.</p>
+        </section>
+        <input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
+        <button id="toggle-filters-btn" class="toggle-filters-btn">☰ Filtrar</button>
+        <div class="filters">
+            <select id="filtro-genero" title="Filtrar por gênero">
+                <option value="">Gênero</option>
+            </select>
+            <select id="filtro-categoria" title="Filtrar por categoria">
+                <option value="">Categoria</option>
+            </select>
+            <select id="filtro-ano" title="Filtrar por ano">
+                <option value="">Ano</option>
+            </select>
+            <button id="clear-filters-btn" class="clear-filters-btn">Limpar</button>
+        </div>
+        <!-- Container para o contador de resultados -->
+        <div id="results-counter" class="results-counter"></div>
+        <!-- Container de cards -->
+        <div id="conteudo-container" class="grid-dynamic"></div>
+        <div id="pagination-container" class="pagination"></div>
+    </main>
+    <footer class="glass">
+        <p>&copy; 2025 UNKVOICES</p>
+    </footer>
+    <div id="global-player" class="global-player glass hidden">
+        <img id="player-cover" src="assets/logo.jpg" alt="Capa do Beat">
+        <div class="track-info">
+            <p id="player-title">Selecione um beat</p>
+        </div>
+        <div class="player-controls">
+            <button id="player-prev" class="control-btn small" aria-label="Anterior">«</button>
+            <button id="player-play-pause" class="control-btn" aria-label="Play/Pause">▶</button>
+            <button id="player-next" class="control-btn small" aria-label="Próximo">»</button>
+        </div>
+        <div class="progress-container">
+            <span id="player-current-time">0:00</span>
+            <input type="range" id="player-progress" value="0" step="1" min="0" max="30" aria-label="Progresso da música">
+            <span id="player-duration">0:30</span>
+        </div>
+        <button id="player-close" class="close-btn" aria-label="Fechar Player">&times;</button>
+        <audio id="global-audio-player" preload="metadata"></audio>
     </div>
-    <div class="player-controls">
-        <button id="player-prev" class="control-btn small" aria-label="Anterior">«</button>
-        <button id="player-play-pause" class="control-btn" aria-label="Play/Pause">▶</button>
-        <button id="player-next" class="control-btn small" aria-label="Próximo">»</button>
+    <div id="custom-alert-overlay" class="custom-alert-overlay hidden">
+        <div id="custom-alert-box" class="custom-alert-box glass">
+            <p id="custom-alert-message"></p>
+            <div class="custom-alert-actions">
+                <button id="custom-alert-action-btn" class="btn" aria-label="Ação do Alerta"></button>
+                <button id="custom-alert-close-btn" class="btn-secondary" aria-label="Fechar Alerta">Fechar</button>
+            </div>
+        </div>
     </div>
-    <div class="progress-container">
-        <span id="player-current-time">0:00</span>
-        <input type="range" id="player-progress" value="0" step="1" min="0" max="30" aria-label="Progresso da música">
-        <span id="player-duration">0:30</span>
-    </div>
-    <button id="player-close" class="close-btn" aria-label="Fechar Player">&times;</button>
-    <audio id="global-audio-player" preload="metadata"></audio>
-  </div>
-  
-  <div id="custom-alert-overlay" class="custom-alert-overlay hidden">
-    <div id="custom-alert-box" class="custom-alert-box glass">
-      <p id="custom-alert-message"></p>
-      <div class="custom-alert-actions">
-        <button id="custom-alert-action-btn" class="btn" aria-label="Ação do Alerta"></button>
-        <button id="custom-alert-close-btn" class="btn-secondary" aria-label="Fechar Alerta">Fechar</button>
-      </div>
-    </div>
-  </div>
-  
-  <script src="js/conteudo.js"></script>
-  <script src="js/global-player.js"></script>
+    <script src="js/conteudo.js"></script>
+    <script src="js/global-player.js"></script>
 </body>
+
 </html>
