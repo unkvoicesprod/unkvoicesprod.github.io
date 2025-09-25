@@ -91,22 +91,15 @@
     "preco":17.00,
     "link": "#"
   },
-      {
+    {
      "id": 9,
-    "titulo": " FabFilter Total Bundle 2025 ",
-    "descricao": " são pacotes de software que agrupam vários dos seus aclamados plug-ins de áudio, oferecendo um conjunto completo de ferramentas de mixagem e masterização com alta qualidade sonora e interfaces intuitivas. A empresa é conhecida por criar plug-ins originais, sem emular equipamentos analógicos antigos, focando em funcionalidade moderna e design de fluxo de trabalho eficiente. FabFilter Total Bundle é o pacote mais completo, incluindo todos os plug-ins da FabFilter para mixagem, masterização, design de som e produção musical. Componentes principais: Pro-Q 4: Equalizador de alta qualidade com interface visual e ferramentas avançadas, como EQ dinâmico. | Pro-R2: Reverb algorítmico de ponta com sonoridade natural. | Pro-L 2: Limitador 'true peak' com múltiplos algoritmos avançados. | Pro-MB: Compressor/expansor multibanda poderoso com fluxo de trabalho otimizado. | Pro-C 2: Compressor profissional com diversas opções de side-chain e roteamento. | Pro-DS: De-esser inteligente e transparente para vocais e mixagens inteiras. | Pro-G: Gate/expansor flexível. | Saturn 2: Distorção, saturação e modelagem de amplificadores multibanda. | Twin 3: Sintetizador poderoso com sistema de modulação flexível. |  Timeless 3: Delay de fita versátil e criativo. | Volcano 3: Filtro de efeitos com modulação.",
+    "titulo": "FabFilter Total Bundle 2025",
+    "descricao": "são pacotes de software que agrupam vários dos seus aclamados plug-ins de áudio, oferecendo um conjunto completo de ferramentas de mixagem e masterização com alta qualidade sonora e interfaces intuitivas. A empresa é conhecida por criar plug-ins originais, sem emular equipamentos analógicos antigos, focando em funcionalidade moderna e design de fluxo de trabalho eficiente. FabFilter Total Bundle é o pacote mais completo, incluindo todos os plug-ins da FabFilter para mixagem, masterização, design de som e produção musical. Componentes principais: Pro-Q 4: Equalizador de alta qualidade com interface visual e ferramentas avançadas, como EQ dinâmico. | Pro-R2: Reverb algorítmico de ponta com sonoridade natural. | Pro-L 2: Limitador 'true peak' com múltiplos algoritmos avançados. | Pro-MB: Compressor/expansor multibanda poderoso com fluxo de trabalho otimizado. | Pro-C 2: Compressor profissional com diversas opções de side-chain e roteamento. | Pro-DS: De-esser inteligente e transparente para vocais e mixagens inteiras. | Pro-G: Gate/expansor flexível. | Saturn 2: Distorção, saturação e modelagem de amplificadores multibanda. | Twin 3: Sintetizador poderoso com sistema de modulação flexível. |  Timeless 3: Delay de fita versátil e criativo. | Volcano 3: Filtro de efeitos com modulação.",
     "capa": "https://raw.githubusercontent.com/unkvoicesprod/unkvoices_assets/refs/heads/main/fabfilter.webp",
     "genero": "plugins",
     "categoria": "Effect",
     "ano": 2025,
     "tipo": "Windows",
-    "preco" 1069.00,
-    "link": " https://www.mediafire.com/file/hwapwu4lfk9g7xa/FabFilter_Total_Bundle_2023.6_CE-VR.rar/file "
-}
-
-
-
-
-
-
-]
+    "preco": 1069.00,
+    "link": "https://www.mediafire.com/file/hwapwu4lfk9g7xa/FabFilter_Total_Bundle_2023.6_CE-VR.rar/file"
+}]
