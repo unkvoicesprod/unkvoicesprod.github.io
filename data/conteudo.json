@@ -1,5 +1,5 @@
 [
-{
+{ 
     "id": 1,
     "titulo": "Xfer Records Serum v2",
     "capa": "https://raw.githubusercontent.com/unkvoicesprod/unkvoices_assets/refs/heads/main/xfer_serum2.jpg",
@@ -47,4 +47,65 @@
     "link": "https://payhip.com/b/erUzw",
     "audioPreview": "null",
     "descricao": "Aplique efeitos de meia-velocidade em qualquer áudio (loops, instrumentos, vocais) com controles simples. Crie texturas de downtempo pesadas, ritmos assustadores ou atmosferas profundas sem esforço."
-}]
+},
+    {
+        "id": 5,
+        "titulo": "RC-20 Retro Color",
+        "capa": "https://raw.githubusercontent.com/unkvoicesprod/unkvoices_assets/refs/heads/main/rc-20_retro_color.jpg",
+        "genero": "Plugins",
+        "categoria": "VST",
+        "ano": 2025,
+        "preco": 69,
+        "link": " ",
+        "audioPreview": "null",
+        "descricao": "Adicione vida e textura às suas produções com o XLN Audio RC-20 Retro Color, um plugin de efeitos criativos que recria a sensação calorosa e nostálgica de equipamentos de gravação vintage. Ideal para injetar o (mojo vintage) em qualquer faixa, desde sons lo-fi até produções modernas, o RC-20 é uma ferramenta indispensável para produtores e designers de som."
+    },
+    {
+        "id": 6,
+        "titulo": "ValhallaDSP Bundle",
+        "capa": "https://raw.githubusercontent.com/unkvoicesprod/unkvoices_assets/refs/heads/main/Valhalla_dsp_bundle.jpg",
+        "genero": "Plugins",
+        "categoria": "VST",
+        "ano": 2022,
+        "preco": 239,
+        "link": " ",
+        "audioPreview": "null",
+        "descricao": "Libere todo o potencial criativo com a coleção definitiva de plugins da Valhalla DSP. O ValhallaDSP Bundle 2022 combina o melhor da reverberação, do delay e da modulação em uma suíte poderosa, oferecendo ferramentas essenciais para produtores, designers de som e músicos. Esta coleção abrangente foi cuidadosamente projetada para fornecer uma qualidade de áudio impecável e uma flexibilidade incomparável : Valhalla Delay, Valhalla VintageVerb, Valhalla Room, Valhalla Shimmer, Valhalla Plate, Valhalla UberMod, Valhalla FreqEcho, Valhalla Space Modulator, Valhalla Supermassive."
+    },
+    {
+        "id": 7,
+        "titulo": "Dr Drive",
+        "capa": "https://raw.githubusercontent.com/unkvoicesprod/unkvoices_assets/refs/heads/main/dr_drive.jpg",
+        "genero": "Plugins",
+        "categoria": "VST",
+        "ano": 2024,
+        "preco": 0,
+        "link": " ",
+        "audioPreview": "null",
+        "descricao": "Dr Drive é uma simulação analógica de um overdrive moderno inspirado no Horizon Devices® Precision Drive™, Este overdrive se encaixa em uma grande variedade de aplicações para o guitarrista de metal clássico e moderno."
+    },
+    {
+        "id": 8,
+        "titulo": "Dr Phase",
+        "capa": "https://raw.githubusercontent.com/unkvoicesprod/unkvoices_assets/refs/heads/main/dr_phase.jpg",
+        "genero": "Plugins",
+        "categoria": "VST",
+        "ano": 2024,
+        "preco": 0,
+        "link": " ",
+        "audioPreview": "null",
+        "descricao": "Dr Phase é uma simulação analógica do pedal phaser MXR® Phase 90™ da época introduzido no início dos anos 70 e usado por inúmeros músicos, Dr Phase adicionará movimento e personalidade a qualquer instrumento. Experimente com guitarra, baixo, sintetizadores... até na bateria!"
+    },
+    {
+        "id": 9,
+        "titulo": "DS-10 Drum Shaper",
+        "capa": "https://raw.githubusercontent.com/unkvoicesprod/unkvoices_assets/refs/heads/main/DS_10_drum_shaper.jpg",
+        "genero": "Plugins",
+        "categoria": "VST",
+        "ano": 2025,
+        "preco": 39,
+        "link": " ",
+        "audioPreview": "null",
+        "descricao": "Melhore sua bateria, batidas e loops com o giro de um botão. Fique mais acertado no ataque. Mais ganho na sustentação. Apertado e forte ou enorme e poderoso: DS-10 melhora suas mixagens em qualquer direção. Rápido."
+    }
+]
