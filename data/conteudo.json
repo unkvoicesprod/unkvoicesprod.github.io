@@ -107,5 +107,19 @@
         "link": " ",
         "audioPreview": "null",
         "descricao": "Melhore sua bateria, batidas e loops com o giro de um botão. Fique mais acertado no ataque. Mais ganho na sustentação. Apertado e forte ou enorme e poderoso: DS-10 melhora suas mixagens em qualquer direção. Rápido."
+    },
+    [
+    {
+        "id": 10,
+        "titulo": "Adam Szabo Solaris",
+        "capa": "https://raw.githubusercontent.com/unkvoicesprod/unkvoices_assets/refs/heads/main/solaris.jpg",
+        "genero": "Plugins",
+        "categoria": "VST",
+        "ano": 2023,
+        "preco": 0,
+        "link": " ",
+        "audioPreview": "null",
+        "descricao": "plug-in de reverberação Solaris VST é uma ferramenta hipnotizante que transporta seu áudio para paisagens sonoras etéreas. Com seu efeito cintilante, ele adiciona uma aura celestial à sua música e cria reverberações em cascata e cintilantes. O plug-in Solaris é a sua porta de entrada para os reinos celestiais, permitindo que você crie texturas encantadoras e atmosferas transcendentais em suas composições. Com seu baixo uso de CPU, ele também pode funcionar como uma unidade de reverberação moderna para muitas aplicações diferentes."
     }
+]
 ]
