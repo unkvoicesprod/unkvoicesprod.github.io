@@ -64,7 +64,7 @@ function updateMetaTags(item) {
 function renderItemDetails(item) {
     const container = document.getElementById("item-detail-view");
 
-    const priceText = item.preco > 0 ? `R$ ${item.preco.toFixed(2)}` : "Grátis";
+    const priceText = item.preco > 0 ? `$${item.preco.toFixed(2)}` : "Grátis";
     const buttonText = item.preco === 0 ? '<i class="fa-solid fa-download"></i> Baixar' : '<i class="fa-solid fa-cart-shopping"></i> Comprar';
     const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="btn download">${buttonText}</a>` : '';
 

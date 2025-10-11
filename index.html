@@ -66,17 +66,8 @@ Explora a <strong style="color: #00C853;">loja</strong> e cria o teu próximo <s
       });
     }
   </script>
-    <header class="glass">
-        <nav class="navbar">
-            <div class="logo"> <a href="index.html"><img src="assets/logo.svg" alt="Logo"></a></div>
-            <ul class="menu">
-                <li><a href="index.html" class="active"><i class="fa-solid fa-house"></i></a></li>
-                <li><a href="beats.html">Beats <i class="fa-solid fa-music"></i></a></li>
-                <li><a href="kits.html">Kits <i class="fa-solid fa-drum"></i></a></li>
-                <li><a href="loja.html">Loja <i class="fa-solid fa-cart-shopping"></i></a></li>
-            </ul>
-        </nav>
-    </header>
+    <!-- O Header será carregado aqui -->
+    <div id="header-placeholder"></div>
     <main>
         <section class="hero glass">
             <h1>Bem-vindo a UNKVOICES</h1>
@@ -106,40 +97,18 @@ Se quer <strong>Beats</strong> que batem, <strong>Plugins</strong> que inspiram 
         <div id="conteudo-container" class="grid-dynamic"></div>
         <div id="pagination-container" class="pagination"></div>
     </main>
-    <footer class="glass">
-        <p>&copy; 2025 UNKVOICES</p>
-    </footer>
-    <div id="global-player" class="global-player glass hidden">
-        <img id="player-cover" src="assets/logo.jpg" alt="Capa do Beat">
-        <div class="track-info">
-            <p id="player-title">Selecione um beat</p>
-        </div>
-        <div class="player-controls">
-            <button id="player-prev" class="control-btn small" aria-label="Anterior">«</button>
-            <button id="player-play-pause" class="control-btn" aria-label="Play/Pause">▶</button>
-            <button id="player-next" class="control-btn small" aria-label="Próximo">»</button>
-        </div>
-        <div class="progress-container">
-            <span id="player-current-time">0:00</span>
-            <input type="range" id="player-progress" value="0" step="1" min="0" max="30" aria-label="Progresso da música">
-            <span id="player-duration">0:30</span>
-        </div>
-        <button id="player-close" class="close-btn" aria-label="Fechar Player">&times;</button>
-        <audio id="global-audio-player" preload="metadata"></audio>
-    </div>
-    <div id="custom-alert-overlay" class="custom-alert-overlay hidden">
-        <div id="custom-alert-box" class="custom-alert-box glass">
-            <p id="custom-alert-message"></p>
-            <div class="custom-alert-actions">
-                <button id="custom-alert-action-btn" class="btn" aria-label="Ação do Alerta"></button>
-                <button id="custom-alert-close-btn" class="btn-secondary" aria-label="Fechar Alerta">Fechar</button>
-            </div>
-        </div>
-    </div>
+    <!-- O Footer será carregado aqui -->
+    <div id="footer-placeholder"></div>
+    <!-- O Player Global será carregado aqui -->
+    <div id="player-placeholder"></div>
+    <!-- O Alerta Customizado será carregado aqui -->
+    <div id="alert-placeholder"></div>
+
     <script src="js/alerts.js"></script>
     <script src="js/scripts.js"></script>
     <script src="js/conteudo.js"></script>
     <script src="js/global-player.js"></script>
+    <script src="js/layout.js"></script>
 </body>
 
 </html>

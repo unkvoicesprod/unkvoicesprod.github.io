@@ -69,8 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const badgeClassMap = { "beats": "beat", "kits & plugins": "kit" };
             const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'kit';
 
-            const actionButtonText = item.preco === 0 ? '<i class="fa-solid fa-download"></i> Download' : '<i class="fa-solid fa-cart-shopping"></i> Comprar';
-            const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="download">${actionButtonText}</a>` : '';
+            // Lógica para formatar o preço
+            const priceText = item.preco === 0 ? 'Grátis' : `$${item.preco.toFixed(2)}`;
+            const priceClass = item.preco === 0 ? 'free' : 'paid';
 
             // Botão de play que será sobreposto na imagem
             const playOverlayButton = item.audioPreview
@@ -86,15 +87,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     <div class="card-content">
                         <span class="badge ${badgeClass}">${item.categoria}</span>
-                        <h3>${item.titulo}</h3>
+                        <div class="card-title-line">
+                            <h3>${item.titulo}</h3>
+                            <span class="card-price ${priceClass}">${priceText}</span>
+                        </div>
                         <p><strong>${item.genero}</strong> - ${item.ano}</p>
                     </div>
                 </a>
-                <div class="card-footer-wrapper">
-                     <div class="card-footer">
-                        ${actionButton}
-                     </div>
-                </div>
             </div>
             `;
 

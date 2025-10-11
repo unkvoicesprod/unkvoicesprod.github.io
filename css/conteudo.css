@@ -408,3 +408,39 @@
     color: var(--color-text-primary);
     margin-bottom: 0.5rem;
 }
+
+/* ================= ESTILOS PARA O PREÇO NO CARD ================= */
+.card-title-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.card-title-line h3 {
+    margin: 0;
+    flex-grow: 1;
+    /* Permite que o título ocupe o espaço disponível */
+}
+
+.card-price {
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    /* Evita que o texto quebre linha */
+    flex-shrink: 0;
+    /* Impede que o preço encolha */
+}
+
+.card-price.paid {
+    background-color: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+}
+
+.card-price.free {
+    background-color: var(--color-accent-purple);
+    color: var(--color-white);
+}
