@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+function initializeGlobalPlayer() {
     const player = document.getElementById('global-player');
     if (!player) return;
 
@@ -189,4 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.progress.max = trackDuration;
         elements.duration.textContent = formatTime(trackDuration);
     });
+}
+
+// Espera o DOM carregar e, em seguida, espera os componentes serem carregados pelo layout.js
+document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener('componentsLoaded', initializeGlobalPlayer, { once: true });
 });

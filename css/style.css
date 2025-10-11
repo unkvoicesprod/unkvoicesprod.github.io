@@ -68,9 +68,25 @@ body.welcome-active {
 
 /* Navbar */
 header {
-    background: var(--color-background);
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+    /* Acima do player e outros elementos */
+    background: transparent;
+    /* Começa transparente */
     padding: 1rem 2rem;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid transparent;
+    /* Começa sem borda */
+    transition: background-color 0.4s ease, padding 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease;
+}
+
+header.scrolled {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 0.75rem 2rem;
+    /* Padding ligeiramente menor */
 }
 
 .navbar {
@@ -413,4 +429,37 @@ footer {
         transform: scale(1);
         opacity: 1;
     }
+}
+
+/* ================= BOTÃO VOLTAR AO TOPO ================= */
+.back-to-top-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    background-color: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+    border: none;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+}
+
+.back-to-top-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.back-to-top-btn:hover {
+    background-color: var(--color-accent-green-hover);
 }

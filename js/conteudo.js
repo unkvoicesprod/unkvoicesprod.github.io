@@ -5,13 +5,13 @@ Beats   /   Kits    /   Posts
 */
 
 
-document.addEventListener("DOMContentLoaded", () => {
+function startContentScript() {
     // Estado da aplicação
     let allContent = [];
     let pageConfig = {};
     let currentFilteredContent = [];
     let currentPage = 1;
-    const itemsPerPage = 4;
+    const itemsPerPage = 8;
 
     // Cache de elementos do DOM para evitar múltiplas buscas
     const elements = {
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     id: postId,
                     titulo: data.title || `Post do YouTube #${index + 1}`, // Usa o título real ou um fallback
                     capa: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-                    genero: "audio", // Mantém o gênero para diferenciação nos filtros
+                    genero: "audio",
                     categoria: "Beats", // Altera a categoria para "Beats"
                     ano: new Date().getFullYear(),
                     isYouTubePost: true, // Adiciona um identificador para estes itens
@@ -152,11 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? `<button class="play-overlay-btn" aria-label="Tocar prévia de ${item.titulo}">▶</button>`
                 : "";
 
-            // Botão "Ver no YouTube" apenas para posts
-            const youtubeButton = item.categoria === 'Post'
-                ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="btn-card youtube"><i class="fa-brands fa-youtube"></i> Ver no YouTube</a>`
-                : '';
-
             // O link principal do card. Para posts, não leva a 'item.html'
             const mainLink = item.isYouTubePost ? '#' : `item.html?id=${item.id}`;
             const linkClass = item.isYouTubePost ? 'card-link-wrapper no-action' : 'card-link-wrapper';
@@ -177,9 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                     <p><strong>${item.genero}</strong> - ${item.ano}</p>
                 </div>
-                <div class="card-footer">
-                    ${youtubeButton}
-                </div>
+                <div class="card-footer"></div>
             </div>
             `;
 
@@ -263,15 +256,37 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function applyFilters() {
-        const searchTerm = elements.search.value.toLowerCase();
-        const selected = {
-            genero: elements.filtroGenero.value,
-            categoria: elements.filtroCategoria.value,
-            ano: elements.filtroAno.value,
-        };
+        const cards = elements.container.querySelectorAll('.card');
+        const animationDuration = 300; // ms, deve corresponder à transição em CSS
 
-        const filtered = allContent.filter(item => {
-            // 1. Aplicar o filtro base da página (se houver)
+        // 1. Anima a saída dos cards atuais
+        if (cards.length > 0) {
+            cards.forEach(card => card.classList.add('is-hiding'));
+        }
+
+        // 2. Após a animação, executa a lógica de filtragem e renderiza os novos cards
+        setTimeout(() => {
+            const searchTerm = elements.search.value.toLowerCase();
+            const selected = {
+                genero: elements.filtroGenero.value,
+                categoria: elements.filtroCategoria.value,
+                ano: elements.filtroAno.value,
+            };
+
+            const filtered = filterContent(searchTerm, selected);
+
+            currentFilteredContent = filtered;
+            currentPage = 1;
+
+            updateResultsCounter();
+            setupPagination();
+            displayPage(currentPage);
+            updateURL(); // Atualiza a URL com os filtros atuais
+        }, cards.length > 0 ? animationDuration : 0); // Se não houver cards, executa imediatamente
+    }
+
+    function filterContent(searchTerm, selected) {
+        return allContent.filter(item => {
             const matchesPageConfig =
                 (!pageConfig.categorias || pageConfig.categorias.includes(item.categoria)) &&
                 (!pageConfig.precoMin || item.preco >= pageConfig.precoMin) &&
@@ -292,14 +307,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             return matchesSearch && matchesFilters;
         });
-
-        currentFilteredContent = filtered;
-        currentPage = 1;
-
-        updateResultsCounter();
-        setupPagination();
-        displayPage(currentPage);
-        updateURL(); // Atualiza a URL com os filtros atuais
     }
 
     function updateResultsCounter() {
@@ -526,4 +533,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Inicia a aplicação
     init();
+}
+
+// Espera o DOM carregar e, em seguida, espera os componentes serem carregados pelo layout.js
+document.addEventListener("DOMContentLoaded", () => {
+    // Se os componentes já foram carregados (caso o evento dispare antes), inicia imediatamente.
+    // Caso contrário, espera pelo evento.
+    document.addEventListener('componentsLoaded', startContentScript, { once: true }); // O problema estava aqui, a solução foi unificar os HTMLs e usar este listener.
 });

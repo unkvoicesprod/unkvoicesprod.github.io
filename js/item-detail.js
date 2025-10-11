@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", async () => {
+async function initializeItemDetail() {
     const container = document.getElementById("item-detail-view");
 
     // 1. Obter o ID do item a partir da URL
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Erro ao carregar detalhes do item:", error);
         container.innerHTML = "<h1>Erro</h1><p>Ocorreu um erro ao carregar as informações. Tente novamente mais tarde.</p>";
     }
-});
+}
 
 function updateMetaTags(item) {
     const fullUrl = `https://unkvoices.github.io/item.html?id=${item.id}`;
@@ -238,3 +238,8 @@ if (isCrawler) {
     // Se for um crawler, não fazemos nada, pois o Netlify/Vercel fará o trabalho de reescrever o HTML no servidor.
     // Para GitHub Pages, essa abordagem com JS puro é a melhor possível, mas pode não funcionar em todas as plataformas de chat.
 }
+
+// Espera o DOM carregar e, em seguida, espera os componentes serem carregados pelo layout.js
+document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener('componentsLoaded', initializeItemDetail, { once: true });
+});
