@@ -55,6 +55,7 @@
     box-shadow: 0 0 2px var(--card-shadow-pink);
     display: flex;
     flex-direction: column;
+    cursor: pointer;
 
     /* Estado inicial para a animação de fade-in */
     opacity: 0;
@@ -123,6 +124,11 @@
     opacity: 1;
 }
 
+/* Desativa o ponteiro para o link do card de post */
+.card-link-wrapper.no-action {
+    cursor: default;
+}
+
 
 /* Wrapper para o link do card, para que não inclua os botões */
 .card-link-wrapper {
@@ -161,21 +167,29 @@
     background: var(--color-accent-purple);
 }
 
+.badge.post {
+    background: #FF0000;
+    /* Vermelho YouTube */
+}
+
+
 /* verde neon */
 
-/* ================= TEXTO ================= */
 .card-content h3 {
     margin: 0 0 6px;
     font-size: 1.1rem;
     color: var(--color-white);
-    cursor: pointer;
-    /* indica que é clicável (accordion) */
 }
 
 .card-content p {
     font-size: 0.9rem;
     color: var(--color-text-secondary);
     margin-bottom: 8px;
+}
+
+/* ================= FOOTER DO CARD (PARA BOTÕES) ================= */
+.card-footer {
+    padding: 0 15px 15px;
 }
 
 .card-footer-wrapper {
@@ -185,11 +199,8 @@
     /* Empurra para o final do card */
 }
 
-/* ================= FOOTER ================= */
-.card-footer {
-    margin-top: auto;
-    display: flex;
-    gap: 10px;
+.btn-card {
+    width: 100%;
 }
 
 .card-footer button,
@@ -205,6 +216,15 @@
     text-align: center;
     display: inline-block;
     font-size: 0.9rem;
+}
+
+.btn-card.youtube {
+    background-color: #FF0000;
+    color: var(--color-white);
+}
+
+.btn-card.youtube:hover {
+    background-color: #cc0000;
 }
 
 .card-footer .download {

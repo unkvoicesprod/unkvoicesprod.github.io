@@ -8,6 +8,7 @@ Beats   /   Kits    /   Posts
 document.addEventListener("DOMContentLoaded", () => {
     // Estado da aplicação
     let allContent = [];
+    let pageConfig = {};
     let currentFilteredContent = [];
     let currentPage = 1;
     const itemsPerPage = 4;
@@ -15,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Cache de elementos do DOM para evitar múltiplas buscas
     const elements = {
         container: document.getElementById("conteudo-container"),
+        main: document.querySelector("main"), // Adicionado para ler a configuração
         search: document.getElementById("search"),
         filtroGenero: document.getElementById("filtro-genero"),
         filtroCategoria: document.getElementById("filtro-categoria"),
@@ -31,12 +33,32 @@ document.addEventListener("DOMContentLoaded", () => {
         // Exibe o loader antes de iniciar o carregamento
         elements.container.innerHTML = `<div class="loader"></div>`;
 
+        loadPageConfig();
+        applyPageUiSettings(); // Aplica configurações de UI, como esconder filtros
+
         try {
-            const response = await fetch("data/conteudo.json");
-            if (!response.ok) {
-                throw new Error(`Erro HTTP: ${response.status}`);
+            // Carrega os dois ficheiros JSON em paralelo
+            const [contentResponse, postsResponse] = await Promise.all([
+                fetch("data/conteudo.json"),
+                fetch("data/posts.json")
+            ]);
+
+            if (!contentResponse.ok) throw new Error(`Erro ao carregar conteudo.json: ${contentResponse.status}`);
+            if (!postsResponse.ok) throw new Error(`Erro ao carregar posts.json: ${postsResponse.status}`);
+
+            const contentItems = await contentResponse.json();
+            const postItems = await postsResponse.json();
+
+            const processedPosts = await processYouTubePosts(postItems);
+            allContent = [...contentItems, ...processedPosts];
+
+            // Se a configuração da página pedir aleatoriedade, embaralha os itens
+            if (pageConfig.randomize) {
+                for (let i = allContent.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [allContent[i], allContent[j]] = [allContent[j], allContent[i]];
+                }
             }
-            allContent = await response.json();
 
             const appliedFromURL = applyFiltersFromURL();
             setupEventListeners();
@@ -47,6 +69,58 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Falha ao carregar o conteúdo:", error);
             elements.container.innerHTML = `<p class="error-message">Não foi possível carregar o conteúdo. Tente novamente mais tarde.</p>`;
+        }
+    }
+
+    async function processYouTubePosts(posts) {
+        const postPromises = posts.map(async (post, index) => {
+            try {
+                const response = await fetch(`https://noembed.com/embed?url=${post.youtubeUrl}`);
+                const data = await response.json();
+
+                const url = new URL(post.youtubeUrl);
+                const videoId = url.searchParams.get('v');
+                const postId = 1000 + index;
+
+                return {
+                    id: postId,
+                    titulo: data.title || `Post do YouTube #${index + 1}`, // Usa o título real ou um fallback
+                    capa: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                    genero: "audio", // Mantém o gênero para diferenciação nos filtros
+                    categoria: "Beats", // Altera a categoria para "Beats"
+                    ano: new Date().getFullYear(),
+                    isYouTubePost: true, // Adiciona um identificador para estes itens
+                    preco: 0,
+                    link: post.youtubeUrl,
+                    descricao: `Um vídeo do canal ${data.author_name || 'UNKVOICES'}. Clique para assistir no YouTube.`
+                };
+            } catch (error) {
+                console.error(`Falha ao buscar dados do vídeo: ${post.youtubeUrl}`, error);
+                return null; // Retorna null se a busca falhar
+            }
+        });
+        const resolvedPosts = await Promise.all(postPromises);
+        return resolvedPosts.filter(post => post !== null); // Filtra os posts que falharam
+    }
+
+    function loadPageConfig() {
+        const configAttr = elements.main.dataset.pageConfig;
+        if (configAttr) {
+            try {
+                pageConfig = JSON.parse(configAttr);
+            } catch (e) { console.error("Erro ao analisar a configuração da página (data-page-config):", e); }
+        }
+    }
+
+    function applyPageUiSettings() {
+        if (pageConfig.hideFilters && Array.isArray(pageConfig.hideFilters)) {
+            pageConfig.hideFilters.forEach(filterKey => {
+                // Constrói o nome da chave do elemento (ex: 'filtro' + 'Categoria' -> 'filtroCategoria')
+                const elementKey = `filtro${filterKey.charAt(0).toUpperCase() + filterKey.slice(1)}`;
+                if (elements[elementKey]) {
+                    elements[elementKey].style.display = 'none';
+                }
+            });
         }
     }
 
@@ -66,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const imagePath = item.capa;
 
             // --- LÓGICA DE RENDERIZAÇÃO PARA ITENS (BEATS, KITS) ---
-            const badgeClassMap = { "beats": "beat", "kits & plugins": "kit" };
+            const badgeClassMap = { "beats": "beat", "kits & plugins": "kit", "vst": "kit", "post": "post" };
             const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'kit';
 
             // Lógica para formatar o preço
@@ -78,22 +152,34 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? `<button class="play-overlay-btn" aria-label="Tocar prévia de ${item.titulo}">▶</button>`
                 : "";
 
+            // Botão "Ver no YouTube" apenas para posts
+            const youtubeButton = item.categoria === 'Post'
+                ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="btn-card youtube"><i class="fa-brands fa-youtube"></i> Ver no YouTube</a>`
+                : '';
+
+            // O link principal do card. Para posts, não leva a 'item.html'
+            const mainLink = item.isYouTubePost ? '#' : `item.html?id=${item.id}`;
+            const linkClass = item.isYouTubePost ? 'card-link-wrapper no-action' : 'card-link-wrapper';
+
             return `
             <div class="card" data-id="${item.id}" data-audio-src="${item.audioPreview || ''}" data-title="${item.titulo}" data-cover="${imagePath}">
-                <a href="item.html?id=${item.id}" class="card-link-wrapper">
+                <a href="${mainLink}" class="${linkClass}">
                     <div class="card-image-container">
                         <img src="${imagePath}" alt="${item.titulo}" loading="lazy" decoding="async" width="320" height="180">
                         ${playOverlayButton}
                     </div>
-                    <div class="card-content">
-                        <span class="badge ${badgeClass}">${item.categoria}</span>
-                        <div class="card-title-line">
-                            <h3>${item.titulo}</h3>
-                            <span class="card-price ${priceClass}">${priceText}</span>
-                        </div>
-                        <p><strong>${item.genero}</strong> - ${item.ano}</p>
-                    </div>
                 </a>
+                <div class="card-content">
+                    <span class="badge ${badgeClass}">${item.categoria}</span>
+                    <div class="card-title-line">
+                        <h3>${item.titulo}</h3>
+                        <span class="card-price ${priceClass}">${priceText}</span>
+                    </div>
+                    <p><strong>${item.genero}</strong> - ${item.ano}</p>
+                </div>
+                <div class="card-footer">
+                    ${youtubeButton}
+                </div>
             </div>
             `;
 
@@ -141,11 +227,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function populateFilters() {
-        const getUniqueValues = (key) => [...new Set(allContent.map(item => item[key]).filter(Boolean))];
+        // Filtra o conteúdo com base na configuração da página antes de popular os filtros
+        const pageContent = allContent.filter(item => {
+            const matchesPageConfig =
+                (!pageConfig.categorias || pageConfig.categorias.includes(item.categoria)) &&
+                (!pageConfig.precoMin || item.preco >= pageConfig.precoMin) &&
+                (!pageConfig.showOnlyYouTube || item.isYouTubePost === true) &&
+                (!pageConfig.home || true);
+            return matchesPageConfig;
+        });
+
+        const getUniqueValues = (key) => [...new Set(pageContent.map(item => item[key]).filter(Boolean))];
 
         fillSelect(elements.filtroGenero, getUniqueValues('genero'));
         fillSelect(elements.filtroCategoria, getUniqueValues('categoria'));
-        fillSelect(elements.filtroAno, getUniqueValues('ano').sort((a, b) => b - a)); // Ordena anos do mais recente para o mais antigo
+        fillSelect(elements.filtroAno, getUniqueValues('ano').sort((a, b) => b - a));
     }
 
     function fillSelect(selectElement, values) {
@@ -158,11 +254,15 @@ document.addEventListener("DOMContentLoaded", () => {
             fragment.appendChild(option);
         });
         selectElement.appendChild(fragment);
+
+        // Se houver apenas uma opção (além do "placeholder"), esconde o filtro
+        if (values.length === 1 && selectElement.options.length === 2) {
+            selectElement.value = values[0]; // Pré-seleciona a única opção
+            selectElement.style.display = 'none';
+        }
     }
 
     function applyFilters() {
-        const pageFilter = getPageFilter();
-
         const searchTerm = elements.search.value.toLowerCase();
         const selected = {
             genero: elements.filtroGenero.value,
@@ -172,11 +272,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const filtered = allContent.filter(item => {
             // 1. Aplicar o filtro base da página (se houver)
-            const matchesPageFilter =
-                (!pageFilter.categoria || item.categoria === pageFilter.categoria) &&
-                (!pageFilter.preco || item.preco > 0);
+            const matchesPageConfig =
+                (!pageConfig.categorias || pageConfig.categorias.includes(item.categoria)) &&
+                (!pageConfig.precoMin || item.preco >= pageConfig.precoMin) &&
+                (!pageConfig.showOnlyYouTube || item.isYouTubePost === true) &&
+                (!pageConfig.home || true); // Lógica para a home page, se necessário
 
-            if (!matchesPageFilter) return false;
+            if (!matchesPageConfig) return false;
 
             // 2. Aplicar filtros do usuário (pesquisa e selects)
             const matchesSearch = searchTerm === "" ||
@@ -241,13 +343,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function handleCardClick(event) {
+        const card = event.target.closest('.card');
+        if (!card) return; // Sai se o clique não foi dentro de um card
+
+        const itemId = card.dataset.id;
+        const item = allContent.find(i => i.id.toString() === itemId);
+
+        // Se o item for um post do YouTube, mostra o alerta e para a execução.
+        if (item && item.isYouTubePost) {
+            event.preventDefault(); // Previne qualquer outra ação padrão (como seguir um link)
+            document.dispatchEvent(new CustomEvent('showAlert', {
+                detail: {
+                    message: `Está prestes a ser redirecionado para o YouTube para ver "${item.titulo}".`,
+                    actionText: '<i class="fa-brands fa-youtube"></i> Ver no YouTube',
+                    action: () => window.open(item.link, '_blank')
+                }
+            }));
+            return; // Interrompe a função aqui
+        }
+
+        // Se não for um post do YouTube, continua com a lógica de tocar a prévia
         const playButton = event.target.closest('.play-overlay-btn');
-        if (!playButton) return;
+        if (!playButton) return; // Se o clique não foi no botão de play, não faz nada (o link <a> tratará da navegação)
 
         event.preventDefault(); // Impede que o link do card seja seguido ao clicar em "Play"
         event.stopPropagation();
-
-        const card = playButton.closest('.card');
         const clickedId = card.dataset.id;
 
         // Cria a playlist apenas com itens que têm áudio
@@ -348,14 +468,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const newUrl = `${window.location.pathname}?${params.toString()}`;
         history.replaceState({ path: newUrl }, '', newUrl);
-    }
-
-    function getPageFilter() {
-        if (window.location.pathname.includes("beats.html")) return { categorias: ["Beats"] };
-        if (window.location.pathname.includes("kits.html")) return { categorias: ["Kits", "VST", "Software"] };
-        if (window.location.pathname.includes("loja.html")) return { preco: ">0" }; // Itens com preço maior que zero
-        if (window.location.pathname.includes("index.html") || window.location.pathname.endsWith('/')) return { home: true };
-        return {};
     }
 
     function observeCards(cards) {

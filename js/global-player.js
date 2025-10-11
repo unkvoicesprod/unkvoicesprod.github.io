@@ -137,6 +137,18 @@ document.addEventListener('DOMContentLoaded', () => {
         alertElements.overlay.classList.add('hidden');
     }
 
+    // Função genérica para mostrar o alerta, que pode ser chamada por outros scripts
+    function showCustomAlert({ message, actionText, action }) {
+        if (!alertElements.overlay) return;
+
+        alertElements.message.innerHTML = message; // Usa innerHTML para permitir ícones
+        alertElements.actionBtn.innerHTML = actionText;
+        alertAction = () => {
+            action();
+            hidePreviewEndAlert();
+        };
+        alertElements.overlay.classList.remove('hidden');
+    }
     // --- Event Listeners ---
 
     // Listener para o evento customizado que inicia a playlist
@@ -147,6 +159,9 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.prevBtn.addEventListener('click', playPrevious);
     elements.nextBtn.addEventListener('click', playNext);
     elements.closeBtn.addEventListener('click', closePlayer);
+
+    // Listener para o evento customizado que mostra um alerta
+    document.addEventListener('showAlert', (e) => showCustomAlert(e.detail));
 
     // Listeners do alerta customizado
     alertElements.actionBtn?.addEventListener('click', () => alertAction());

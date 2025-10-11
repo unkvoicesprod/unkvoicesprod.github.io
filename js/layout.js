@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Carrega os componentes comuns
     loadComponent("header-placeholder", "data/header.html");
-    // Se tiver outros placeholders, adicione-os aqui. Ex:
-    // loadComponent("footer-placeholder", "layout/footer.html");
+    loadComponent("footer-placeholder", "data/footer.html");
+    loadComponent("player-placeholder", "data/player.html");
+    loadComponent("alert-placeholder", "data/alert.html");
 });

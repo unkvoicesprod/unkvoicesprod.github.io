@@ -5,11 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- SEO & Metadata -->
-    <meta name="description" content="Bibliotecas e packs para elevar a tua produção. Kits & Plugins da UNKVOICES.">
-    <meta name="keywords" content="drum kits, loop kits, midi kits, plugins, vsts, producao musical, UNKVOICES">
+    <meta name="description" content="Conteúdo exclusivo, tutoriais e vídeos do canal UNKVOICES.">
+    <meta name="keywords" content="posts, vídeos, tutoriais, produção musical, UNKVOICES">
     <meta name="author" content="UNKVOICES">
-    <title>Kits & Plugins | UNKVOICES</title>
-    <!-- Open Graph / Facebook -->
+    <title>Posts | UNKVOICES</title>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8DFJRGCVWG"></script>
     <script>
@@ -19,16 +18,17 @@
 
         gtag('config', 'G-8DFJRGCVWG');
     </script>
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://unkvoices.github.io/kits.html">
-    <meta property="og:title" content="Kits & Plugins | UNKVOICES">
-    <meta property="og:description" content="Bibliotecas e packs para elevar a tua produção.">
+    <meta property="og:url" content="https://unkvoices.github.io/posts.html">
+    <meta property="og:title" content="Posts | UNKVOICES">
+    <meta property="og:description" content="Conteúdo exclusivo, tutoriais e vídeos do canal UNKVOICES.">
     <meta property="og:image" content="https://unkvoices.github.io/assets/logo.jpg">
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://unkvoices.github.io/kits.html">
-    <meta property="twitter:title" content="Kits & Plugins | UNKVOICES">
-    <meta property="twitter:description" content="Bibliotecas e packs para elevar a tua produção.">
+    <meta property="twitter:url" content="https://unkvoices.github.io/posts.html">
+    <meta property="twitter:title" content="Posts | UNKVOICES">
+    <meta property="twitter:description" content="Conteúdo exclusivo, tutoriais e vídeos do canal UNKVOICES.">
     <meta property="twitter:image" content="https://unkvoices.github.io/assets/logo.jpg">
     <link rel="icon" href="assets/logo.svg" type="image/x-icon">
     <link rel="stylesheet" href="css/style.css">
@@ -39,10 +39,10 @@
 <body>
     <!-- O Header será carregado aqui -->
     <div id="header-placeholder"></div>
-    <main data-page-config='{"categorias": ["Kits & Plugins", "VST"]}'>
+    <main data-page-config='{"showOnlyYouTube": true, "hideFilters": ["categoria"]}'>
         <section class="hero glass">
-            <h1>🛠 Kits & Plugins</h1>
-            <p>Bibliotecas e packs para elevar a tua produção.</p>
+            <h1>🎬 Posts & Vídeos</h1>
+            <p>Conteúdo exclusivo, tutoriais e vídeos do nosso canal.</p>
         </section>
         <input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
         <button id="toggle-filters-btn" class="toggle-filters-btn">☰ Filtrar</button>
@@ -64,36 +64,13 @@
         <div id="conteudo-container" class="grid-dynamic"></div>
         <div id="pagination-container" class="pagination"></div>
     </main>
-    <footer class="glass">
-        <p>&copy; 2025 UNKVOICES</p>
-    </footer>
-    <div id="global-player" class="global-player glass hidden">
-        <img id="player-cover" src="assets/logo.jpg" alt="Capa do Beat">
-        <div class="track-info">
-            <p id="player-title">Selecione um beat</p>
-        </div>
-        <div class="player-controls">
-            <button id="player-prev" class="control-btn small" aria-label="Anterior">«</button>
-            <button id="player-play-pause" class="control-btn" aria-label="Play/Pause">▶</button>
-            <button id="player-next" class="control-btn small" aria-label="Próximo">»</button>
-        </div>
-        <div class="progress-container">
-            <span id="player-current-time">0:00</span>
-            <input type="range" id="player-progress" value="0" step="1" min="0" max="30" aria-label="Progresso da música">
-            <span id="player-duration">0:30</span>
-        </div>
-        <button id="player-close" class="close-btn" aria-label="Fechar Player">&times;</button>
-        <audio id="global-audio-player" preload="metadata"></audio>
-    </div>
-    <div id="custom-alert-overlay" class="custom-alert-overlay hidden">
-        <div id="custom-alert-box" class="custom-alert-box glass">
-            <p id="custom-alert-message"></p>
-            <div class="custom-alert-actions">
-                <button id="custom-alert-action-btn" class="btn" aria-label="Ação do Alerta"></button>
-                <button id="custom-alert-close-btn" class="btn-secondary" aria-label="Fechar Alerta">Fechar</button>
-            </div>
-        </div>
-    </div>
+    <!-- O Footer será carregado aqui -->
+    <div id="footer-placeholder"></div>
+    <!-- O Player Global será carregado aqui -->
+    <div id="player-placeholder"></div>
+    <!-- O Alerta Customizado será carregado aqui -->
+    <div id="alert-placeholder"></div>
+
     <script src="js/conteudo.js"></script>
     <script src="js/global-player.js"></script>
     <script src="js/layout.js"></script>
