@@ -1,0 +1,465 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Palette */
+    --color-background: #111;
+    --color-background-gradient-start: #0a0a0a;
+    --color-background-gradient-end: #0f0f0f;
+    --color-surface-1: #181818;
+    /* feature background */
+    --color-surface-2: #111827;
+    /* card background */
+    --color-surface-hover: #1f2937;
+    /* select hover */
+
+    --color-text-primary: #f0f0f0;
+    --color-text-secondary: #ccc;
+    --color-text-on-accent: #111;
+    --color-white: #fff;
+
+    --color-border: #222;
+
+    --color-accent-green: #00ff99;
+    --color-accent-green-hover: #00cc77;
+    --color-accent-pink: #ff007f;
+    --color-accent-pink-hover: #cc0066;
+    --color-accent-purple: #8b5cf6;
+
+    /* Effects */
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow-green: rgba(0, 255, 153, 0.1);
+
+    --card-shadow-pink: rgba(255, 0, 153, 0.15);
+    --card-shadow-green-hover: rgba(0, 255, 153, 0.35);
+
+    --filter-shadow-green: rgba(0, 255, 153, 0.3);
+    --filter-shadow-green-hover: rgba(0, 255, 153, 0.5);
+
+    --option-bg: hsla(221, 39%, 11%, 0.418);
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    background: linear-gradient(135deg, var(--color-background-gradient-start), var(--color-background), var(--color-background-gradient-end));
+    color: var(--color-text-primary);
+}
+
+body.welcome-active {
+    overflow: hidden;
+}
+
+/* Componentes com efeito glass */
+.glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px var(--glass-shadow-green);
+}
+
+
+/* Navbar */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 1001;
+    /* Acima do player e outros elementos */
+    background: transparent;
+    /* Começa transparente */
+    padding: 1rem 2rem;
+    border-bottom: 1px solid transparent;
+    /* Começa sem borda */
+    transition: background-color 0.4s ease, padding 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease;
+}
+
+header.scrolled {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 0.75rem 2rem;
+    /* Padding ligeiramente menor */
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar .logo img {
+    height: 35px;
+    border-radius: 8px;
+    display: inline-flex;
+}
+
+.navbar .menu {
+    list-style: none;
+    display: flex;
+    gap: 1.5rem;
+}
+
+.navbar .menu a {
+    text-decoration: none;
+    color: var(--color-text-primary);
+    font-weight: bold;
+    transition: color 0.2s;
+}
+
+.navbar .menu a:hover {
+    color: var(--color-accent-green);
+}
+
+/* Hero section */
+.hero {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(to right, var(--color-background), var(--color-border));
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.hero p {
+    margin-bottom: 2rem;
+    font-size: 1.2rem;
+    color: var(--color-text-secondary);
+}
+
+.btn {
+    display: inline-block;
+    background: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+    padding: 0.75rem 1.5rem;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn:hover {
+    background: var(--color-accent-green-hover);
+}
+
+/* Features */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    padding: 3rem 2rem;
+}
+
+.feature {
+    background: var(--color-surface-1);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+.feature h2 {
+    margin-bottom: 1rem;
+    color: var(--color-accent-green);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background: var(--color-background);
+    border-top: 1px solid var(--color-border);
+    margin-top: 2rem;
+}
+
+/* ================= GLOBAL AUDIO PLAYER ================= */
+.global-player {
+    position: fixed;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 600px;
+    padding: 10px 15px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-radius: 12px;
+    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+.global-player.hidden {
+    transform: translate(-50%, 150%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+#player-cover {
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.track-info {
+    flex-grow: 1;
+    color: var(--color-text-primary);
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.9rem;
+}
+
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.player-controls .control-btn {
+    background: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+    flex-shrink: 0;
+}
+
+.player-controls .control-btn:hover {
+    background: var(--color-accent-green-hover);
+}
+
+.player-controls .control-btn.small {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+}
+
+.progress-container {
+    display: none;
+    /* Escondido por padrão, aparece em telas maiores */
+    align-items: center;
+    gap: 10px;
+    flex-grow: 2;
+    min-width: 150px;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+}
+
+@media (min-width: 500px) {
+    .progress-container {
+        display: flex;
+    }
+}
+
+#player-progress {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+
+#player-progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    background: var(--color-accent-green);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+#player-progress::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    background: var(--color-accent-green);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.close-btn:hover {
+    color: var(--color-white);
+}
+
+/* ================= CUSTOM ALERT ================= */
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.custom-alert-overlay:not(.hidden) {
+    opacity: 1;
+}
+
+.custom-alert-overlay.hidden {
+    pointer-events: none;
+}
+
+.custom-alert-box {
+    padding: 2rem;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.custom-alert-overlay:not(.hidden) .custom-alert-box {
+    transform: scale(1);
+}
+
+.custom-alert-box p {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-text-primary);
+}
+
+.custom-alert-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.custom-alert-actions .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--color-accent-pink);
+    color: var(--color-accent-pink);
+    padding: 0.75rem 1.5rem;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-alert-actions .btn-secondary:hover {
+    background: var(--color-accent-pink);
+    color: var(--color-white);
+}
+
+/* ================= WELCOME SCREEN ================= */
+.welcome-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(10, 10, 10, 0.5);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.welcome-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.welcome-box {
+    text-align: center;
+    padding: 2rem 3rem;
+    transform: scale(0.95);
+    opacity: 0;
+    animation: welcome-fade-in 0.6s 0.2s ease-out forwards;
+}
+
+.welcome-box h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-accent-green);
+}
+
+.welcome-box p {
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    color: var(--color-text-secondary);
+}
+
+@keyframes welcome-fade-in {
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ================= BOTÃO VOLTAR AO TOPO ================= */
+.back-to-top-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    background-color: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+    border: none;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+}
+
+.back-to-top-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.back-to-top-btn:hover {
+    background-color: var(--color-accent-green-hover);
+}

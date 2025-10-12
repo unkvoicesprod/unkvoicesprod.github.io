@@ -1,0 +1,23 @@
+{
+  "name": "unkvoices",
+  "version": "1.0.0",
+  "description": "ENJOY",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unkvoicesprod/unkvoicesprod.github.io.git"
+  },
+  "author": "UNKVOICES PROD",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/unkvoicesprod/unkvoicesprod.github.io/issues"
+  },
+  "homepage": "https://github.com/unkvoicesprod/unkvoicesprod.github.io/index.html",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "cspell": "^9.2.1"
+  }
+}

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<!-- As meta tags serão preenchidas por JavaScript -->
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Metadados Padrão (Fallback) -->
+    <title>UNKVOICES</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8DFJRGCVWG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-8DFJRGCVWG');
+</script>
+    <meta name="description" content="Beats, plugins e conteúdo musical num só lugar.">
+    <meta property="og:title" content="UNKVOICES">
+    <meta property="og:description" content="Beats, plugins e conteúdo musical num só lugar.">
+    <meta property="og:url" content="https://unkvoices.github.io">
+    <meta property="og:image" content="https://unkvoices.github.io/assets/logo.jpg">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="UNKVOICES">
+    <meta property="twitter:description" content="Beats, plugins e conteúdo musical num só lugar.">
+    <meta property="twitter:url" content="https://unkvoices.github.io">
+    <meta property="twitter:image" content="https://unkvoices.github.io/assets/logo.jpg">
+    <link rel="icon" href="assets/logo.svg" type="image/x-icon">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/conteudo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Animações de carregamento */
+    @keyframes image-load-animation {
+      from {
+        opacity: 0;
+        transform: scale(0.95) rotate(-3deg);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+    }
+    @keyframes content-fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    /* Wrapper para centralizar o conteúdo da página */
+    .item-page-wrapper {
+      max-width: 1200px;
+      margin: 4rem auto; /* Centraliza horizontalmente e adiciona espaço vertical */
+      padding: 0 1rem;
+    }
+    /* Estilos aprimorados para a página de item */
+    #item-detail-view {
+      max-width: 900px;
+      padding: 2rem;
+      display: flex;
+      gap: 3rem;
+      align-items: flex-start;
+      background: var(--glass-bg);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      box-shadow: 0 0 30px var(--card-shadow-pink);
+      border: 1px solid var(--glass-border);
+      margin: 0 auto; /* Garante a centralização dentro do wrapper */
+    }
+    #item-detail-view img {
+      width: 350px;
+      height: 350px;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      animation: image-load-animation 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    .item-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0; /* Corrige problema de overflow do flexbox em telas menores */
+      height: 100%;
+      /* Começa invisível e com um atraso para a animação funcionar */
+      opacity: 0; 
+      animation: content-fade-in 0.8s 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    .item-info h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--color-white);
+      line-height: 1.2;
+    }
+    .item-info p {
+        color: var(--color-text-secondary);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+    .item-info .price {
+      font-size: 2rem;
+      color: var(--color-accent-green);
+      font-weight: bold;
+      margin: 1.5rem 0;
+    }
+    .item-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: auto; /* Empurra os botões para o final */
+    }
+    .item-actions .btn {
+        flex: 1;
+        font-size: 1rem;
+    }
+    .item-actions .btn-outline {
+        background: transparent;
+        border: 2px solid var(--color-accent-purple);
+        color: var(--color-accent-purple);
+        padding: 0.75rem 1.5rem;
+        border-radius: 20px;
+    }
+    .item-actions .btn-outline:hover {
+        background: var(--color-accent-purple);
+        color: var(--color-white);
+        border-color: var(--color-accent-purple);
+    }
+    .item-info .badge {
+        margin-bottom: 1rem;
+    }
+    @media (max-width: 768px) {
+      #item-detail-view {
+        flex-direction: column;
+        align-items: center;
+      }
+      #item-detail-view img {
+        width: 100%;
+        max-width: 300px;
+        display: block;
+        margin: 0 auto 2rem; /* Centraliza a imagem e adiciona espaço abaixo */
+        height: 300px; /* Define uma altura fixa para manter a proporção quadrada */
+        object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
+      }
+      .item-info {
+        text-align: center;
+      }
+      .item-info h1 {
+        font-size: 2rem;
+      }
+      .item-info .badge {
+          align-self: center;
+      }
+      .item-actions {
+        justify-content: center;
+      }
+    }
+    /* Estilos para os botões de compartilhamento social */
+    .social-share {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--glass-border);
+    }
+    .social-share p {
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: var(--color-text-secondary);
+        font-weight: bold;
+        text-align: center;
+    }
+    .social-share-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+    .social-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        text-decoration: none;
+        color: var(--color-white);
+        transition: transform 0.3s ease;
+    }
+    .social-btn:hover { transform: scale(1.1); }
+    .social-btn.twitter { background-color: #1DA1F2; }
+    .social-btn.facebook { background-color: #1877F2; }
+    .social-btn.whatsapp { background-color: #25D366; }
+    /* Estilos para a seção de itens relacionados */
+    .related-items-section {
+        max-width: 1200px;
+        margin: 4rem auto 0; /* Margem superior e centralização */
+        padding: 0 2rem;
+        opacity: 0; /* Começa invisível para animação */
+        animation: content-fade-in 1s 0.5s forwards;
+    }
+    .related-items-section h2 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        color: var(--color-accent-green);
+    }
+  </style>
+</head>
+
+<body>
+    <!-- O Header será carregado aqui -->
+    <div id="header-placeholder"></div>
+    <main>
+        <!-- O conteúdo do item será inserido aqui pelo JavaScript -->
+        <div class="item-page-wrapper">
+            <div id="item-detail-view">
+                <div class="loader"></div>
+            </div>
+            <!-- Seção de Itens Relacionados -->
+            <section id="related-items-section" class="related-items-section" style="display: none;">
+                <h2>Itens Relacionados</h2>
+                <div id="related-items-container" class="grid-dynamic">
+                </div>
+            </section>
+        </div>
+    </main>
+    <!-- O Footer será carregado aqui -->
+    <div id="footer-placeholder"></div>
+    <!-- O Player Global será carregado aqui -->
+    <div id="player-placeholder"></div>
+    <!-- O Alerta Customizado será carregado aqui -->
+    <div id="alert-placeholder"></div>
+
+    <script src="js/item-detail.js"></script>
+    <script src="js/global-player.js"></script>
+    <script src="js/layout.js"></script>
+</body>
+
+</html>
