@@ -58,6 +58,15 @@ function initializeGlobalPlayer() {
         elements.audio.src = track.audioSrc;
         player.classList.remove('hidden');
 
+        // Envia um evento personalizado para o Google Tag Manager (dataLayer)
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            'event': 'play_track',
+            'track_title': track.title,
+            'track_id': track.id,
+            'track_price': track.preco
+        });
+
         // Toca a música
         const playPromise = elements.audio.play();
         if (playPromise !== undefined) {

@@ -1,0 +1,30 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyAGgvGXVg6Jmql8CugFx-WJblR-arce-y4",
+    authDomain: "unkvoicesprod.firebaseapp.com",
+    projectId: "unkvoicesprod",
+    storageBucket: "unkvoicesprod.appspot.com", // Corrigido para o domínio correto do Storage
+    messagingSenderId: "745742457945",
+    appId: "1:745742457945:web:05bf2241d1d6676f26a548"
+};
+
+let app, db;
+
+try {
+    // Initialize Firebase
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    console.log("✅ Firebase inicializado com sucesso!");
+    console.log("   - Project ID:", app.options.projectId);
+} catch (error) {
+    console.error("❌ Erro ao inicializar o Firebase:", error);
+}
+
+// Exporta as instâncias para serem usadas em outros módulos
+export { app, db };

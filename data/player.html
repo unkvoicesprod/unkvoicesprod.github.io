@@ -1,18 +1,21 @@
 <div id="global-player" class="global-player glass hidden">
-    <img id="player-cover" src="https://unkvoices.github.io/assets/logo.jpg" alt="Capa do Beat">
-    <div class="track-info">
-        <p id="player-title">Selecione um beat</p>
-    </div>
+    <figure class="player-figure">
+        <img id="player-cover" src="https://unkvoices.github.io/assets/logo.jpg" alt="Capa do Beat">
+        <figcaption class="track-info">
+            <p id="player-title">Selecione um beat</p>
+        </figcaption>
+    </figure>
     <div class="player-controls">
         <button id="player-prev" class="control-btn small" aria-label="Anterior">«</button>
         <button id="player-play-pause" class="control-btn" aria-label="Play/Pause">▶</button>
         <button id="player-next" class="control-btn small" aria-label="Próximo">»</button>
     </div>
-    <div class="progress-container">
-        <span id="player-current-time">0:00</span>
-        <input type="range" id="player-progress" value="0" step="1" min="0" max="30" aria-label="Progresso da música">
-        <span id="player-duration">0:30</span>
-    </div>
+    <label for="player-progress" class="progress-container">
+        <span class="visually-hidden">Progresso da música</span>
+        <span id="player-current-time" aria-hidden="true">0:00</span>
+        <input type="range" id="player-progress" value="0" step="1" min="0" max="30">
+        <span id="player-duration" aria-hidden="true">0:30</span>
+    </label>
     <button id="player-close" class="close-btn" aria-label="Fechar Player">&times;</button>
     <audio id="global-audio-player" preload="metadata"></audio>
 </div>

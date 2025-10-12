@@ -45,6 +45,9 @@ function updateMetaTags(item) {
 
     document.title = `${item.titulo} | UNKVOICES`;
 
+    // Adiciona ou atualiza a tag canónica
+    document.head.insertAdjacentHTML('beforeend', `<link rel="canonical" href="${fullUrl}" />`);
+
     // Meta tags padrão e de SEO
     document.querySelector('meta[name="description"]').setAttribute('content', item.descricao);
 
@@ -66,7 +69,7 @@ function renderItemDetails(item) {
 
     const priceText = item.preco > 0 ? `$${item.preco.toFixed(2)}` : "Grátis";
     const buttonText = item.preco === 0 ? '<i class="fa-solid fa-download"></i> Baixar' : '<i class="fa-solid fa-cart-shopping"></i> Comprar';
-    const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="btn download">${buttonText}</a>` : '';
+    const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="btn download" data-item-id="${item.id}" data-item-title="${item.titulo}">${buttonText}</a>` : '';
 
     const playButton = item.audioPreview
         ? `<button id="play-detail-btn" class="btn play">▶ Tocar Prévia</button>`
