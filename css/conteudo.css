@@ -193,6 +193,19 @@
     margin-bottom: 8px;
 }
 
+/* Estilo para a contagem de visualizações */
+.card-views {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-top: auto;
+    /* Empurra para o final do card-content */
+    padding-top: 8px;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 /* ================= FOOTER DO CARD (PARA BOTÕES) ================= */
 .card-footer {
     padding: 0 15px 15px;

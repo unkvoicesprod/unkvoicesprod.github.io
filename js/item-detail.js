@@ -1,3 +1,6 @@
+import { db } from './firebase-init.js';
+import { doc, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
 async function initializeItemDetail() {
     const container = document.getElementById("item-detail-view");
 
@@ -37,6 +40,40 @@ async function initializeItemDetail() {
         console.error("Erro ao carregar detalhes do item:", error);
         container.innerHTML = "<h1>Erro</h1><p>Ocorreu um erro ao carregar as informações. Tente novamente mais tarde.</p>";
     }
+}
+
+/**
+ * Dispara o incremento da contagem de visualizações, mas apenas uma vez por item por utilizador (usando localStorage).
+ * @param {string} itemId O ID do item.
+ */
+function triggerViewCountOnce(itemId) {
+    if (!itemId) return;
+
+    try {
+        const viewedItemsKey = 'unkvoices_viewed_items';
+        const viewedItems = JSON.parse(localStorage.getItem(viewedItemsKey)) || [];
+
+        if (!viewedItems.includes(itemId)) {
+            // Se o item ainda não foi "visto", incrementa no Firebase
+            incrementViewCount(itemId);
+
+            // Adiciona o ID à lista e salva no localStorage
+            viewedItems.push(itemId);
+            localStorage.setItem(viewedItemsKey, JSON.stringify(viewedItems));
+        }
+    } catch (error) { console.error("Erro ao gerir o estado de visualização:", error); }
+}
+
+/**
+ * Incrementa a contagem de visualizações de um item no Firestore.
+ * @param {string} itemId O ID do item.
+ */
+async function incrementViewCount(itemId) {
+    if (!db || !itemId) return;
+    try {
+        const viewRef = doc(db, "views", itemId.toString());
+        await setDoc(viewRef, { count: increment(1) }, { merge: true });
+    } catch (error) { console.error("Falha ao incrementar visualização:", error); }
 }
 
 function updateMetaTags(item) {
@@ -120,12 +157,21 @@ function renderItemDetails(item) {
         </div>
     `;
 
+    // Adiciona listener para o botão de comprar/baixar para contar a view
+    const downloadBtn = container.querySelector('.btn.download');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => triggerViewCountOnce(item.id.toString()));
+    }
+
     // Adiciona o listener para o botão de play da página de detalhe
     const playDetailBtn = document.getElementById('play-detail-btn');
     if (playDetailBtn) {
         playDetailBtn.addEventListener('click', () => {
             const infoDiv = document.querySelector('.item-info');
             if (!infoDiv.dataset.audioSrc) return;
+
+            // Conta a view ao clicar em "Tocar Prévia"
+            triggerViewCountOnce(item.id.toString());
 
             // Cria uma playlist com apenas este item
             const playlist = [{

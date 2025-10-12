@@ -3,12 +3,15 @@
 Chaves do JSON
 Beats   /   Kits    /   Posts
 */
+import { db } from './firebase-init.js';
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 
 function startContentScript() {
     // Estado da aplicação
     let allContent = [];
     let pageConfig = {};
+    let viewCounts = {}; // Novo: para armazenar as contagens de views
     let currentFilteredContent = [];
     let currentPage = 1;
     const itemsPerPage = 8;
@@ -37,10 +40,11 @@ function startContentScript() {
         applyPageUiSettings(); // Aplica configurações de UI, como esconder filtros
 
         try {
-            // Carrega os dois ficheiros JSON em paralelo
-            const [contentResponse, postsResponse] = await Promise.all([
+            // Carrega os dados e as contagens de visualizações em paralelo
+            const [contentResponse, postsResponse, fetchedViewCounts] = await Promise.all([
                 fetch("data/conteudo.json"),
-                fetch("data/posts.json")
+                fetch("data/posts.json"),
+                fetchAllViewCounts() // Novo
             ]);
 
             if (!contentResponse.ok) throw new Error(`Erro ao carregar conteudo.json: ${contentResponse.status}`);
@@ -48,6 +52,7 @@ function startContentScript() {
 
             const contentItems = await contentResponse.json();
             const postItems = await postsResponse.json();
+            viewCounts = fetchedViewCounts; // Novo
 
             const processedPosts = await processYouTubePosts(postItems);
             allContent = [...contentItems, ...processedPosts];
@@ -70,6 +75,22 @@ function startContentScript() {
             console.error("Falha ao carregar o conteúdo:", error);
             elements.container.innerHTML = `<p class="error-message">Não foi possível carregar o conteúdo. Tente novamente mais tarde.</p>`;
         }
+    }
+
+    /**
+     * Busca todas as contagens de visualizações do Firestore.
+     * @returns {Promise<Object>} Um objeto onde a chave é o ID do item e o valor é a contagem.
+     */
+    async function fetchAllViewCounts() {
+        if (!db) return {};
+        const counts = {};
+        try {
+            const querySnapshot = await getDocs(collection(db, "views"));
+            querySnapshot.forEach((doc) => {
+                counts[doc.id] = doc.data().count;
+            });
+        } catch (error) { console.error("Erro ao buscar contagens de views:", error); }
+        return counts;
     }
 
     async function processYouTubePosts(posts) {
@@ -161,6 +182,9 @@ function startContentScript() {
                 ? item.link
                 : `${window.location.origin}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}/item.html?id=${item.id}`;
 
+            const viewCount = viewCounts[item.id] || 0;
+            const viewCountHtml = `<span class="card-views"><i class="fa-solid fa-eye"></i> ${viewCount.toLocaleString('pt-PT')}</span>`;
+
             const copyLinkButton = `<button class="btn-card copy-link-btn" data-link="${linkToCopy}"><i class="fa-solid fa-link"></i> Copiar Link</button>`;
 
             return `
@@ -178,6 +202,7 @@ function startContentScript() {
                         <span class="card-price ${priceClass}">${priceText}</span>
                     </div>
                     <p><strong>${item.genero}</strong> - ${item.ano}</p>
+                    ${viewCountHtml}
                 </div>
                 <div class="card-footer">
                     ${copyLinkButton}
@@ -571,5 +596,5 @@ function startContentScript() {
 document.addEventListener("DOMContentLoaded", () => {
     // Se os componentes já foram carregados (caso o evento dispare antes), inicia imediatamente.
     // Caso contrário, espera pelo evento.
-    document.addEventListener('componentsLoaded', startContentScript, { once: true }); // O problema estava aqui, a solução foi unificar os HTMLs e usar este listener.
+    document.addEventListener('componentsLoaded', startContentScript, { once: true });
 });
