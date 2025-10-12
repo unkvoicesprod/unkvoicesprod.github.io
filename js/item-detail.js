@@ -1,5 +1,5 @@
 import { db } from './firebase-init.js';
-import { doc, setDoc, increment, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, increment, collection, getDocs, query, where, documentId } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 async function initializeItemDetail() {
     const container = document.getElementById("item-detail-view");
@@ -14,13 +14,13 @@ async function initializeItemDetail() {
     }
 
     try {
-        // 2. Carregar dados e contagens de visualizações em paralelo
-        const [response, viewCounts] = await Promise.all([
-            fetch("data/conteudo.json"),
-            fetchAllViewCounts()
-        ]);
-
-        if (!response.ok) throw new Error("Não foi possível carregar o conteúdo.");
+        // 2. Otimização: Carregar apenas o item específico se a estrutura de dados permitir.
+        // Por enquanto, mantemos o fetch do JSON completo, mas esta é a principal área para melhoria futura.
+        // Exemplo futuro: const response = await fetch(`data/items/${itemId}.json`);
+        const response = await fetch("data/conteudo.json");
+        if (!response.ok) {
+            throw new Error("Não foi possível carregar o conteúdo.");
+        }
         const allContent = await response.json();
 
         // 3. Encontrar o item específico pelo ID
@@ -31,13 +31,21 @@ async function initializeItemDetail() {
             return;
         }
 
-        // 4. Atualizar as meta tags da página dinamicamente
+        // 4. Incrementar a visualização (se for a primeira vez)
+        triggerViewCountOnce(itemId);
+
+        // 5. Atualizar as meta tags da página dinamicamente
         updateMetaTags(item);
 
-        // 5. Renderizar os detalhes do item na página
+        // 6. Renderizar os detalhes do item na página
         renderItemDetails(item);
 
-        // 6. Renderizar itens relacionados
+        // 7. Otimização: Buscar contagens de visualizações apenas para os itens relevantes
+        const relatedItems = getRelatedItems(item, allContent);
+        const idsToFetchViews = [itemId, ...relatedItems.map(i => i.id)];
+        const viewCounts = await fetchSpecificViewCounts(idsToFetchViews);
+
+        // 8. Renderizar itens relacionados
         renderRelatedItems(item, allContent, viewCounts);
 
     } catch (error) {
@@ -81,20 +89,28 @@ async function incrementViewCount(itemId) {
 }
 
 /**
- * Busca todas as contagens de visualizações do Firestore (para a página de detalhes).
- * @returns {Promise<Object>} Um objeto onde a chave é o ID do item e o valor é a contagem.
+ * Otimização: Busca contagens de visualizações apenas para uma lista específica de IDs.
+ * @param {string[]} itemIds Array de IDs dos itens para buscar as contagens.
+ * @returns {Promise<Object<string, number>>} Um objeto mapeando ID para contagem.
  */
-async function fetchAllViewCounts() {
-    if (!db) return {};
+async function fetchSpecificViewCounts(itemIds = []) {
+    if (!db || itemIds.length === 0) return {};
+
+    // O Firestore permite até 30 IDs em uma cláusula 'in'
+    if (itemIds.length > 30) {
+        console.warn("A busca de visualizações está limitada aos primeiros 30 IDs.");
+        itemIds = itemIds.slice(0, 30);
+    }
+
     const counts = {};
     try {
-        const querySnapshot = await getDocs(collection(db, "views"));
+        const q = query(collection(db, "views"), where(documentId(), "in", itemIds.map(String)));
+        const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
             counts[doc.id] = doc.data().count;
         });
-        return counts; // Retorna as contagens obtidas
-    } catch (error) { console.error("Falha ao buscar contagens de visualizações:", error); }
-    return counts; // Retorna um objeto vazio em caso de erro
+    } catch (error) { console.error("Falha ao buscar contagens de visualizações específicas:", error); }
+    return counts;
 }
 
 function updateMetaTags(item) {
@@ -232,6 +248,28 @@ function renderItemDetails(item) {
     }
 }
 
+/**
+ * Otimização: Separa a lógica de obter os itens relacionados da sua renderização.
+ * @param {object} currentItem O item principal.
+ * @param {Array<object>} allContent A lista completa de conteúdo.
+ * @returns {Array<object>} Uma lista de até 4 itens relacionados.
+ */
+function getRelatedItems(currentItem, allContent) {
+    // 1. Tenta encontrar itens da mesma categoria (excluindo o atual)
+    const sameCategoryItems = allContent.filter(
+        item => item.categoria === currentItem.categoria && item.id !== currentItem.id
+    );
+
+    // 2. Se encontrar, embaralha e retorna até 4.
+    if (sameCategoryItems.length > 0) {
+        return sameCategoryItems.sort(() => 0.5 - Math.random()).slice(0, 4);
+    }
+
+    // 3. Se não, pega até 4 itens aleatórios de outras categorias como fallback.
+    const otherItems = allContent.filter(item => item.id !== currentItem.id);
+    return otherItems.sort(() => 0.5 - Math.random()).slice(0, 4);
+}
+
 function renderRelatedItems(currentItem, allContent, viewCounts) {
     const relatedContainer = document.getElementById('related-items-container');
     const relatedSection = document.getElementById('related-items-section');
@@ -239,39 +277,22 @@ function renderRelatedItems(currentItem, allContent, viewCounts) {
 
     if (!relatedContainer || !relatedSection || !relatedTitle) return;
 
-    // 1. Tenta encontrar itens da mesma categoria (excluindo o atual)
-    let relatedItems = allContent.filter(
-        item => item.categoria === currentItem.categoria && item.id !== currentItem.id
-    );
+    const relatedItems = getRelatedItems(currentItem, allContent);
 
-    // 2. Se não encontrar, pega itens aleatórios de outras categorias como fallback
+    // Define o título com base na categoria dos itens encontrados
+    const hasSameCategory = relatedItems.some(item => item.categoria === currentItem.categoria);
+    relatedTitle.textContent = hasSameCategory ? "Itens Relacionados" : "Você também pode gostar";
+
     if (relatedItems.length === 0) {
-        relatedTitle.textContent = "Você também pode gostar"; // Altera o título da seção
-        relatedItems = allContent.filter(item => item.id !== currentItem.id);
-    } else {
-        relatedTitle.textContent = "Itens Relacionados"; // Garante o título padrão
-    }
-
-    // 3. Embaralha a lista de itens (seja da mesma categoria ou de todas)
-    for (let i = relatedItems.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        // Troca os elementos de posição
-        [relatedItems[i], relatedItems[j]] = [relatedItems[j], relatedItems[i]];
-    }
-
-    // 4. Limita a 4 itens e verifica se encontrou algum
-    const finalRelatedItems = relatedItems.slice(0, 4);
-
-    if (finalRelatedItems.length === 0) {
         relatedSection.style.display = 'none'; // Esconde a seção se não houver itens
         return;
     }
 
-    // 5. Mostra a seção e renderiza os cards
+    // Mostra a seção e renderiza os cards
     relatedSection.style.display = 'block';
-    relatedContainer.innerHTML = finalRelatedItems.map(item => createRelatedItemCard(item, viewCounts)).join('');
+    relatedContainer.innerHTML = relatedItems.map(item => createRelatedItemCard(item, viewCounts)).join('');
 
-    // 6. Anima os cards para que apareçam suavemente
+    // Anima os cards para que apareçam suavemente
     setTimeout(() => {
         const cards = relatedContainer.querySelectorAll('.card');
         observeCards(cards);
