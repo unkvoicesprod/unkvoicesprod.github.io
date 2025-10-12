@@ -284,19 +284,6 @@
     background: var(--color-accent-pink-hover);
 }
 
-/* Estilo específico para o botão de copiar link */
-.card-footer .copy-link-btn {
-    background: var(--color-surface-hover);
-    color: var(--color-text-secondary);
-    border: 1px solid var(--glass-border);
-}
-
-.card-footer .copy-link-btn:hover {
-    background: var(--color-surface-2);
-    color: var(--color-white);
-    border-color: var(--color-accent-green);
-}
-
 .filters select {
     padding: 10px 10;
     border-radius: 12px;
