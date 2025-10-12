@@ -1,5 +1,5 @@
 import { db } from './firebase-init.js';
-import { doc, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { doc, setDoc, increment, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 async function initializeItemDetail() {
     const container = document.getElementById("item-detail-view");
@@ -14,9 +14,13 @@ async function initializeItemDetail() {
     }
 
     try {
-        // 2. Carregar todos os itens do JSON
-        const response = await fetch("data/conteudo.json");
-        if (!response.ok) throw new Error("Não foi possível carregar os dados.");
+        // 2. Carregar dados e contagens de visualizações em paralelo
+        const [response, viewCounts] = await Promise.all([
+            fetch("data/conteudo.json"),
+            fetchAllViewCounts()
+        ]);
+
+        if (!response.ok) throw new Error("Não foi possível carregar o conteúdo.");
         const allContent = await response.json();
 
         // 3. Encontrar o item específico pelo ID
@@ -34,7 +38,7 @@ async function initializeItemDetail() {
         renderItemDetails(item);
 
         // 6. Renderizar itens relacionados
-        renderRelatedItems(item, allContent);
+        renderRelatedItems(item, allContent, viewCounts);
 
     } catch (error) {
         console.error("Erro ao carregar detalhes do item:", error);
@@ -74,6 +78,23 @@ async function incrementViewCount(itemId) {
         const viewRef = doc(db, "views", itemId.toString());
         await setDoc(viewRef, { count: increment(1) }, { merge: true });
     } catch (error) { console.error("Falha ao incrementar visualização:", error); }
+}
+
+/**
+ * Busca todas as contagens de visualizações do Firestore (para a página de detalhes).
+ * @returns {Promise<Object>} Um objeto onde a chave é o ID do item e o valor é a contagem.
+ */
+async function fetchAllViewCounts() {
+    if (!db) return {};
+    const counts = {};
+    try {
+        const querySnapshot = await getDocs(collection(db, "views"));
+        querySnapshot.forEach((doc) => {
+            counts[doc.id] = doc.data().count;
+        });
+        return counts; // Retorna as contagens obtidas
+    } catch (error) { console.error("Falha ao buscar contagens de visualizações:", error); }
+    return counts; // Retorna um objeto vazio em caso de erro
 }
 
 function updateMetaTags(item) {
@@ -211,7 +232,7 @@ function renderItemDetails(item) {
     }
 }
 
-function renderRelatedItems(currentItem, allContent) {
+function renderRelatedItems(currentItem, allContent, viewCounts) {
     const relatedContainer = document.getElementById('related-items-container');
     const relatedSection = document.getElementById('related-items-section');
     const relatedTitle = relatedSection ? relatedSection.querySelector('h2') : null;
@@ -248,31 +269,70 @@ function renderRelatedItems(currentItem, allContent) {
 
     // 5. Mostra a seção e renderiza os cards
     relatedSection.style.display = 'block';
-    relatedContainer.innerHTML = finalRelatedItems.map(createRelatedItemCard).join('');
+    relatedContainer.innerHTML = finalRelatedItems.map(item => createRelatedItemCard(item, viewCounts)).join('');
 
     // 6. Anima os cards para que apareçam suavemente
     setTimeout(() => {
         const cards = relatedContainer.querySelectorAll('.card');
-        cards.forEach(card => card.classList.add('is-visible'));
-    }, 100);
+        observeCards(cards);
+    }, 0);
 }
 
-function createRelatedItemCard(item) {
+/**
+ * Observa os cards e adiciona a classe 'is-visible' quando eles entram no viewport.
+ * @param {NodeListOf<Element>} cards A lista de elementos de card a serem observados.
+ */
+function observeCards(cards) {
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target); // Deixa de observar o elemento após a animação
+            }
+        });
+    }, { threshold: 0.1 }); // A animação começa quando 10% do card está visível
+
+    cards.forEach(card => {
+        observer.observe(card);
+    });
+
+    // Observador para carregar imagens de alta qualidade (lazy loading)
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const container = entry.target;
+                const imgFull = container.querySelector('.img-full');
+                imgFull.src = imgFull.dataset.src; // Inicia o carregamento
+                imgFull.onload = () => container.classList.add('is-loaded'); // Mostra a imagem quando carregada
+                observer.unobserve(container); // Para de observar
+            }
+        });
+    }, { rootMargin: "100px" });
+
+    document.querySelectorAll('#related-items-container .card-image-container').forEach(img => imageObserver.observe(img));
+}
+
+function createRelatedItemCard(item, viewCounts = {}) {
     const imagePath = new URL(item.capa, window.location.href).href;
     const badgeClassMap = { "beats": "beat", "kits": "kit", "software": "kit" };
     const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'kit';
+
+    const viewCount = viewCounts[item.id] || 0;
+    const viewCountHtml = `<span class="card-views"><i class="fa-solid fa-eye"></i> ${viewCount.toLocaleString('pt-PT')}</span>`;
 
     // Card simplificado apenas com link para a página do item
     return `
         <div class="card" data-id="${item.id}">
             <a href="item.html?id=${item.id}" class="card-link-wrapper">
-                <div class="card-image-container">
-                    <img src="${imagePath}" alt="${item.titulo}" loading="lazy" decoding="async" width="320" height="180">
+                <div class="card-image-container" data-src-full="${imagePath}">
+                    <img src="${item.capaPlaceholder || ''}" class="img-placeholder" alt="Placeholder para ${item.titulo}" loading="eager" decoding="async" width="320" height="180">
+                    <img data-src="${imagePath}" class="img-full" alt="${item.titulo}" decoding="async" width="320" height="180">
                 </div>
                 <div class="card-content">
                     <span class="badge ${badgeClass}">${item.categoria}</span>
                     <h3>${item.titulo}</h3>
                     <p><strong>${item.genero}</strong> - ${item.ano}</p>
+                    ${viewCountHtml}
                 </div>
             </a>
         </div>

@@ -16,15 +16,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <meta name="keywords" content="loja, comprar beats, comprar kits, plugins, producao musical, UNKVOICES">
     <meta name="author" content="UNKVOICES">
     <title>Loja | UNKVOICES</title>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8DFJRGCVWG"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'G-8DFJRGCVWG');
-    </script>
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://unkvoices.github.io/loja.html">
@@ -82,7 +73,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- O Alerta Customizado será carregado aqui -->
     <div id="alert-placeholder"></div>
 
-    <script src="js/conteudo.js"></script>
+    <script src="js/firebase-init.js" type="module"></script>
+    <script src="js/conteudo.js" type="module"></script>
     <script src="js/global-player.js"></script>
     <script src="js/layout.js"></script>
 </body>

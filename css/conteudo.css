@@ -96,13 +96,42 @@
 .card-image-container {
     height: 180px;
     position: relative;
-    /* Necessário para o posicionamento do botão de play */
+    background-color: var(--color-surface-1);
+    /* Cor de fundo enquanto a imagem carrega */
 }
 
 .card-image-container img {
     width: 100%;
     height: 180px;
     object-fit: cover;
+    position: absolute;
+    /* Permite sobrepor as imagens */
+    top: 0;
+    left: 0;
+    transition: opacity 0.6s ease-in-out;
+}
+
+/* Estilo para a imagem de placeholder (baixa qualidade) */
+.card-image-container .img-placeholder {
+    filter: blur(10px);
+    /* Efeito de desfoque para uma transição suave */
+    transform: scale(1.1);
+    /* Evita bordas visíveis do desfoque */
+}
+
+/* Estilo para a imagem de alta qualidade (inicialmente invisível) */
+.card-image-container .img-full {
+    opacity: 0;
+}
+
+/* Classe adicionada via JS quando a imagem de alta qualidade está carregada */
+.card-image-container.is-loaded .img-full {
+    opacity: 1;
+}
+
+.card-image-container.is-loaded .img-placeholder {
+    opacity: 0;
+    /* Esconde o placeholder */
 }
 
 /* Botão de Play sobreposto na imagem */

@@ -4,7 +4,7 @@ Chaves do JSON
 Beats   /   Kits    /   Posts
 */
 import { db } from './firebase-init.js';
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 
 function startContentScript() {
@@ -44,7 +44,6 @@ function startContentScript() {
             const [contentResponse, postsResponse, fetchedViewCounts] = await Promise.all([
                 fetch("data/conteudo.json"),
                 fetch("data/posts.json"),
-                fetchAllViewCounts() // Novo
             ]);
 
             if (!contentResponse.ok) throw new Error(`Erro ao carregar conteudo.json: ${contentResponse.status}`);
@@ -52,7 +51,6 @@ function startContentScript() {
 
             const contentItems = await contentResponse.json();
             const postItems = await postsResponse.json();
-            viewCounts = fetchedViewCounts; // Novo
 
             const processedPosts = await processYouTubePosts(postItems);
             allContent = [...contentItems, ...processedPosts];
@@ -71,6 +69,10 @@ function startContentScript() {
             if (!appliedFromURL) {
                 applyFilters(); // Chamada inicial apenas se não houver filtros na URL
             }
+
+            // Inicia o listener para as visualizações em tempo real
+            listenForViewCounts();
+
         } catch (error) {
             console.error("Falha ao carregar o conteúdo:", error);
             elements.container.innerHTML = `<p class="error-message">Não foi possível carregar o conteúdo. Tente novamente mais tarde.</p>`;
@@ -78,19 +80,33 @@ function startContentScript() {
     }
 
     /**
-     * Busca todas as contagens de visualizações do Firestore.
-     * @returns {Promise<Object>} Um objeto onde a chave é o ID do item e o valor é a contagem.
+     * Inicia um listener em tempo real para as contagens de visualizações do Firestore.
      */
-    async function fetchAllViewCounts() {
-        if (!db) return {};
-        const counts = {};
+    function listenForViewCounts() {
+        if (!db) return;
         try {
-            const querySnapshot = await getDocs(collection(db, "views"));
-            querySnapshot.forEach((doc) => {
-                counts[doc.id] = doc.data().count;
+            onSnapshot(collection(db, "views"), (querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    viewCounts[doc.id] = doc.data().count;
+                });
+                // Atualiza as contagens nos cards que já estão na tela
+                updateDisplayedViewCounts();
             });
         } catch (error) { console.error("Erro ao buscar contagens de views:", error); }
-        return counts;
+    }
+
+    /**
+     * Atualiza o texto da contagem de visualizações nos cards visíveis na página.
+     */
+    function updateDisplayedViewCounts() {
+        const cards = elements.container.querySelectorAll('.card');
+        cards.forEach(card => {
+            const itemId = card.dataset.id;
+            const viewCountSpan = card.querySelector('.card-views');
+            if (itemId && viewCounts[itemId] && viewCountSpan) {
+                viewCountSpan.innerHTML = `<i class="fa-solid fa-eye"></i> ${viewCounts[itemId].toLocaleString('pt-PT')}`;
+            }
+        });
     }
 
     async function processYouTubePosts(posts) {
@@ -190,8 +206,9 @@ function startContentScript() {
             return `
             <div class="card" data-id="${item.id}" data-audio-src="${item.audioPreview || ''}" data-title="${item.titulo}" data-cover="${imagePath}">
                 <a href="${mainLink}" class="${linkClass}">
-                    <div class="card-image-container">
-                        <img src="${imagePath}" alt="${item.titulo}" loading="lazy" decoding="async" width="320" height="180">
+                    <div class="card-image-container" data-src-full="${imagePath}">
+                        <img src="${item.capaPlaceholder || ''}" class="img-placeholder" alt="Placeholder para ${item.titulo}" loading="eager" decoding="async" width="320" height="180">
+                        <img data-src="${imagePath}" class="img-full" alt="${item.titulo}" decoding="async" width="320" height="180">
                         ${playOverlayButton}
                     </div>
                 </a>
@@ -547,6 +564,21 @@ function startContentScript() {
         cards.forEach(card => {
             observer.observe(card);
         });
+
+        // Observador para carregar imagens de alta qualidade (lazy loading)
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const container = entry.target;
+                    const imgFull = container.querySelector('.img-full');
+                    imgFull.src = imgFull.dataset.src; // Inicia o carregamento
+                    imgFull.onload = () => container.classList.add('is-loaded'); // Mostra a imagem quando carregada
+                    observer.unobserve(container); // Para de observar
+                }
+            });
+        }, { rootMargin: "100px" }); // Começa a carregar 100px antes de entrar na tela
+
+        elements.container.querySelectorAll('.card-image-container').forEach(img => imageObserver.observe(img));
     }
 
     function displayPage(page) {
