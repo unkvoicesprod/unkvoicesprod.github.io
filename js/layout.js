@@ -58,7 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
             loadComponent("header-placeholder", "data/header.html"),
             loadComponent("footer-placeholder", "data/footer.html"),
             loadComponent("player-placeholder", "data/player.html"),
-            loadComponent("alert-placeholder", "data/alert.html")
+            loadComponent("alert-placeholder", "data/alert.html"),
+            loadComponent("youtube-player-modal-placeholder", "data/youtube-player-modal.html")
         ]);
         // Dispara um evento global quando tudo estiver carregado
         document.dispatchEvent(new Event('componentsLoaded'));

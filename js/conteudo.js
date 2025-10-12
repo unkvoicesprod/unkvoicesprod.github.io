@@ -156,6 +156,13 @@ function startContentScript() {
             const mainLink = item.isYouTubePost ? '#' : `item.html?id=${item.id}`;
             const linkClass = item.isYouTubePost ? 'card-link-wrapper no-action' : 'card-link-wrapper';
 
+            // Determina o link a ser copiado. Usamos a URL absoluta para garantir que funcione em qualquer contexto.
+            const linkToCopy = item.isYouTubePost
+                ? item.link
+                : `${window.location.origin}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}/item.html?id=${item.id}`;
+
+            const copyLinkButton = `<button class="btn-card copy-link-btn" data-link="${linkToCopy}"><i class="fa-solid fa-link"></i> Copiar Link</button>`;
+
             return `
             <div class="card" data-id="${item.id}" data-audio-src="${item.audioPreview || ''}" data-title="${item.titulo}" data-cover="${imagePath}">
                 <a href="${mainLink}" class="${linkClass}">
@@ -172,7 +179,9 @@ function startContentScript() {
                     </div>
                     <p><strong>${item.genero}</strong> - ${item.ano}</p>
                 </div>
-                <div class="card-footer"></div>
+                <div class="card-footer">
+                    ${copyLinkButton}
+                </div>
             </div>
             `;
 
@@ -355,6 +364,29 @@ function startContentScript() {
 
         const itemId = card.dataset.id;
         const item = allContent.find(i => i.id.toString() === itemId);
+
+        // --- Lógica para o botão "Copiar Link" ---
+        const copyBtn = event.target.closest('.copy-link-btn');
+        if (copyBtn) {
+            event.preventDefault(); // Impede a navegação
+            event.stopPropagation(); // Impede que outros eventos de clique no card sejam disparados
+            const linkToCopy = copyBtn.dataset.link;
+            navigator.clipboard.writeText(linkToCopy).then(() => {
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '✅ Copiado!';
+                copyBtn.disabled = true;
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.disabled = false;
+                }, 2000);
+            }).catch(err => {
+                console.error('Falha ao copiar o link:', err);
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '❌ Falhou!';
+                setTimeout(() => { copyBtn.innerHTML = originalText; }, 2000);
+            });
+            return; // Interrompe a função aqui para não continuar com outras ações
+        }
 
         // Se o item for um post do YouTube, mostra o alerta e para a execução.
         if (item && item.isYouTubePost) {
