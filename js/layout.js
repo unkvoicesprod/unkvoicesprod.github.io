@@ -57,8 +57,8 @@ document.addEventListener("DOMContentLoaded", () => {
         await Promise.all([
             loadComponent("header-placeholder", "data/header.html"),
             loadComponent("footer-placeholder", "data/footer.html"),
-            loadComponent("player-placeholder", "data/player.html"),
-            loadComponent("alert-placeholder", "data/alert.html")
+            loadComponent("alert-placeholder", "data/alert.html"),
+            loadComponent("mural-placeholder", "data/mural.html") // Adicionado
         ]);
         // Dispara um evento global quando tudo estiver carregado
         document.dispatchEvent(new Event('componentsLoaded'));

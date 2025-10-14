@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -14,12 +15,13 @@ const firebaseConfig = {
     appId: "1:745742457945:web:05bf2241d1d6676f26a548"
 };
 
-let app, db;
+let app, db, auth;
 
 try {
     // Initialize Firebase
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
+    auth = getAuth(app); // Inicializa a autenticação
     console.log("✅ Firebase inicializado com sucesso!");
     console.log("   - Project ID:", app.options.projectId);
 } catch (error) {
@@ -27,4 +29,4 @@ try {
 }
 
 // Exporta as instâncias para serem usadas em outros módulos
-export { app, db };
+export { app, db, auth };

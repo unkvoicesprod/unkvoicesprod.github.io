@@ -198,16 +198,11 @@ function startContentScript() {
             cardElement.dataset.id = item.id;
             cardElement.dataset.title = item.titulo;
             cardElement.dataset.cover = item.capa;
-            if (item.audioPreview) {
-                cardElement.dataset.audioSrc = item.audioPreview;
-            }
 
             // --- Link principal ---
             const mainLink = cardClone.querySelector('.card-link-wrapper');
             mainLink.href = item.isYouTubePost ? '#' : `item.html?id=${item.id}`;
             mainLink.classList.toggle('no-action', item.isYouTubePost);
-
-            // --- Imagens (placeholder e principal) ---
             const imageContainer = cardClone.querySelector('.card-image-container');
             imageContainer.dataset.srcFull = item.capa;
 
@@ -218,15 +213,6 @@ function startContentScript() {
             const imgFull = cardClone.querySelector('.img-full');
             imgFull.dataset.src = item.capa;
             imgFull.alt = item.titulo;
-
-            // --- Botão de Play Overlay ---
-            if (item.audioPreview) {
-                const playButton = document.createElement('button');
-                playButton.className = 'play-overlay-btn';
-                playButton.setAttribute('aria-label', `Tocar prévia de ${item.titulo}`);
-                playButton.textContent = '▶';
-                imageContainer.appendChild(playButton);
-            }
 
             // --- Conteúdo do Card (textos) ---
             const badgeClassMap = { "beats": "beat", "kits & plugins": "kit", "vst": "kit", "post": "post" };
@@ -414,8 +400,6 @@ function startContentScript() {
             elements.clearFiltersBtn.addEventListener('click', resetFilters);
         }
 
-        // Listener para destacar a faixa que está a tocar
-        document.addEventListener('trackChanged', handleTrackHighlight);
     }
 
     function handleCardClick(event) {
@@ -449,33 +433,6 @@ function startContentScript() {
             }));
             return; // Interrompe a função aqui
         }
-
-        // Se não for um post do YouTube, continua com a lógica de tocar a prévia
-        const playButton = event.target.closest('.play-overlay-btn');
-        if (!playButton) return; // Se o clique não foi no botão de play, não faz nada (o link <a> tratará da navegação)
-
-        event.preventDefault(); // Impede que o link do card seja seguido ao clicar em "Play"
-        event.stopPropagation();
-        const clickedId = card.dataset.id;
-
-        // Cria a playlist apenas com itens que têm áudio
-        const playlist = currentFilteredContent
-            .filter(item => item.audioPreview)
-            .map(item => ({
-                id: item.id,
-                title: item.titulo,
-                cover: item.capa,
-                audioSrc: item.audioPreview,
-                link: item.link,
-                preco: item.preco
-            }));
-
-        const startIndex = playlist.findIndex(track => track.id.toString() === clickedId);
-
-        if (startIndex === -1) return; // Não deveria acontecer
-
-        // Dispara um evento customizado com os dados da música
-        document.dispatchEvent(new CustomEvent('playPlaylist', { detail: { playlist, startIndex } }));
     }
 
     function handleFilterChange(event) {
@@ -490,36 +447,6 @@ function startContentScript() {
         selectedFilter.addEventListener('animationend', () => {
             selectedFilter.classList.remove('is-animating');
         }, { once: true });
-    }
-
-    async function handleTrackHighlight(event) {
-        const { trackId, source } = event.detail;
-
-        // Remove o destaque de todos os cards
-        elements.container.querySelectorAll('.card.is-playing').forEach(card => card.classList.remove('is-playing'));
-
-        if (!trackId) return;
-
-        // Tenta encontrar o card na página atual
-        let playingCard = elements.container.querySelector(`.card[data-id="${trackId}"]`);
-
-        if (playingCard) {
-            // Se o card já está na página, destaca e rola se necessário
-            playingCard.classList.add('is-playing');
-            if (source === 'navigation') { // Só rola se a ação veio do player (next/prev)
-                playingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        } else {
-            // Se o card não está na página, encontra a página correta e muda para ela
-            const trackIndexInFullList = currentFilteredContent.findIndex(item => item.id.toString() === trackId.toString());
-            if (trackIndexInFullList !== -1) {
-                const targetPage = Math.floor(trackIndexInFullList / itemsPerPage) + 1;
-                if (targetPage !== currentPage) {
-                    // Muda de página e passa o ID do card a ser destacado
-                    await displayPage(targetPage, trackId);
-                }
-            }
-        }
     }
 
     function resetFilters() {
@@ -582,24 +509,13 @@ function startContentScript() {
         elements.container.querySelectorAll('.card-image-container').forEach(img => imageObserver.observe(img));
     }
 
-    async function displayPage(page, highlightId = null) {
+    function displayPage(page) {
         currentPage = page;
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
         const paginatedItems = currentFilteredContent.slice(start, end);
 
         renderContent(paginatedItems);
-
-        // Se um ID para destaque foi fornecido, encontra o card e o destaca
-        if (highlightId) {
-            // Pequeno atraso para garantir que o DOM foi atualizado
-            await new Promise(resolve => setTimeout(resolve, 50));
-            const cardToHighlight = elements.container.querySelector(`.card[data-id="${highlightId}"]`);
-            if (cardToHighlight) {
-                cardToHighlight.classList.add('is-playing');
-                cardToHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
 
         updatePaginationButtons();
     }

@@ -1,0 +1,20 @@
+<!-- Mural de Mensagens -->
+<section id="mural-section" class="mural-section">
+    <h2><i class="fa-solid fa-pen-nib"></i> Deixe a sua mensagem</h2>
+    <p>Partilhe a sua opinião, dê uma sugestão ou simplesmente diga olá!</p>
+
+    <!-- Área de Autenticação para Moderação -->
+    <div id="mural-auth-status" class="mural-auth-status">
+        <!-- O status de login/logout será inserido aqui pelo JS -->
+    </div>
+
+    <form id="mural-form" class="mural-form">
+        <input type="text" id="mural-nome" name="nome" placeholder="O seu nome" required maxlength="30">
+        <textarea id="mural-mensagem" name="mensagem" placeholder="Escreva a sua mensagem aqui..." required maxlength="280" rows="4"></textarea>
+        <button type="submit" class="btn">Submeter Mensagem</button>
+    </form>
+
+    <div id="mural-posts-container" class="mural-posts-container">
+        <!-- As mensagens do Firestore serão carregadas aqui -->
+    </div>
+</section>

@@ -79,18 +79,6 @@
     box-shadow: 0 0 10px var(--card-shadow-green-hover);
 }
 
-/* Estilo para o card que está a tocar */
-.card.is-playing {
-    box-shadow: 0 0 15px var(--color-accent-green), 0 0 5px var(--color-accent-green-hover);
-    transform: translateY(-6px);
-    /* Mesmo que o hover para evitar saltos */
-}
-
-.card.is-playing:hover {
-    /* Mantém o mesmo estilo no hover para evitar piscar */
-    box-shadow: 0 0 15px var(--color-accent-green), 0 0 5px var(--color-accent-green-hover);
-}
-
 /* ================= IMAGEM ================= */
 /* Novo container para a imagem para manter a proporção e o tamanho fixo */
 .card-image-container {
@@ -132,31 +120,6 @@
 .card-image-container.is-loaded .img-placeholder {
     opacity: 0;
     /* Esconde o placeholder */
-}
-
-/* Botão de Play sobreposto na imagem */
-.play-overlay-btn {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 50px;
-    height: 50px;
-    background-color: rgba(0, 255, 153, 0.7);
-    border: none;
-    border-radius: 50%;
-    color: var(--color-text-on-accent);
-    font-size: 1.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease, background-color 0.3s ease;
-}
-
-.card:hover .play-overlay-btn {
-    opacity: 1;
 }
 
 /* Desativa o ponteiro para o link do card de post */
