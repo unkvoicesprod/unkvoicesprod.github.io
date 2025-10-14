@@ -63,6 +63,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <!-- Container para o contador de resultados -->
         <div id="results-counter" class="results-counter"></div>
+        <!-- Template para os cards de conteúdo -->
+        <template id="card-template">
+            <div class="card" data-id="" data-audio-src="" data-title="" data-cover="">
+                <a href="#" class="card-link-wrapper">
+                    <div class="card-image-container" data-src-full="">
+                        <img src="" class="img-placeholder" alt="" loading="eager" decoding="async" width="320" height="180">
+                        <img data-src="" class="img-full" alt="" decoding="async" width="320" height="180">
+                    </div>
+                </a>
+                <div class="card-content">
+                    <span class="badge"></span>
+                    <div class="card-title-line">
+                        <h3></h3>
+                        <span class="card-price"></span>
+                    </div>
+                    <p class="card-meta"></p>
+                    <span class="card-views"></span>
+                </div>
+            </div>
+        </template>
         <!-- Container de cards -->
         <div id="conteudo-container" class="grid-dynamic"></div>
         <div id="pagination-container" class="pagination"></div>

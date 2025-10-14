@@ -3,8 +3,8 @@
 Chaves do JSON
 Beats   /   Kits    /   Posts
 */
-import { db } from './firebase-init.js';
-import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { db } from "./firebase-init.js";
+import { collection, onSnapshot, doc, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 
 function startContentScript() {
@@ -29,6 +29,7 @@ function startContentScript() {
         paginationContainer: document.getElementById("pagination-container"),
         clearFiltersBtn: document.getElementById("clear-filters-btn"),
         resultsCounter: document.getElementById("results-counter"),
+        cardTemplate: document.getElementById("card-template"), // Novo: cache do template
     };
 
     // Função principal que inicia a aplicação
@@ -41,7 +42,7 @@ function startContentScript() {
 
         try {
             // Carrega os dados e as contagens de visualizações em paralelo
-            const [contentResponse, postsResponse, fetchedViewCounts] = await Promise.all([
+            const [contentResponse, postsResponse] = await Promise.all([
                 fetch("data/conteudo.json"),
                 fetch("data/posts.json"),
             ]);
@@ -109,6 +110,17 @@ function startContentScript() {
         });
     }
 
+    /**
+     * Incrementa a contagem de visualizações de um item no Firestore.
+     * @param {string} itemId O ID do item.
+     */
+    async function incrementViewCount(itemId) {
+        if (!db || !itemId) return;
+        try {
+            const viewRef = doc(db, "views", itemId.toString());
+            await setDoc(viewRef, { count: increment(1) }, { merge: true });
+        } catch (error) { console.error("Falha ao incrementar visualização:", error); }
+    }
     async function processYouTubePosts(posts) {
         const postPromises = posts.map(async (post, index) => {
             try {
@@ -116,12 +128,12 @@ function startContentScript() {
                 const data = await response.json();
 
                 const url = new URL(post.youtubeUrl);
-                const videoId = url.searchParams.get('v');
-                const postId = 1000 + index;
+                const videoId = url.searchParams.get('v') || url.pathname.split('/').pop();
+                const postId = `yt_${videoId || index}`; // ID mais robusto e único
 
                 return {
                     id: postId,
-                    titulo: data.title || `Post do YouTube #${index + 1}`, // Usa o título real ou um fallback
+                    titulo: data.title || `Post do YouTube #${index + 1}`,
                     capa: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
                     genero: "audio",
                     categoria: "Beats", // Altera a categoria para "Beats"
@@ -162,6 +174,10 @@ function startContentScript() {
     }
 
     function renderContent(list) {
+        // Limpa o container antes de adicionar novos elementos
+        elements.container.innerHTML = '';
+        const fragment = document.createDocumentFragment(); // Usar um fragmento para melhor performance
+
         if (!list.length) {
             elements.container.innerHTML = `
                 <div class="no-results-container">
@@ -173,57 +189,66 @@ function startContentScript() {
             return;
         }
 
-        elements.container.innerHTML = list.map(item => {
-            const imagePath = item.capa;
+        list.forEach(item => {
+            const cardClone = elements.cardTemplate.content.cloneNode(true);
+            const cardElement = cardClone.querySelector('.card');
 
-            // --- LÓGICA DE RENDERIZAÇÃO PARA ITENS (BEATS, KITS) ---
+            // --- Configuração dos dados do card ---
+            cardElement.dataset.id = item.id;
+            cardElement.dataset.title = item.titulo;
+            cardElement.dataset.cover = item.capa;
+            if (item.audioPreview) {
+                cardElement.dataset.audioSrc = item.audioPreview;
+            }
+
+            // --- Link principal ---
+            const mainLink = cardClone.querySelector('.card-link-wrapper');
+            mainLink.href = item.isYouTubePost ? '#' : `item.html?id=${item.id}`;
+            mainLink.classList.toggle('no-action', item.isYouTubePost);
+
+            // --- Imagens (placeholder e principal) ---
+            const imageContainer = cardClone.querySelector('.card-image-container');
+            imageContainer.dataset.srcFull = item.capa;
+
+            const imgPlaceholder = cardClone.querySelector('.img-placeholder');
+            imgPlaceholder.src = item.capaPlaceholder || '';
+            imgPlaceholder.alt = `Placeholder para ${item.titulo}`;
+
+            const imgFull = cardClone.querySelector('.img-full');
+            imgFull.dataset.src = item.capa;
+            imgFull.alt = item.titulo;
+
+            // --- Botão de Play Overlay ---
+            if (item.audioPreview) {
+                const playButton = document.createElement('button');
+                playButton.className = 'play-overlay-btn';
+                playButton.setAttribute('aria-label', `Tocar prévia de ${item.titulo}`);
+                playButton.textContent = '▶';
+                imageContainer.appendChild(playButton);
+            }
+
+            // --- Conteúdo do Card (textos) ---
             const badgeClassMap = { "beats": "beat", "kits & plugins": "kit", "vst": "kit", "post": "post" };
-            const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'kit';
+            cardClone.querySelector('.badge').textContent = item.categoria;
+            cardClone.querySelector('.badge').className = `badge ${badgeClassMap[item.categoria.toLowerCase()] || 'kit'}`;
 
-            // Lógica para formatar o preço
+            cardClone.querySelector('h3').textContent = item.titulo;
+
             const priceText = item.preco === 0 ? 'Grátis' : `$${item.preco.toFixed(2)}`;
-            const priceClass = item.preco === 0 ? 'free' : 'paid';
+            const priceElement = cardClone.querySelector('.card-price');
+            priceElement.textContent = priceText;
+            priceElement.className = `card-price ${item.preco === 0 ? 'free' : 'paid'}`;
 
-            // Botão de play que será sobreposto na imagem
-            const playOverlayButton = item.audioPreview
-                ? `<button class="play-overlay-btn" aria-label="Tocar prévia de ${item.titulo}">▶</button>`
-                : "";
+            cardClone.querySelector('.card-meta').innerHTML = `<strong>${item.genero}</strong> - ${item.ano}`;
 
-            // O link principal do card. Para posts, não leva a 'item.html'
-            const mainLink = item.isYouTubePost ? '#' : `item.html?id=${item.id}`;
-            const linkClass = item.isYouTubePost ? 'card-link-wrapper no-action' : 'card-link-wrapper';
-
-            // Determina o link a ser copiado. Usamos a URL absoluta para garantir que funcione em qualquer contexto.
-            const linkToCopy = item.isYouTubePost
-                ? item.link
-                : `${window.location.origin}${window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'))}/item.html?id=${item.id}`;
-
+            // --- Contagem de Views ---
             const viewCount = viewCounts[item.id] || 0;
-            const viewCountHtml = `<span class="card-views"><i class="fa-solid fa-eye"></i> ${viewCount.toLocaleString('pt-PT')}</span>`;
+            cardClone.querySelector('.card-views').innerHTML = `<i class="fa-solid fa-eye"></i> ${viewCount.toLocaleString('pt-PT')}`;
 
-            return `
-            <div class="card" data-id="${item.id}" data-audio-src="${item.audioPreview || ''}" data-title="${item.titulo}" data-cover="${imagePath}">
-                <a href="${mainLink}" class="${linkClass}">
-                    <div class="card-image-container" data-src-full="${imagePath}">
-                        <img src="${item.capaPlaceholder || ''}" class="img-placeholder" alt="Placeholder para ${item.titulo}" loading="eager" decoding="async" width="320" height="180">
-                        <img data-src="${imagePath}" class="img-full" alt="${item.titulo}" decoding="async" width="320" height="180">
-                        ${playOverlayButton}
-                    </div>
-                </a>
-                <div class="card-content">
-                    <span class="badge ${badgeClass}">${item.categoria}</span>
-                    <div class="card-title-line">
-                        <h3>${item.titulo}</h3>
-                        <span class="card-price ${priceClass}">${priceText}</span>
-                    </div>
-                    <p><strong>${item.genero}</strong> - ${item.ano}</p>
-                    ${viewCountHtml}
-                </div>
-                <div class="card-footer"></div>
-            </div>
-            `;
+            fragment.appendChild(cardClone);
+        });
 
-        }).join('');
+        elements.container.appendChild(fragment);
 
         // Adiciona um pequeno atraso para garantir que os elementos estejam no DOM
         // antes de aplicar o observador de interseção para a animação.
@@ -266,16 +291,18 @@ function startContentScript() {
         return hasParams;
     }
 
+    function itemMatchesPageConfig(item) {
+        return (
+            (!pageConfig.categorias || pageConfig.categorias.includes(item.categoria)) &&
+            (!pageConfig.precoMin || item.preco >= pageConfig.precoMin) &&
+            (!pageConfig.showOnlyYouTube || item.isYouTubePost === true) &&
+            (!pageConfig.home || true) // Lógica para a home page, se necessário
+        );
+    }
+
     function populateFilters() {
         // Filtra o conteúdo com base na configuração da página antes de popular os filtros
-        const pageContent = allContent.filter(item => {
-            const matchesPageConfig =
-                (!pageConfig.categorias || pageConfig.categorias.includes(item.categoria)) &&
-                (!pageConfig.precoMin || item.preco >= pageConfig.precoMin) &&
-                (!pageConfig.showOnlyYouTube || item.isYouTubePost === true) &&
-                (!pageConfig.home || true);
-            return matchesPageConfig;
-        });
+        const pageContent = allContent.filter(itemMatchesPageConfig);
 
         const getUniqueValues = (key) => [...new Set(pageContent.map(item => item[key]).filter(Boolean))];
 
@@ -334,13 +361,7 @@ function startContentScript() {
 
     function filterContent(searchTerm, selected) {
         return allContent.filter(item => {
-            const matchesPageConfig =
-                (!pageConfig.categorias || pageConfig.categorias.includes(item.categoria)) &&
-                (!pageConfig.precoMin || item.preco >= pageConfig.precoMin) &&
-                (!pageConfig.showOnlyYouTube || item.isYouTubePost === true) &&
-                (!pageConfig.home || true); // Lógica para a home page, se necessário
-
-            if (!matchesPageConfig) return false;
+            if (!itemMatchesPageConfig(item)) return false;
 
             // 2. Aplicar filtros do usuário (pesquisa e selects)
             const matchesSearch = searchTerm === "" ||
@@ -401,6 +422,9 @@ function startContentScript() {
         if (!card) return; // Sai se o clique não foi dentro de um card
 
         const itemId = card.dataset.id;
+        // Ação: Incrementar a visualização a cada clique no card.
+        incrementViewCount(itemId);
+
         const item = allContent.find(i => i.id.toString() === itemId);
 
         // Se o item for um post do YouTube, mostra o alerta e para a execução.
