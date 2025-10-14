@@ -133,6 +133,7 @@ function startContentScript() {
 
                 return {
                     id: postId,
+                    videoId: videoId, // Adiciona o ID do vídeo para uso posterior
                     titulo: data.title || `Post do YouTube #${index + 1}`,
                     capa: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
                     genero: "audio",
@@ -430,10 +431,19 @@ function startContentScript() {
         // Se o item for um post do YouTube, mostra o alerta e para a execução.
         if (item && item.isYouTubePost) {
             event.preventDefault(); // Previne qualquer outra ação padrão (como seguir um link)
+
+            // Constrói o HTML para o player embutido e o botão secundário
+            const alertContent = `
+                <div class="youtube-player-container">
+                    <iframe src="https://www.youtube.com/embed/${item.videoId}?autoplay=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            `;
+
             document.dispatchEvent(new CustomEvent('showAlert', {
                 detail: {
-                    message: `Está prestes a ser redirecionado para o YouTube para ver "${item.titulo}".`,
-                    actionText: '<i class="fa-brands fa-youtube"></i> Ver no YouTube',
+                    title: item.titulo, // Usa o título do vídeo no alerta
+                    message: alertContent, // O corpo do alerta agora é o player
+                    actionText: '<i class="fa-brands fa-youtube"></i> Ver no YouTube', // Botão principal
                     action: () => window.open(item.link, '_blank')
                 }
             }));
