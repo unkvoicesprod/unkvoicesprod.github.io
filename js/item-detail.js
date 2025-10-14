@@ -137,80 +137,61 @@ function updateMetaTags(item) {
     document.querySelector('meta[property="twitter:image"]').setAttribute('content', imageUrl);
     document.querySelector('meta[property="twitter:url"]').setAttribute('content', fullUrl);
 }
+
 function renderItemDetails(item, viewCount = 0) {
     const container = document.getElementById("item-detail-view");
+    const template = document.getElementById("item-detail-template");
 
+    if (!container || !template) return;
+
+    container.innerHTML = ''; // Limpa o loader
+    const clone = template.content.cloneNode(true);
+
+    // Seleciona os elementos do template clonado
+    const infoDiv = clone.querySelector('.item-info');
+    const badge = clone.querySelector('.badge');
+    const actionsContainer = clone.querySelector('.item-actions');
+    const socialButtons = clone.querySelector('.social-share-buttons');
+
+    // Preenche os dados básicos
+    clone.querySelector('.item-image').src = item.capa;
+    clone.querySelector('.item-image').alt = item.titulo;
+    infoDiv.dataset.title = item.titulo;
+    infoDiv.dataset.cover = item.capa;
+    badge.textContent = item.categoria;
+    badge.className = `badge ${item.categoria.toLowerCase() === 'beats' ? 'beat' : 'kit'}`;
+    clone.querySelector('.item-title').textContent = item.titulo;
+    clone.querySelector('.item-description').textContent = item.descricao;
+    clone.querySelector('.item-genre span').textContent = item.genero || 'N/A';
+    clone.querySelector('.item-views span').textContent = `${viewCount.toLocaleString('pt-PT')} visualizações`;
+    clone.querySelector('.item-year span').textContent = item.ano || 'N/A';
+
+    // Preço
     const priceText = item.preco > 0 ? `$${item.preco.toFixed(2)}` : "Grátis";
-    const buttonText = item.preco === 0 ? '<i class="fa-solid fa-download"></i> Baixar' : '<i class="fa-solid fa-cart-shopping"></i> Comprar';
-    const actionButton = item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="btn download" data-item-id="${item.id}" data-item-title="${item.titulo}">${buttonText}</a>` : '';
+    clone.querySelector('.price').textContent = priceText;
 
-    const playButton = item.audioPreview
-        ? `<button id="play-detail-btn" class="btn play">▶ Tocar Prévia</button>`
-        : '';
-
-    const copyLinkButton = `<button id="copy-link-btn" class="btn btn-outline">🔗 Copiar Link</button>`;
-
-    // Lógica para compartilhamento em redes sociais
-    const pageUrl = window.location.href;
-    const shareText = encodeURIComponent(`Confira "${item.titulo}" na UNKVOICES!`);
-    const encodedPageUrl = encodeURIComponent(pageUrl);
-
-    const twitterUrl = `https://twitter.com/intent/tweet?url=${encodedPageUrl}&text=${shareText}`;
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedPageUrl}`;
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}%20${encodedPageUrl}`;
-
-    // Ícones Font Awesome para os botões
-    const twitterIcon = `<i class="fa-brands fa-twitter"></i>`;
-    const facebookIcon = `<i class="fa-brands fa-facebook"></i>`;
-    const whatsappIcon = `<i class="fa-brands fa-whatsapp"></i>`;
-
-    const socialShareHtml = `
-        <div class="social-share">
-            <p><i class="fa-solid fa-arrow-up-from-bracket"></i> Compartilhar</p>
-            <div class="social-share-buttons">
-                <a href="${twitterUrl}" target="_blank" rel="noopener noreferrer" class="social-btn twitter" title="Compartilhar no Twitter">${twitterIcon}</a>
-                <a href="${facebookUrl}" target="_blank" rel="noopener noreferrer" class="social-btn facebook" title="Compartilhar no Facebook">${facebookIcon}</a>
-                <a href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" class="social-btn whatsapp" title="Compartilhar no WhatsApp">${whatsappIcon}</a>
-            </div>
-        </div>
-    `;
-
-    container.innerHTML = `
-        <img src="${item.capa}" alt="${item.titulo}">
-        <div class="item-info" data-audio-src="${item.audioPreview || ''}" data-title="${item.titulo}" data-cover="${item.capa}">
-            <span class="badge ${item.categoria.toLowerCase() === 'beats' ? 'beat' : 'kit'}">${item.categoria}</span>
-            <h1>${item.titulo}</h1>
-            <p>${item.descricao}</p>
-            <p><strong>Gênero:</strong> ${item.genero || 'N/A'}</p>
-            <p class="item-views"><i class="fa-solid fa-eye"></i> ${viewCount.toLocaleString('pt-PT')} visualizações</p>
-            <p><strong>Ano:</strong> ${item.ano || 'N/A'}</p>
-            <div class="price">${priceText}</div>
-            <div class="item-actions">
-                ${actionButton}
-                ${playButton}
-                ${copyLinkButton}
-            </div>
-            ${socialShareHtml}
-        </div>
-    `;
-
-    // Adiciona listener para o botão de comprar/baixar para contar a view
-    const downloadBtn = container.querySelector('.btn.download');
-    if (downloadBtn) {
-        downloadBtn.addEventListener('click', () => triggerViewCountOnce(item.id.toString()));
+    // Botão de Ação (Comprar/Baixar)
+    if (item.link) {
+        const buttonText = item.preco === 0 ? '<i class="fa-solid fa-download"></i> Baixar' : '<i class="fa-solid fa-cart-shopping"></i> Comprar';
+        const actionButton = document.createElement('a');
+        actionButton.href = item.link;
+        actionButton.target = '_blank';
+        actionButton.rel = 'noopener noreferrer';
+        actionButton.className = 'btn download';
+        actionButton.innerHTML = buttonText;
+        actionButton.addEventListener('click', () => triggerViewCountOnce(item.id.toString()));
+        actionsContainer.appendChild(actionButton);
     }
 
-    // Adiciona o listener para o botão de play da página de detalhe
-    const playDetailBtn = document.getElementById('play-detail-btn');
-    if (playDetailBtn) {
-        playDetailBtn.addEventListener('click', () => {
-            const infoDiv = document.querySelector('.item-info');
-            if (!infoDiv.dataset.audioSrc) return;
-
-            // Conta a view ao clicar em "Tocar Prévia"
+    // Botão de Play
+    if (item.audioPreview) {
+        infoDiv.dataset.audioSrc = item.audioPreview;
+        const playButton = document.createElement('button');
+        playButton.id = 'play-detail-btn';
+        playButton.className = 'btn play';
+        playButton.innerHTML = '▶ Tocar Prévia';
+        playButton.addEventListener('click', () => {
             triggerViewCountOnce(item.id.toString());
-
-            // Cria uma playlist com apenas este item
             const playlist = [{
                 id: item.id,
                 title: item.titulo,
@@ -219,33 +200,41 @@ function renderItemDetails(item, viewCount = 0) {
                 link: item.link,
                 preco: item.preco
             }];
-
             document.dispatchEvent(new CustomEvent('playPlaylist', { detail: { playlist, startIndex: 0 } }));
         });
+        actionsContainer.appendChild(playButton);
     }
 
-    // Adiciona o listener para o botão de copiar link
-    const copyLinkBtn = document.getElementById('copy-link-btn');
-    if (copyLinkBtn) {
-        copyLinkBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                // Feedback de sucesso
-                const originalText = copyLinkBtn.innerHTML;
-                copyLinkBtn.innerHTML = '✅ Copiado!';
-                copyLinkBtn.disabled = true;
-
-                setTimeout(() => {
-                    copyLinkBtn.innerHTML = originalText;
-                    copyLinkBtn.disabled = false;
-                }, 2000); // Reverte após 2 segundos
-            }).catch(err => {
-                // Feedback de erro
-                console.error('Falha ao copiar o link: ', err);
-                copyLinkBtn.innerHTML = '❌ Falhou!';
-                setTimeout(() => { copyLinkBtn.innerHTML = originalText; }, 2000);
-            });
+    // Botão de Copiar Link
+    const copyLinkButton = document.createElement('button');
+    copyLinkButton.id = 'copy-link-btn';
+    copyLinkButton.className = 'btn btn-outline';
+    copyLinkButton.innerHTML = '🔗 Copiar Link';
+    copyLinkButton.addEventListener('click', () => {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            const originalText = copyLinkButton.innerHTML;
+            copyLinkButton.innerHTML = '✅ Copiado!';
+            copyLinkButton.disabled = true;
+            setTimeout(() => {
+                copyLinkButton.innerHTML = originalText;
+                copyLinkButton.disabled = false;
+            }, 2000);
+        }).catch(err => {
+            console.error('Falha ao copiar o link: ', err);
         });
-    }
+    });
+    actionsContainer.appendChild(copyLinkButton);
+
+    // Links de Compartilhamento Social
+    const pageUrl = window.location.href;
+    const shareText = encodeURIComponent(`Confira "${item.titulo}" na UNKVOICES!`);
+    const encodedPageUrl = encodeURIComponent(pageUrl);
+    socialButtons.querySelector('.twitter').href = `https://twitter.com/intent/tweet?url=${encodedPageUrl}&text=${shareText}`;
+    socialButtons.querySelector('.facebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodedPageUrl}`;
+    socialButtons.querySelector('.whatsapp').href = `https://api.whatsapp.com/send?text=${shareText}%20${encodedPageUrl}`;
+
+    // Adiciona o conteúdo clonado e preenchido ao container
+    container.appendChild(clone);
 }
 
 /**
@@ -290,7 +279,13 @@ function renderRelatedItems(currentItem, allContent, viewCounts) {
 
     // Mostra a seção e renderiza os cards
     relatedSection.style.display = 'block';
-    relatedContainer.innerHTML = relatedItems.map(item => createRelatedItemCard(item, viewCounts)).join('');
+    relatedContainer.innerHTML = ''; // Limpa o container
+    const fragment = document.createDocumentFragment();
+    relatedItems.forEach(item => {
+        const cardNode = createRelatedItemCard(item, viewCounts);
+        if (cardNode) fragment.appendChild(cardNode);
+    });
+    relatedContainer.appendChild(fragment);
 
     // Anima os cards para que apareçam suavemente
     setTimeout(() => {
@@ -334,30 +329,36 @@ function observeCards(cards) {
 }
 
 function createRelatedItemCard(item, viewCounts = {}) {
-    const imagePath = new URL(item.capa, window.location.href).href;
-    const badgeClassMap = { "beats": "beat", "kits": "kit", "software": "kit" };
+    const template = document.getElementById('card-template');
+    if (!template) return null;
+
+    const clone = template.content.cloneNode(true);
+    const card = clone.querySelector('.card');
+    const link = clone.querySelector('.card-link-wrapper');
+    const imageContainer = clone.querySelector('.card-image-container');
+    const badge = clone.querySelector('.badge');
+
+    card.dataset.id = item.id;
+    link.href = `item.html?id=${item.id}`;
+
+    imageContainer.dataset.srcFull = item.capa;
+    clone.querySelector('.img-placeholder').src = item.capaPlaceholder || '';
+    clone.querySelector('.img-placeholder').alt = `Placeholder para ${item.titulo}`;
+    clone.querySelector('.img-full').dataset.src = item.capa;
+    clone.querySelector('.img-full').alt = item.titulo;
+
+    const badgeClassMap = { "beats": "beat", "kits & plugins": "kit", "vst": "kit" };
     const badgeClass = badgeClassMap[item.categoria.toLowerCase()] || 'kit';
+    badge.className = `badge ${badgeClass}`;
+    badge.textContent = item.categoria;
+
+    clone.querySelector('h3').textContent = item.titulo;
+    clone.querySelector('.card-meta').innerHTML = `<strong>${item.genero}</strong> - ${item.ano}`;
 
     const viewCount = viewCounts[item.id] || 0;
-    const viewCountHtml = `<span class="card-views"><i class="fa-solid fa-eye"></i> ${viewCount.toLocaleString('pt-PT')}</span>`;
+    clone.querySelector('.card-views').innerHTML = `<i class="fa-solid fa-eye"></i> ${viewCount.toLocaleString('pt-PT')}`;
 
-    // Card simplificado apenas com link para a página do item
-    return `
-        <div class="card" data-id="${item.id}">
-            <a href="item.html?id=${item.id}" class="card-link-wrapper">
-                <div class="card-image-container" data-src-full="${imagePath}">
-                    <img src="${item.capaPlaceholder || ''}" class="img-placeholder" alt="Placeholder para ${item.titulo}" loading="eager" decoding="async" width="320" height="180">
-                    <img data-src="${imagePath}" class="img-full" alt="${item.titulo}" decoding="async" width="320" height="180">
-                </div>
-                <div class="card-content">
-                    <span class="badge ${badgeClass}">${item.categoria}</span>
-                    <h3>${item.titulo}</h3>
-                    <p><strong>${item.genero}</strong> - ${item.ano}</p>
-                    ${viewCountHtml}
-                </div>
-            </a>
-        </div>
-    `;
+    return clone;
 }
 
 // Adiciona um serviço de "proxy" para os robôs de redes sociais

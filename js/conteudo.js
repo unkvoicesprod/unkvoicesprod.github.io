@@ -355,7 +355,7 @@ function startContentScript() {
 
             updateResultsCounter();
             setupPagination();
-            displayPage(currentPage);
+            displayPage(currentPage); // A primeira exibição não precisa destacar nada
             updateURL(); // Atualiza a URL com os filtros atuais
         }, cards.length > 0 ? animationDuration : 0); // Se não houver cards, executa imediatamente
     }
@@ -492,37 +492,31 @@ function startContentScript() {
         }, { once: true });
     }
 
-    function handleTrackHighlight(event) {
+    async function handleTrackHighlight(event) {
         const { trackId, source } = event.detail;
 
         // Remove o destaque de todos os cards
-        const allCards = elements.container.querySelectorAll('.card');
-        allCards.forEach(card => card.classList.remove('is-playing'));
+        elements.container.querySelectorAll('.card.is-playing').forEach(card => card.classList.remove('is-playing'));
 
-        if (trackId) {
-            let playingCard = elements.container.querySelector(`.card[data-id="${trackId}"]`);
+        if (!trackId) return;
 
-            if (playingCard) {
-                // Se o card já está na página, destaca e rola se necessário
-                playingCard.classList.add('is-playing');
-                if (source === 'navigation') { // Só rola se a ação veio do player (next/prev)
-                    playingCard.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                }
-            } else {
-                // Se o card não está na página, encontra a página correta e muda para ela
-                const trackIndexInFullList = currentFilteredContent.findIndex(item => item.id.toString() === trackId.toString());
+        // Tenta encontrar o card na página atual
+        let playingCard = elements.container.querySelector(`.card[data-id="${trackId}"]`);
 
-                if (trackIndexInFullList !== -1) {
-                    const targetPage = Math.floor(trackIndexInFullList / itemsPerPage) + 1;
-                    if (targetPage !== currentPage) {
-                        // A função displayPage irá re-renderizar os cards.
-                        // O evento 'trackChanged' será tratado novamente pelo novo DOM,
-                        // e o card será encontrado e destacado na segunda passagem.
-                        displayPage(targetPage);
-                    }
+        if (playingCard) {
+            // Se o card já está na página, destaca e rola se necessário
+            playingCard.classList.add('is-playing');
+            if (source === 'navigation') { // Só rola se a ação veio do player (next/prev)
+                playingCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } else {
+            // Se o card não está na página, encontra a página correta e muda para ela
+            const trackIndexInFullList = currentFilteredContent.findIndex(item => item.id.toString() === trackId.toString());
+            if (trackIndexInFullList !== -1) {
+                const targetPage = Math.floor(trackIndexInFullList / itemsPerPage) + 1;
+                if (targetPage !== currentPage) {
+                    // Muda de página e passa o ID do card a ser destacado
+                    await displayPage(targetPage, trackId);
                 }
             }
         }
@@ -588,15 +582,26 @@ function startContentScript() {
         elements.container.querySelectorAll('.card-image-container').forEach(img => imageObserver.observe(img));
     }
 
-    function displayPage(page) {
+    async function displayPage(page, highlightId = null) {
         currentPage = page;
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
         const paginatedItems = currentFilteredContent.slice(start, end);
 
         renderContent(paginatedItems);
+
+        // Se um ID para destaque foi fornecido, encontra o card e o destaca
+        if (highlightId) {
+            // Pequeno atraso para garantir que o DOM foi atualizado
+            await new Promise(resolve => setTimeout(resolve, 50));
+            const cardToHighlight = elements.container.querySelector(`.card[data-id="${highlightId}"]`);
+            if (cardToHighlight) {
+                cardToHighlight.classList.add('is-playing');
+                cardToHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
         updatePaginationButtons();
-        window.scrollTo(0, 0); // Rola para o topo da página ao mudar de página
     }
 
     function setupPagination() {

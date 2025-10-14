@@ -209,6 +209,64 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         text-align: center;
         color: var(--color-accent-green);
     }
+
+    /* --- SKELETON LOADER --- */
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+
+    .skeleton-loading .skeleton {
+        background: linear-gradient(to right, var(--color-surface-1) 8%, var(--color-surface-hover) 18%, var(--color-surface-1) 33%);
+        background-size: 2000px 100%;
+        animation: shimmer 2s linear infinite;
+        border-radius: 8px;
+    }
+
+    .skeleton-loading .skeleton-image {
+        width: 350px;
+        height: 350px;
+        border-radius: 16px;
+    }
+
+    .skeleton-loading .item-info {
+        opacity: 1; /* Garante que os placeholders dentro sejam visíveis */
+        animation: none; /* Remove a animação de fade-in do container */
+    }
+
+    .skeleton-loading .skeleton-badge {
+        width: 80px;
+        height: 24px;
+        margin-bottom: 1rem;
+    }
+
+    .skeleton-loading .skeleton-title {
+        width: 80%;
+        height: 40px;
+        margin-bottom: 1rem;
+    }
+
+    .skeleton-loading .skeleton-text {
+        width: 100%;
+        height: 16px;
+        margin-bottom: 0.75rem;
+    }
+
+    .skeleton-loading .skeleton-text.short {
+        width: 50%;
+    }
+
+    .skeleton-loading .skeleton-price {
+        width: 100px;
+        height: 32px;
+        margin: 1.5rem 0;
+    }
+
+    .skeleton-loading .skeleton-button {
+        flex: 1;
+        height: 48px;
+        border-radius: 20px;
+    }
   </style>
 </head>
 
@@ -222,8 +280,64 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <main>
         <!-- O conteúdo do item será inserido aqui pelo JavaScript -->
         <div class="item-page-wrapper">
-            <div id="item-detail-view">
-                <div class="loader"></div>
+            <!-- Template para a visualização de detalhes do item -->
+            <template id="item-detail-template">
+                <img class="item-image" src="" alt="">
+                <div class="item-info" data-audio-src="" data-title="" data-cover="">
+                    <span class="badge"></span>
+                    <h1 class="item-title"></h1>
+                    <p class="item-description"></p>
+                    <p class="item-genre"><strong>Gênero:</strong> <span></span></p>
+                    <p class="item-views"><i class="fa-solid fa-eye"></i> <span></span></p>
+                    <p class="item-year"><strong>Ano:</strong> <span></span></p>
+                    <div class="price"></div>
+                    <div class="item-actions">
+                        <!-- Botões de ação (comprar, tocar, copiar) serão inseridos aqui -->
+                    </div>
+                    <div class="social-share">
+                        <p><i class="fa-solid fa-arrow-up-from-bracket"></i> Compartilhar</p>
+                        <div class="social-share-buttons">
+                            <a href="#" target="_blank" rel="noopener noreferrer" class="social-btn twitter" title="Compartilhar no Twitter"><i class="fa-brands fa-twitter"></i></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer" class="social-btn facebook" title="Compartilhar no Facebook"><i class="fa-brands fa-facebook"></i></a>
+                            <a href="#" target="_blank" rel="noopener noreferrer" class="social-btn whatsapp" title="Compartilhar no WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Template para os cards de itens relacionados (reutilizado de outras páginas) -->
+            <template id="card-template">
+                <div class="card" data-id="">
+                    <a href="#" class="card-link-wrapper">
+                        <div class="card-image-container" data-src-full="">
+                            <img src="" class="img-placeholder" alt="" loading="eager" decoding="async" width="320" height="180">
+                            <img data-src="" class="img-full" alt="" decoding="async" width="320" height="180">
+                        </div>
+                        <div class="card-content">
+                            <span class="badge"></span>
+                            <h3></h3>
+                            <p class="card-meta"></p>
+                            <span class="card-views"></span>
+                        </div>
+                    </a>
+                </div>
+            </template>
+
+            <!-- Skeleton Loader para a página de detalhes -->
+            <div id="item-detail-view" class="skeleton-loading">
+                <div class="skeleton skeleton-image"></div>
+                <div class="item-info">
+                    <div class="skeleton skeleton-badge"></div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text short"></div>
+                    <div class="skeleton skeleton-price"></div>
+                    <div class="item-actions">
+                        <div class="skeleton skeleton-button"></div>
+                        <div class="skeleton skeleton-button"></div>
+                    </div>
+                </div>
             </div>
             <!-- Seção de Itens Relacionados -->
             <section id="related-items-section" class="related-items-section" style="display: none;">
