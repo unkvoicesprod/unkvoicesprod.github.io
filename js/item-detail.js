@@ -34,18 +34,18 @@ async function initializeItemDetail() {
         // 4. Incrementar a visualização (se for a primeira vez)
         triggerViewCountOnce(itemId);
 
-        // 5. Atualizar as meta tags da página dinamicamente
-        updateMetaTags(item);
-
-        // 6. Renderizar os detalhes do item na página
-        renderItemDetails(item);
-
-        // 7. Otimização: Buscar contagens de visualizações apenas para os itens relevantes
+        // 5. Otimização: Buscar contagens de visualizações para o item atual e os relacionados
         const relatedItems = getRelatedItems(item, allContent);
         const idsToFetchViews = [itemId, ...relatedItems.map(i => i.id)];
         const viewCounts = await fetchSpecificViewCounts(idsToFetchViews);
 
-        // 8. Renderizar itens relacionados
+        // 6. Atualizar as meta tags da página dinamicamente
+        updateMetaTags(item);
+
+        // 7. Renderizar os detalhes do item na página, agora com a contagem de views
+        renderItemDetails(item, viewCounts[itemId] || 0);
+
+        // 8. Renderizar itens relacionados, passando as contagens
         renderRelatedItems(item, allContent, viewCounts);
 
     } catch (error) {
@@ -137,8 +137,7 @@ function updateMetaTags(item) {
     document.querySelector('meta[property="twitter:image"]').setAttribute('content', imageUrl);
     document.querySelector('meta[property="twitter:url"]').setAttribute('content', fullUrl);
 }
-
-function renderItemDetails(item) {
+function renderItemDetails(item, viewCount = 0) {
     const container = document.getElementById("item-detail-view");
 
     const priceText = item.preco > 0 ? `$${item.preco.toFixed(2)}` : "Grátis";
@@ -183,6 +182,7 @@ function renderItemDetails(item) {
             <h1>${item.titulo}</h1>
             <p>${item.descricao}</p>
             <p><strong>Gênero:</strong> ${item.genero || 'N/A'}</p>
+            <p class="item-views"><i class="fa-solid fa-eye"></i> ${viewCount.toLocaleString('pt-PT')} visualizações</p>
             <p><strong>Ano:</strong> ${item.ano || 'N/A'}</p>
             <div class="price">${priceText}</div>
             <div class="item-actions">
