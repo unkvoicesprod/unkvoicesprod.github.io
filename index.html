@@ -53,7 +53,22 @@ Explora a <strong style="color: #00C853;">loja</strong> e cria o teu próximo <s
             <button id="enter-site-btn" class="btn">Mergulhar</button>
         </div>
     </div>
-    <script src="js/welcome.js" defer></script>
+    <script>
+        // Script aprimorado para o ecrã de boas-vindas
+    const welcomeOverlay = document.getElementById('welcome-overlay');
+    const enterButton = document.getElementById('enter-site-btn');
+    // Verifica no localStorage se o usuário já visitou o site
+    if (localStorage.getItem('hasVisited') === 'true') {
+      welcomeOverlay.style.display = 'none'; // Esconde a tela imediatamente
+    } else {
+      document.body.classList.add('welcome-active'); // Ativa o modo de boas-vindas
+      enterButton.addEventListener('click', () => {
+        welcomeOverlay.classList.add('hidden'); // Esconde com animação
+        document.body.classList.remove('welcome-active');
+        localStorage.setItem('hasVisited', 'true'); // Salva a visita no localStorage
+      });
+    }
+  </script>
     <!-- O Header será carregado aqui -->
     <div id="header-placeholder"></div>
     <main data-page-config='{"randomize": true}'>
