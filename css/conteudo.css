@@ -503,3 +503,33 @@
     background-color: var(--color-accent-purple);
     color: var(--color-white);
 }
+
+/* --- SKELETON LOADER PARA CARDS --- */
+.skeleton-card {
+    /* Remove interações e animações do card esqueleto */
+    cursor: default;
+    transform: none !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+    animation: none !important;
+}
+
+.skeleton-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.skeleton-card .skeleton-image {
+    height: 180px;
+    border-radius: 0;
+}
+
+.skeleton-card .skeleton-badge {
+    width: 60px;
+    height: 22px;
+}
+
+.skeleton-card .skeleton-title {
+    width: 80%;
+    height: 20px;
+}

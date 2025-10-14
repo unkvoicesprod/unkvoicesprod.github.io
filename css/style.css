@@ -463,3 +463,21 @@ footer {
 .back-to-top-btn:hover {
     background-color: var(--color-accent-green-hover);
 }
+
+/* --- SKELETON LOADER GLOBAL --- */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(to right, var(--color-surface-1) 8%, var(--color-surface-hover) 18%, var(--color-surface-1) 33%);
+    background-size: 2000px 100%;
+    animation: shimmer 2s linear infinite;
+    border-radius: 8px;
+}
