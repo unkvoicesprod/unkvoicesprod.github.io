@@ -1,9 +1,9 @@
 import { db, auth } from "./firebase-init.js";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
-// IMPORTANTE: Cole o seu UID de usuário do Firebase aqui para ter permissões de administrador.
-const ADMIN_UID = "COLE_O_SEU_UID_CORRETO_AQUI";
+// IMPORTANTE: O seu UID de administrador foi adicionado.
+const ADMIN_UID = "w8yiRQ1F2eRCjwAVcNWuCJcMqQ12";
 
 function startMuralScript() {
     const form = document.getElementById('mural-form');
@@ -18,6 +18,19 @@ function startMuralScript() {
 
     let currentUser = null;
     let unsubscribeFromPosts = null; // Para guardar a função de unsubscribe do onSnapshot
+
+    // --- Lidar com o resultado do redirecionamento de login ---
+    getRedirectResult(auth)
+        .catch((error) => {
+            // Lida com erros do redirecionamento aqui.
+            console.error("Erro ao obter resultado do redirecionamento de login:", error);
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            alert(`Erro no login: ${errorMessage} (código: ${errorCode})`);
+        });
+
+    // Exibe a UI de login inicial imediatamente, sem esperar pelo Firebase
+    updateAuthUI();
 
     // --- Gerir Autenticação ---
     onAuthStateChanged(auth, (user) => {
@@ -139,6 +152,20 @@ function startMuralScript() {
         }
     }
 
+    // --- Delegação de Eventos para Autenticação ---
+    // Adiciona um único event listener no container pai para lidar com cliques nos botões de login/logout.
+    // Isso é mais eficiente e evita problemas com elementos que são adicionados/removidos dinamicamente.
+    authStatusContainer.addEventListener('click', (event) => {
+        if (event.target.id === 'mural-login-btn') {
+            const provider = new GoogleAuthProvider();
+            // Usa signInWithRedirect em vez de signInWithPopup para evitar bloqueadores de popup
+            signInWithRedirect(auth, provider);
+        }
+        if (event.target.id === 'mural-logout-btn') {
+            signOut(auth);
+        }
+    });
+
     function updateAuthUI() {
         if (currentUser) {
             const isAdmin = currentUser.uid === ADMIN_UID;
@@ -146,18 +173,11 @@ function startMuralScript() {
                 <p>Login como: ${currentUser.displayName} ${isAdmin ? '(Admin)' : ''}</p>
                 <button id="mural-logout-btn" class="btn-secondary"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
             `;
-            document.getElementById('mural-logout-btn').addEventListener('click', () => signOut(auth));
         } else {
             authStatusContainer.innerHTML = `
                 <p><i class="fa-solid fa-lock"></i> Área de Moderação</p>
                 <button id="mural-login-btn" class="btn"><i class="fa-brands fa-google"></i> Login</button>
             `;
-            document.getElementById('mural-login-btn').addEventListener('click', () => {
-                const provider = new GoogleAuthProvider();
-                signInWithPopup(auth, provider).catch(error => {
-                    console.error("Erro no login com Google:", error);
-                });
-            });
         }
     }
 }
