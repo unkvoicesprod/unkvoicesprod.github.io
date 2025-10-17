@@ -1,10 +1,6 @@
 import { db, auth } from "./firebase-init.js";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { syncFavoritesOnLogin } from './favorites.js';
-
-// IMPORTANTE: O seu UID de administrador foi adicionado.
-const ADMIN_UID = "w8yiRQ1F2eRCjwAVcNWuCJcMqQ12";
+import { login, logout, getCurrentUser, isAdmin as isUserAdmin } from './auth.js';
 
 function startMuralScript() {
     const form = document.getElementById('mural-form');
@@ -34,30 +30,15 @@ function startMuralScript() {
     }
 
     let currentUser = null;
+    let isAdmin = false;
     let unsubscribeFromPosts = null; // Para guardar a função de unsubscribe do onSnapshot
 
-    // --- Lidar com o resultado do redirecionamento de login ---
-    getRedirectResult(auth)
-        .catch((error) => {
-            // Lida com erros do redirecionamento aqui.
-            console.error("Erro ao obter resultado do redirecionamento de login:", error);
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            alert(`Erro no login: ${errorMessage} (código: ${errorCode})`);
-        });
-
-    // Exibe a UI de login inicial imediatamente, sem esperar pelo Firebase
-    updateAuthUI();
-
-    // --- Gerir Autenticação ---
-    onAuthStateChanged(auth, (user) => {
-        currentUser = user;
+    // Ouve o evento global de mudança de autenticação
+    window.addEventListener('authStateChanged', (event) => {
+        currentUser = event.detail.user;
+        isAdmin = event.detail.isAdmin;
         updateAuthUI();
-        if (user) {
-            // Sincroniza os favoritos quando o usuário faz login
-            syncFavoritesOnLogin(user);
-        }
-        // Re-escuta as mensagens para adicionar/remover botões de apagar
+        // Re-renderiza os posts para atualizar os controlos (editar/apagar)
         listenForPosts();
     });
 
@@ -107,7 +88,9 @@ function startMuralScript() {
             // Reativa o botão
             submitButton.disabled = false;
             // Se o usuário estiver logado, o nome não deve ser limpo
-            if (currentUser) {
+            if (!currentUser) {
+                form.reset(); // Limpa o formulário completamente para visitantes
+            } else {
                 nomeInput.value = currentUser.displayName;
             }
             submitButton.textContent = 'Submeter Mensagem';
@@ -129,18 +112,17 @@ function startMuralScript() {
 
     function renderPosts(querySnapshot) {
         postsContainer.innerHTML = ''; // Limpa o container
-        const isAdmin = currentUser && currentUser.uid === ADMIN_UID;
 
         if (querySnapshot.empty) {
             postsContainer.innerHTML = '<p class="mural-empty">Ainda ninguém deixou uma mensagem. Sê o primeiro!</p>';
             return;
         }
 
-        querySnapshot.forEach((document, index) => {
-            const post = document.data();
+        querySnapshot.forEach((doc, index) => {
+            const post = doc.data();
             const postElement = document.createElement('div');
             postElement.className = 'mural-post';
-            postElement.dataset.id = document.id; // Guarda o ID do documento
+            postElement.dataset.id = doc.id; // Guarda o ID do documento
 
             const dataFormatada = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('pt-PT') : 'agora mesmo';
 
@@ -250,15 +232,10 @@ function startMuralScript() {
     // Isso é mais eficiente e evita problemas com elementos que são adicionados/removidos dinamicamente.
     authStatusContainer.addEventListener('click', (event) => {
         if (event.target.id === 'mural-login-btn') {
-            const provider = new GoogleAuthProvider();
-            // Usa signInWithRedirect em vez de signInWithPopup para evitar bloqueadores de popup
-            signInWithRedirect(auth, provider);
+            login();
         }
         if (event.target.id === 'mural-logout-btn') {
-            // Limpa os favoritos locais ao fazer logout para evitar misturar com os de outro usuário
-            localStorage.removeItem('unkvoices_favorites');
-            window.dispatchEvent(new CustomEvent('favoritesChanged', { detail: { favorites: [] } }));
-            signOut(auth);
+            logout();
         }
     });
 
@@ -269,7 +246,6 @@ function startMuralScript() {
             nomeInput.value = currentUser.displayName;
             nomeInput.readOnly = true;
 
-            const isAdmin = currentUser.uid === ADMIN_UID;
             authStatusContainer.innerHTML = `
                 <p>Login como: ${currentUser.displayName} ${isAdmin ? '(Admin)' : ''}</p>
                 <button id="mural-logout-btn" class="btn-secondary"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
@@ -277,6 +253,7 @@ function startMuralScript() {
         } else {
             const nomeInput = document.getElementById('mural-nome');
             nomeInput.readOnly = false; // Garante que o campo é editável
+            nomeInput.value = ''; // Limpa o campo de nome ao fazer logout
 
             authStatusContainer.innerHTML = `
                 <p><i class="fa-solid fa-lock"></i> Área de Moderação</p>

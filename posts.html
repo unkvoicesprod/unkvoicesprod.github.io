@@ -65,22 +65,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div id="results-counter" class="results-counter"></div>
         <!-- Template para os cards de conteúdo -->
         <template id="card-template">
-            <div class="card" data-id="" data-audio-src="" data-title="" data-cover="">
-                <a href="#" class="card-link-wrapper">
+            <div class="card" data-id="">
+                <a href="#" class="card-link-wrapper"> <!-- O link agora envolve imagem e conteúdo -->
                     <div class="card-image-container" data-src-full="">
                         <img src="" class="img-placeholder" alt="" loading="eager" decoding="async" width="320" height="180">
                         <img data-src="" class="img-full" alt="" decoding="async" width="320" height="180">
                     </div>
-                </a>
-                <div class="card-content">
-                    <span class="badge"></span>
-                    <div class="card-title-line">
-                        <h3></h3>
-                        <span class="card-price"></span>
+                    <div class="card-content">
+                        <span class="badge"></span>
+                        <div class="card-title-line">
+                            <h3></h3>
+                            <span class="card-price"></span>
+                        </div>
+                        <p class="card-meta"></p>
+                        <div class="card-stats">
+                            <span class="card-views"><i class="fa-solid fa-eye"></i> 0</span>
+                            <span class="card-likes" title="Gostar"><i class="fa-regular fa-thumbs-up"></i> 0</span>
+                        </div>
                     </div>
-                    <p class="card-meta"></p>
-                    <span class="card-views"></span>
-                </div>
+                </a>
             </div>
         </template>
         <!-- Container de cards -->

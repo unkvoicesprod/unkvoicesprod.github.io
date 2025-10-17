@@ -12,21 +12,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-K9DV742R');</script>
 <!-- End Google Tag Manager -->
     <!-- SEO & Metadata -->
-    <meta name="description" content="Bibliotecas e packs para elevar a tua produção. Kits & Plugins da UNKVOICES.">
-    <meta name="keywords" content="drum kits, loop kits, midi kits, plugins, vsts, producao musical, UNKVOICES">
+    <meta name="description" content="Descobre drum kits, pacotes de samples e plugins VST na UNKVOICES.">
+    <meta name="keywords" content="drum kits, sample packs, VST, plugins, UNKVOICES">
     <meta name="author" content="UNKVOICES">
     <title>Kits & Plugins | UNKVOICES</title>
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://unkvoices.github.io/kits.html">
     <meta property="og:title" content="Kits & Plugins | UNKVOICES">
-    <meta property="og:description" content="Bibliotecas e packs para elevar a tua produção.">
+    <meta property="og:description" content="Descobre drum kits, pacotes de samples e plugins VST.">
     <meta property="og:image" content="https://unkvoices.github.io/assets/logo.jpg">
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://unkvoices.github.io/kits.html">
     <meta property="twitter:title" content="Kits & Plugins | UNKVOICES">
-    <meta property="twitter:description" content="Bibliotecas e packs para elevar a tua produção.">
+    <meta property="twitter:description" content="Descobre drum kits, pacotes de samples e plugins VST.">
     <meta property="twitter:image" content="https://unkvoices.github.io/assets/logo.jpg">
     <link rel="icon" href="assets/logo.svg" type="image/x-icon">
     <link rel="stylesheet" href="css/style.css">
@@ -41,48 +41,42 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
     <!-- O Header será carregado aqui -->
     <div id="header-placeholder"></div>
-    <main data-page-config='{"categorias": ["Kits & Plugins", "VST"]}'>
+    <main data-page-config='{"categorias": ["Kits & Plugins", "VST"], "hideFilters": ["categoria"]}'>
         <section class="hero glass">
-            <h1>🛠 Kits & Plugins</h1>
-            <p>Bibliotecas e packs para elevar a tua produção.</p>
+            <h1>🥁 Kits & Plugins</h1>
+            <p>Eleva as tuas produções com os nossos drum kits e VSTs.</p>
         </section>
         <input type="text" id="search" class="search-bar-full" placeholder="Pesquisar por título, descrição, etc...">
         <button id="toggle-filters-btn" class="toggle-filters-btn">☰ Filtrar</button>
         <div class="filters">
-            <select id="filtro-genero" title="Filtrar por gênero">
-                <option value="">Gênero</option>
-            </select>
-            <select id="filtro-categoria" title="Filtrar por categoria">
-                <option value="">Categoria</option>
-            </select>
-            <select id="filtro-ano" title="Filtrar por ano">
-                <option value="">Ano</option>
-            </select>
+            <select id="filtro-genero" title="Filtrar por gênero"><option value="">Gênero</option></select>
+            <select id="filtro-categoria" title="Filtrar por categoria"><option value="">Categoria</option></select>
+            <select id="filtro-ano" title="Filtrar por ano"><option value="">Ano</option></select>
             <button id="clear-filters-btn" class="clear-filters-btn">Limpar</button>
         </div>
-        <!-- Container para o contador de resultados -->
         <div id="results-counter" class="results-counter"></div>
-        <!-- Template para os cards de conteúdo -->
         <template id="card-template">
-            <div class="card" data-id="" data-audio-src="" data-title="" data-cover="">
-                <a href="#" class="card-link-wrapper">
+            <div class="card" data-id="">                
+                <a href="#" class="card-link-wrapper"> <!-- O link agora envolve imagem e conteúdo -->
                     <div class="card-image-container" data-src-full="">
                         <img src="" class="img-placeholder" alt="" loading="eager" decoding="async" width="320" height="180">
                         <img data-src="" class="img-full" alt="" decoding="async" width="320" height="180">
                     </div>
-                </a>
-                <div class="card-content">
-                    <span class="badge"></span>
-                    <div class="card-title-line">
-                        <h3></h3>
-                        <span class="card-price"></span>
+                    <div class="card-content">
+                        <span class="badge"></span>
+                        <div class="card-title-line">
+                            <h3></h3>
+                            <span class="card-price"></span>
+                        </div>
+                        <p class="card-meta"></p>
+                        <div class="card-stats">
+                            <span class="card-views"><i class="fa-solid fa-eye"></i> 0</span>
+                            <span class="card-likes" title="Gostar"><i class="fa-regular fa-thumbs-up"></i> 0</span>
+                        </div>
                     </div>
-                    <p class="card-meta"></p>
-                    <span class="card-views"></span>
-                </div>
+                </a>
             </div>
         </template>
-        <!-- Container de cards -->
         <div id="conteudo-container" class="grid-dynamic">
             <!-- Skeleton Loader para a grade de cards -->
             <div class="card skeleton-card"><div class="skeleton skeleton-image"></div><div class="card-content"><div class="skeleton skeleton-badge"></div><div class="skeleton skeleton-title"></div></div></div>
@@ -96,17 +90,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div id="pagination-container" class="pagination"></div>
     </main>
-    <!-- O Footer será carregado aqui -->
     <div id="footer-placeholder"></div>
-    <!-- O Mural de Mensagens será carregado aqui -->
     <div id="mural-placeholder"></div>
-    <!-- O Alerta Customizado será carregado aqui -->
     <div id="alert-placeholder"></div>
-
     <script src="js/firebase-init.js" type="module"></script>
     <script src="js/conteudo.js" type="module"></script>
     <script src="js/layout.js"></script>
     <script src="js/mural.js" type="module"></script>
 </body>
-
 </html>

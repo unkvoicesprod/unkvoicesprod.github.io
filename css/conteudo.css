@@ -79,34 +79,6 @@
     box-shadow: 0 0 10px var(--card-shadow-green-hover);
 }
 
-/* ================= BOTÃO DE FAVORITO NO CARD ================= */
-.card-favorite-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 2;
-    width: 36px;
-    height: 36px;
-    background-color: rgba(0, 0, 0, 0.6);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-.card-favorite-btn:hover {
-    transform: scale(1.15);
-}
-
-.card-favorite-btn.is-favorite {
-    color: var(--color-accent-pink);
-    background-color: rgba(255, 255, 255, 0.8);
-}
-
 /* ================= IMAGEM ================= */
 /* Novo container para a imagem para manter a proporção e o tamanho fixo */
 .card-image-container {
@@ -224,7 +196,8 @@
 
 .card-views,
 .card-likes {
-    font-size: 0.85rem;
+    font-size: 1rem;
+    /* Aumentado para maior visibilidade */
     color: var(--color-text-secondary);
     opacity: 0.8;
     display: flex;
@@ -241,6 +214,30 @@
 .card-likes.is-liked {
     color: var(--color-accent-green);
 }
+
+/* Animação para o clique no botão de like */
+.card-likes.is-animating i,
+.item-likes.is-animating i {
+    /* Aplica a animação ao ícone dentro do botão */
+    animation: like-pop 0.4s ease-in-out;
+}
+
+@keyframes like-pop {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        /* Aumenta o tamanho do ícone até 140% no meio da animação */
+        transform: scale(1.5);
+        /* Aumentado para um "pop" mais forte */
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
 
 /* ================= FOOTER DO CARD (PARA BOTÕES) ================= */
 .card-footer {

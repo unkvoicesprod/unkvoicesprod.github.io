@@ -1,6 +1,5 @@
 import { db } from './firebase-init.js';
 import { doc, getDoc, setDoc, increment, collection, getDocs, query, where, documentId, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import { toggleFavorite, isFavorite } from './favorites.js';
 
 async function initializeItemDetail() {
     const container = document.getElementById("item-detail-view");
@@ -137,6 +136,18 @@ async function incrementViewCount(itemId) {
 }
 
 /**
+ * Decrementa a contagem de "likes" de um item no Firestore.
+ * @param {string} itemId O ID do item.
+ */
+async function decrementLikeCount(itemId) {
+    if (!db || !itemId) return;
+    try {
+        const likeRef = doc(db, "likes", itemId.toString());
+        await setDoc(likeRef, { count: increment(-1) }, { merge: true });
+    } catch (error) { console.error("Falha ao decrementar like:", error); }
+}
+
+/**
  * Incrementa a contagem de "likes" de um item no Firestore.
  * @param {string} itemId O ID do item.
  */
@@ -244,6 +255,7 @@ function renderItemDetails(item, viewCount = 0, likeCount = 0) {
 
     // Likes
     const likesContainer = clone.querySelector('.item-likes');
+    likesContainer.dataset.itemId = item.id; // Adiciona o ID do item ao elemento
     const likedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
     const isLiked = likedItems.includes(item.id.toString());
     const likeIcon = likesContainer.querySelector('i');
@@ -257,20 +269,6 @@ function renderItemDetails(item, viewCount = 0, likeCount = 0) {
     // Preço
     const priceText = item.preco > 0 ? `$${item.preco.toFixed(2)}` : "Grátis";
     clone.querySelector('.price').textContent = priceText;
-
-    // Botão de Favorito
-    const favoriteButton = document.createElement('button');
-    favoriteButton.id = 'favorite-detail-btn';
-    favoriteButton.className = 'btn btn-outline favorite-btn';
-    favoriteButton.title = 'Adicionar aos Favoritos';
-    const updateFavoriteButton = () => {
-        const isFav = isFavorite(item.id.toString());
-        favoriteButton.innerHTML = isFav ? '<i class="fa-solid fa-heart"></i> Favorito' : '<i class="fa-regular fa-heart"></i> Favoritar';
-        favoriteButton.classList.toggle('is-favorite', isFav);
-    };
-    updateFavoriteButton(); // Estado inicial
-    favoriteButton.addEventListener('click', () => { toggleFavorite(item.id.toString()); updateFavoriteButton(); });
-    actionsContainer.appendChild(favoriteButton);
 
     // Botão de Ação (Comprar/Baixar)
     if (item.link && !item.isYouTubePost) { // Não mostra o botão "Comprar" para vídeos do YouTube
@@ -348,19 +346,38 @@ function renderItemDetails(item, viewCount = 0, likeCount = 0) {
     socialButtons.querySelector('.whatsapp').href = `https://api.whatsapp.com/send?text=${shareText}%20${encodedPageUrl}`;
 
     // Event listener para o botão de like
-    likesContainer.addEventListener('click', () => {
-        const currentLikedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
-        if (!currentLikedItems.includes(item.id.toString())) {
-            incrementLikeCount(item.id.toString());
-            currentLikedItems.push(item.id.toString());
-            localStorage.setItem('unkvoices_liked_items', JSON.stringify(currentLikedItems));
+    likesContainer.addEventListener('click', (event) => {
+        if (event.target.tagName !== 'I') return; // Ação só ocorre se clicar no ícone
+        const itemId = likesContainer.dataset.itemId;
+        if (!itemId) return;
 
-            // Atualiza UI do like
+        let currentLikedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
+        const isLiked = currentLikedItems.includes(itemId);
+
+        // Adiciona a classe para a animação e remove-a quando a animação terminar
+        likesContainer.classList.add('is-animating');
+        likesContainer.addEventListener('animationend', () => {
+            likesContainer.classList.remove('is-animating');
+        }, { once: true });
+
+        if (isLiked) {
+            // Se já gostou, remove o gosto (dislike)
+            decrementLikeCount(itemId);
+            currentLikedItems = currentLikedItems.filter(id => id !== itemId);
+            likesContainer.classList.remove('is-liked');
+            likesContainer.querySelector('i').className = 'fa-regular fa-thumbs-up';
+            const currentCount = parseInt(likeCountText.textContent.replace(/\./g, ''), 10) || 1;
+            likeCountText.textContent = (currentCount - 1).toLocaleString('pt-PT');
+        } else {
+            // Se não gostou, adiciona o gosto (like)
+            incrementLikeCount(itemId);
+            currentLikedItems.push(itemId);
             likesContainer.classList.add('is-liked');
             likesContainer.querySelector('i').className = 'fa-solid fa-thumbs-up';
             const currentCount = parseInt(likeCountText.textContent.replace(/\./g, ''), 10) || 0;
             likeCountText.textContent = (currentCount + 1).toLocaleString('pt-PT');
         }
+        localStorage.setItem('unkvoices_liked_items', JSON.stringify(currentLikedItems));
     });
 
     // Adiciona o conteúdo clonado e preenchido ao container

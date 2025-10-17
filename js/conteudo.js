@@ -5,8 +5,6 @@ Beats   /   Kits    /   Posts
 */
 import { db } from "./firebase-init.js";
 import { collection, onSnapshot, doc, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
-import { toggleFavorite, isFavorite, getFavorites } from './favorites.js';
-
 
 function startContentScript() {
     // Estado da aplicação
@@ -159,6 +157,18 @@ function startContentScript() {
     }
 
     /**
+     * Decrementa a contagem de "likes" de um item no Firestore.
+     * @param {string} itemId O ID do item.
+     */
+    async function decrementLikeCount(itemId) {
+        if (!db || !itemId) return;
+        try {
+            const likeRef = doc(db, "likes", itemId.toString());
+            await setDoc(likeRef, { count: increment(-1) }, { merge: true });
+        } catch (error) { console.error("Falha ao decrementar like:", error); }
+    }
+
+    /**
      * Incrementa a contagem de "likes" de um item no Firestore.
      * @param {string} itemId O ID do item.
      */
@@ -184,8 +194,8 @@ function startContentScript() {
                     id: postId,
                     videoId: videoId, // Adiciona o ID do vídeo para uso posterior
                     titulo: data.title || `Post do YouTube #${index + 1}`,
-                    capa: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-                    capaPlaceholder: `https://i.ytimg.com/vi/${videoId}/sddefault.jpg`, // Usar uma imagem de qualidade menor como placeholder
+                    capa: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                    capaPlaceholder: `https://i.ytimg.com/vi/${videoId}/sddefault.jpg`,
                     genero: "Beats", // Considerar todos os vídeos como gênero "Beats"
                     categoria: "Beats", // Considerar todos os vídeos como categoria "Beats"
                     ano: new Date().getFullYear(),
@@ -225,9 +235,7 @@ function startContentScript() {
     }
 
     function itemMatchesPageConfig(item) {
-        const favoriteIds = getFavorites();
         return (
-            (!pageConfig.showOnlyFavorites || favoriteIds.includes(item.id.toString())) &&
             (!pageConfig.categorias || pageConfig.categorias.includes(item.categoria)) &&
             (!pageConfig.precoMin || item.preco >= pageConfig.precoMin)
         );
@@ -239,20 +247,10 @@ function startContentScript() {
 
         if (!list.length) {
             elements.container.innerHTML = `
-                <div class="no-results-container" style="display: ${pageConfig.showOnlyFavorites ? 'none' : 'block'};">
+                <div class="no-results-container">
                     <span class="icon">😕</span>
                     <h4>Nenhum resultado encontrado</h4>
                     <p>Tente ajustar os filtros ou o termo de pesquisa.</p>
-                </div>
-            `;
-            return;
-        }
-        if (list.length === 0 && pageConfig.showOnlyFavorites) {
-            elements.container.innerHTML = `
-                <div class="no-results-container">
-                    <span class="icon"><i class="fa-regular fa-heart"></i></span>
-                    <h4>Nenhum favorito encontrado</h4>
-                    <p>Clique no ícone de coração nos itens para adicioná-los aqui.</p>
                 </div>
             `;
         }
@@ -265,14 +263,6 @@ function startContentScript() {
             cardElement.dataset.id = item.id;
             cardElement.dataset.title = item.titulo;
             cardElement.dataset.cover = item.capa;
-
-            // --- Botão de Favorito ---
-            const favoriteBtn = cardClone.querySelector('.card-favorite-btn');
-            if (favoriteBtn) {
-                favoriteBtn.dataset.itemId = item.id;
-                favoriteBtn.classList.toggle('is-favorite', isFavorite(item.id.toString()));
-                favoriteBtn.querySelector('i').className = isFavorite(item.id.toString()) ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-            }
 
             // --- Link principal ---
             const mainLink = cardClone.querySelector('.card-link-wrapper');
@@ -456,14 +446,6 @@ function startContentScript() {
         // Delegação de eventos para os cliques nos cards (play, etc.)
         elements.container.addEventListener('click', handleCardClick);
 
-        // Listener para o evento de mudança de favoritos
-        window.addEventListener('favoritesChanged', (event) => {
-            if (pageConfig.showOnlyFavorites) {
-                applyFilters(); // Re-filtra a página de favoritos
-            } else {
-                updateFavoriteIcons(event.detail.favorites); // Apenas atualiza os ícones
-            }
-        });
         // Listeners para os filtros
         elements.search.addEventListener("input", handleFilterChange);
         Object.values(elements).filter(el => el && el.tagName === 'SELECT').forEach(select => {
@@ -486,43 +468,54 @@ function startContentScript() {
 
     function handleCardClick(event) {
         const card = event.target.closest('.card');
-        const favoriteBtn = event.target.closest('.card-favorite-btn');
         const likeBtn = event.target.closest('.card-likes');
 
-        // Se o clique foi no botão de favorito
-        if (favoriteBtn) {
-            toggleFavorite(favoriteBtn.dataset.itemId);
-            return; // Interrompe para não contar como clique no card
-        }
-
-        // Se o clique foi no botão de like
-        if (likeBtn) {
+        // Ação de like/dislike só é acionada se o clique for diretamente no ícone (tag <i>)
+        if (likeBtn && event.target.tagName === 'I') {
             event.preventDefault(); // Previne a navegação do link do card
             const itemId = card.dataset.id;
-            if (!likedItems.includes(itemId)) {
+            const isLiked = likedItems.includes(itemId);
+
+            // Adiciona a classe para a animação e remove-a quando a animação terminar
+            likeBtn.classList.add('is-animating');
+            likeBtn.addEventListener('animationend', () => {
+                likeBtn.classList.remove('is-animating');
+            }, { once: true });
+
+            if (isLiked) {
+                // O utilizador quer remover o like (dislike)
+                decrementLikeCount(itemId);
+                likedItems = likedItems.filter(id => id !== itemId);
+                likeBtn.classList.remove('is-liked');
+                likeCounts[itemId] = (likeCounts[itemId] || 1) - 1;
+                likeBtn.innerHTML = `<i class="fa-regular fa-thumbs-up"></i> ${likeCounts[itemId].toLocaleString('pt-PT')}`;
+            } else {
+                // O utilizador quer dar like
                 // Incrementa no Firebase
                 incrementLikeCount(itemId);
                 // Adiciona à lista local e ao localStorage
                 likedItems.push(itemId);
-                localStorage.setItem('unkvoices_liked_items', JSON.stringify(likedItems));
                 // Atualiza a UI imediatamente
                 likeBtn.classList.add('is-liked');
-                likeBtn.querySelector('i').className = 'fa-solid fa-thumbs-up';
                 likeCounts[itemId] = (likeCounts[itemId] || 0) + 1;
-                likeBtn.lastChild.textContent = ` ${likeCounts[itemId].toLocaleString('pt-PT')}`;
+                // Atualiza o HTML interno para garantir que o ícone e o texto sejam mantidos
+                likeBtn.innerHTML = `<i class="fa-solid fa-thumbs-up"></i> ${likeCounts[itemId].toLocaleString('pt-PT')}`;
             }
+            // Salva o estado atualizado no localStorage
+            localStorage.setItem('unkvoices_liked_items', JSON.stringify(likedItems));
             return;
         }
-        if (!card) return; // Sai se o clique não foi dentro de um card
 
-        // Ação: Incrementar a visualização a cada clique no card.
-        // A lógica para posts do YouTube foi simplificada. O link principal agora cuida da navegação.
-        // O modal não é mais necessário, pois o clique no card inteiro leva ao YouTube.
-        const itemId = card.dataset.id;
-        const item = allContent.find(i => i.id.toString() === itemId);
+        if (card) { // Ação de clique no card (fora do botão de like)
+            // Ação: Incrementar a visualização a cada clique no card.
+            // O modal não é mais necessário, pois o clique no card inteiro leva ao YouTube.
+            const itemId = card.dataset.id;
+            const item = allContent.find(i => i.id.toString() === itemId);
 
-        // Incrementa a view para qualquer tipo de item clicado.
-        if (item) incrementViewCount(itemId);
+            // Incrementa a view para qualquer tipo de item clicado.
+            if (item) incrementViewCount(itemId);
+        }
+
     }
 
     function handleFilterChange(event) {
@@ -547,19 +540,6 @@ function startContentScript() {
 
         // Re-aplica os filtros (agora vazios) para resetar a visualização
         applyFilters();
-    }
-
-    function updateFavoriteIcons(favoriteIds) {
-        const cards = elements.container.querySelectorAll('.card');
-        cards.forEach(card => {
-            const favoriteBtn = card.querySelector('.card-favorite-btn');
-            if (favoriteBtn) {
-                const itemId = favoriteBtn.dataset.itemId;
-                const isFav = favoriteIds.includes(itemId);
-                favoriteBtn.classList.toggle('is-favorite', isFav);
-                favoriteBtn.querySelector('i').className = isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-            }
-        });
     }
 
     function updateURL() {
