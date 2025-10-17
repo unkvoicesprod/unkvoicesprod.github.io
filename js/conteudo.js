@@ -137,8 +137,8 @@ function startContentScript() {
                     titulo: data.title || `Post do YouTube #${index + 1}`,
                     capa: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
                     capaPlaceholder: `https://i.ytimg.com/vi/${videoId}/sddefault.jpg`, // Usar uma imagem de qualidade menor como placeholder
-                    genero: data.author_name || "YouTube",
-                    categoria: "Post", // Atribui a categoria correta para consistência
+                    genero: "Beats", // Considerar todos os vídeos como gênero "Beats"
+                    categoria: "Beats", // Considerar todos os vídeos como categoria "Beats"
                     ano: new Date().getFullYear(),
                     isYouTubePost: true, // Adiciona um identificador para estes itens
                     preco: 0,

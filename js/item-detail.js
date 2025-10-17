@@ -87,8 +87,8 @@ async function processYouTubePosts(posts) {
                 videoId: videoId,
                 titulo: data.title || `Post do YouTube #${index + 1}`,
                 capa: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-                genero: data.author_name || "YouTube",
-                categoria: "Post",
+                genero: "Beats", // Considerar todos os vídeos como gênero "Beats"
+                categoria: "Beats", // Considerar todos os vídeos como categoria "Beats"
                 ano: new Date().getFullYear(),
                 isYouTubePost: true,
                 preco: 0,
