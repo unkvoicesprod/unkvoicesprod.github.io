@@ -3,19 +3,18 @@
     <div class="mural-header">
         <h2><i class="fa-solid fa-pen-nib"></i> Deixe a sua mensagem</h2>
         <p>Partilhe a sua opinião, dê uma sugestão ou simplesmente diga olá!</p>
-    
-        <!-- Área de Autenticação para Moderação -->
-        <div id="mural-auth-status" class="mural-auth-status">
-            <!-- O status de login/logout será inserido aqui pelo JS -->
-        </div>
-    
+
         <form id="mural-form" class="mural-form">
-            <input type="text" id="mural-nome" name="nome" placeholder="O seu nome" required maxlength="30">
+            <div class="form-group">
+                <label for="mural-nome" class="sr-only">O seu nome</label>
+                <input type="text" id="mural-nome" name="nome" placeholder="O seu nome" required maxlength="30" aria-label="Seu nome">
+            </div>
             <div class="textarea-wrapper">
-                <textarea id="mural-mensagem" name="mensagem" placeholder="Escreva a sua mensagem aqui..." required maxlength="800" rows="4"></textarea>
+                <label for="mural-mensagem" class="sr-only">Sua mensagem</label>
+                <textarea id="mural-mensagem" name="mensagem" placeholder="Escreva a sua mensagem aqui..." required maxlength="800" rows="4" aria-label="Sua mensagem"></textarea>
                 <div id="mural-char-counter" class="char-counter">0 / 800</div>
             </div>
-            <button type="submit" class="btn">Submeter Mensagem</button>
+            <button type="submit" class="btn" aria-label="Submeter sua mensagem">Submeter Mensagem</button>
         </form>
     </div>
 
