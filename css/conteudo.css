@@ -656,14 +656,22 @@
     padding: 1.5rem;
     border-radius: 16px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
+    /* O efeito de hover foi removido conforme solicitado */
+    /* A transição foi mantida para outras possíveis animações */
 }
 
 .mural-post.is-reply {
-    background: var(--color-surface-1);
     margin-left: 2rem;
-    border-left: 3px solid var(--color-accent-purple);
-    padding-left: 1.5rem;
+    /* O estilo visual foi removido, mantendo apenas a indentação para hierarquia. */
+}
+
+.mural-replies-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    /* Espaçamento entre as respostas */
 }
 
 @media (max-width: 600px) {
@@ -673,318 +681,340 @@
 }
 
 /* Animação de fade-in padrão para todos os posts */
-.mural-post.post-fade-in-animation {
-    opacity: 0;
-    /* Começa invisível */
-    animation: post-fade-in 0.5s ease-out forwards;
-}
 
 /* Animação especial para posts recém-adicionados */
 .mural-post.new-post-animation {
     animation: new-post-highlight 1.5s ease-out forwards;
 }
 
-.mural-empty {
-    animation: post-fade-in 0.5s ease-out forwards;
-}
-
-.mural-post.is-editing {
-    background: var(--color-surface-hover);
-}
-
-.mural-post-content {
-    color: var(--color-text-primary);
-    line-height: 1.6;
-    margin: 0 0 1rem 0;
-    word-wrap: break-word;
-}
-
-.mural-post-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
-    padding-top: 1rem;
-    border-top: 1px solid var(--glass-border);
-}
-
-.mural-post-footer span {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    /* Impede que os itens encolham e quebrem linha facilmente */
-    gap: 6px;
-}
-
-/* Container para todas as ações (votos e controlos de edição) */
-.mural-post-actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    flex-grow: 1;
-    /* Ocupa o espaço central */
-}
-
-/* Container específico para os botões de voto */
-.mural-post-votes {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.mural-vote-btn {
-    background: transparent;
-    border: 1px solid var(--glass-border);
-    color: var(--color-text-secondary);
-    border-radius: 20px;
-    padding: 4px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease-in-out;
-}
-
-.mural-vote-btn:hover {
-    background: var(--color-surface-hover);
-    color: var(--color-white);
-}
-
-.mural-vote-btn.like-btn:hover,
-.mural-vote-btn.like-btn.active {
-    color: var(--color-accent-green);
-    border-color: var(--color-accent-green);
-}
-
-.mural-vote-btn.dislike-btn:hover,
-.mural-vote-btn.dislike-btn.active {
-    color: var(--color-accent-pink);
-    border-color: var(--color-accent-pink);
-}
-
-/* Container para os botões de editar/apagar */
-.mural-post-controls {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    position: relative;
-}
-
-/* Botão para carregar mais posts */
-.load-more-btn {
-    display: block;
-    margin: 2rem auto;
-    width: 50%;
-    max-width: 300px;
-}
-
-.load-more-btn:disabled {
-    cursor: not-allowed;
-    background: var(--color-surface-hover);
-}
-
-.mural-delete-btn,
-.mural-edit-btn,
-.mural-reply-btn {
-    background: transparent;
-    border: 1px solid var(--glass-border);
-    color: var(--color-text-secondary);
-    border-radius: 20px;
-    padding: 4px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    transition: all 0.2s ease-in-out;
-}
-
-.mural-delete-btn:hover,
-.mural-edit-btn:hover,
-.mural-reply-btn:hover {
-    background: var(--color-surface-hover);
-    color: var(--color-white);
-}
-
-.mural-delete-btn:hover {
-    background: var(--color-accent-pink);
-    border-color: var(--color-accent-pink);
-    color: var(--color-white);
-}
-
-.mural-edit-btn {
-    font-size: 0.8rem;
-}
-
-.mural-reply-btn:hover {
-    color: var(--color-accent-purple);
-    border-color: var(--color-accent-purple);
-}
-
-.mural-edit-btn:hover {
-    background: var(--color-accent-green);
-}
-
-.mural-post-edit-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.mural-edit-textarea {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--glass-border);
-    background: var(--color-surface-1);
-    color: var(--color-text-primary);
-    font-family: inherit;
-    resize: vertical;
-}
-
-.mural-edit-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
-/* --- MODAL DE CONFIRMAÇÃO --- */
-.confirmation-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    animation: post-fade-in 0.3s ease;
-}
-
-.confirmation-modal-content {
-    background: var(--color-surface-2);
-    padding: 2rem;
-    border-radius: 16px;
-    border: 1px solid var(--glass-border);
-    box-shadow: 0 0 30px var(--card-shadow-pink);
-    text-align: center;
-    max-width: 90%;
-    width: 400px;
-}
-
-.confirmation-modal-content p {
-    margin: 0 0 1.5rem 0;
-    font-size: 1.1rem;
-    color: var(--color-text-primary);
-}
-
-.confirmation-modal-actions {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-}
-
-.btn-danger {
-    background-color: var(--color-accent-pink);
-    color: var(--color-white);
-}
-
-.btn-danger:hover {
-    background-color: var(--color-accent-pink-hover);
-}
-
-/* --- NOTIFICAÇÃO DE NOVO POST (TOAST) --- */
-#new-post-toast {
-    position: fixed;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--color-accent-green);
-    color: var(--color-text-on-accent);
-    padding: 12px 20px;
-    border-radius: 25px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    z-index: 1001;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    animation: slide-down-fade-in 0.5s ease-out;
-}
-
-#new-post-toast .btn-link {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: var(--color-white);
-    padding: 6px 12px;
-    border-radius: 15px;
-    cursor: pointer;
-}
-
-#new-post-toast .btn-link:hover {
-    background: rgba(255, 255, 255, 0.4);
-}
-
-/* Keyframes para a animação de fade-in dos posts */
-@keyframes post-fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(15px);
+.mural-post {
+    .mural-empty {
+        animation: post-fade-in 0.5s ease-out forwards;
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Keyframes para destacar um novo post */
-@keyframes new-post-highlight {
-    0% {
-        opacity: 0;
-        transform: translateY(20px) scale(0.98);
-        box-shadow: 0 0 0px var(--card-shadow-green-hover);
+    .mural-post.is-editing {
+        background: var(--color-surface-hover);
     }
 
-    50% {
-        opacity: 1;
-        box-shadow: 0 0 25px var(--card-shadow-green-hover);
+    .mural-post-content {
+        color: var(--color-text-primary);
+        line-height: 1.6;
+        margin: 0 0 1rem 0;
+        word-wrap: break-word;
     }
 
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    .mural-post-footer {
+        display: flex;
+        justify-content: flex-end;
+        /* Alinha tudo à direita por padrão */
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--glass-border);
     }
-}
 
-@keyframes slide-down-fade-in {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -20px);
+    .mural-post-footer span {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        /* Impede que os itens encolham e quebrem linha facilmente */
+        gap: 6px;
     }
 
-    to {
-        opacity: 1;
-        transform: translate(-50%, 0);
+    .mural-post-author {
+        margin-right: auto;
+        /* Empurra o autor para a esquerda */
+        font-weight: bold;
     }
-}
 
-/* Classe para acessibilidade: esconde visualmente mas mantém para leitores de tela */
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-}
+    /* Animação para os ícones do rodapé */
+    .mural-post-footer span:hover i,
+    .mural-post-controls button:hover i {
+        animation: icon-pulse 0.5s ease-in-out;
+    }
+
+    @keyframes icon-pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.2);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+
+
+    /* Container para todas as ações (votos e controlos de edição) */
+    .mural-post-actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        flex-grow: 1;
+        /* Ocupa o espaço central */
+    }
+
+    /* Container específico para os botões de voto */
+    .mural-post-votes {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .mural-vote-btn {
+        background: transparent;
+        border: 1px solid var(--glass-border);
+        color: var(--color-text-secondary);
+        border-radius: 20px;
+        padding: 4px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .mural-vote-btn:hover {
+        background: var(--color-surface-hover);
+        color: var(--color-white);
+    }
+
+    .mural-vote-btn.like-btn:hover,
+    .mural-vote-btn.like-btn.active {
+        color: var(--color-accent-green);
+        border-color: var(--color-accent-green);
+    }
+
+    .mural-vote-btn.dislike-btn:hover,
+    .mural-vote-btn.dislike-btn.active {
+        color: var(--color-accent-pink);
+        border-color: var(--color-accent-pink);
+    }
+
+    /* Container para os botões de editar/apagar */
+    .mural-post-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    /* Botão para carregar mais posts */
+    .load-more-btn {
+        display: block;
+        margin: 2rem auto;
+        width: 50%;
+        max-width: 300px;
+    }
+
+    .load-more-btn:disabled {
+        cursor: not-allowed;
+        background: var(--color-surface-hover);
+    }
+
+    .mural-delete-btn,
+    .mural-edit-btn,
+    .mural-reply-btn {
+        background: transparent;
+        border: 1px solid var(--glass-border);
+        color: var(--color-text-secondary);
+        border-radius: 20px;
+        padding: 4px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .mural-delete-btn:hover,
+    .mural-edit-btn:hover,
+    .mural-reply-btn:hover {
+        background: var(--color-surface-hover);
+        color: var(--color-white);
+    }
+
+    .mural-delete-btn:hover {
+        background: var(--color-accent-pink);
+        border-color: var(--color-accent-pink);
+        color: var(--color-white);
+    }
+
+    .mural-edit-btn {
+        font-size: 0.8rem;
+    }
+
+    .mural-reply-btn:hover {
+        color: var(--color-accent-purple);
+        border-color: var(--color-accent-purple);
+    }
+
+    .mural-post-edit-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .mural-edit-textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--glass-border);
+        background: var(--color-surface-1);
+        color: var(--color-text-primary);
+        font-family: inherit;
+        resize: vertical;
+    }
+
+    .mural-edit-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    /* --- MODAL DE CONFIRMAÇÃO --- */
+    .confirmation-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: post-fade-in 0.3s ease;
+    }
+
+    .confirmation-modal-content {
+        background: var(--color-surface-2);
+        padding: 2rem;
+        border-radius: 16px;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 0 30px var(--card-shadow-pink);
+        text-align: center;
+        max-width: 90%;
+        width: 400px;
+    }
+
+    .confirmation-modal-content p {
+        margin: 0 0 1.5rem 0;
+        font-size: 1.1rem;
+        color: var(--color-text-primary);
+    }
+
+    .confirmation-modal-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .btn-danger {
+        background-color: var(--color-accent-pink);
+        color: var(--color-white);
+    }
+
+    .btn-danger:hover {
+        background-color: var(--color-accent-pink-hover);
+    }
+
+    /* --- NOTIFICAÇÃO DE NOVO POST (TOAST) --- */
+    #new-post-toast {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--color-accent-green);
+        color: var(--color-text-on-accent);
+        padding: 12px 20px;
+        border-radius: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slide-down-fade-in 0.5s ease-out;
+    }
+
+    #new-post-toast .btn-link {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: var(--color-white);
+        padding: 6px 12px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    #new-post-toast .btn-link:hover {
+        background: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Keyframes para a animação de fade-in dos posts */
+    @keyframes post-fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Keyframes para destacar um novo post */
+    @keyframes new-post-highlight {
+        0% {
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+            box-shadow: 0 0 0px var(--color-accent-green);
+        }
+
+        50% {
+            opacity: 1;
+            box-shadow: 0 0 25px var(--color-accent-green);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+    }
+
+    @keyframes slide-down-fade-in {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -50px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50);
+        }
+    }
+
+    /* Classe para acessibilidade: esconde visualmente mas mantém para leitores de tela */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }

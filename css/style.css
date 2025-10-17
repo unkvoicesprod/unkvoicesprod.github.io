@@ -5,6 +5,10 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 :root {
     /* Palette */
     --color-background: #111;
@@ -457,27 +461,6 @@ footer {
     transform: scale(1.05) rotate(0deg) !important;
     box-shadow: 0 8px 20px var(--glass-shadow-green);
     z-index: 10;
-}
-
-/* Rotações variadas para um look mais orgânico */
-.mural-post:nth-child(5n+1) {
-    transform: rotate(1.5deg);
-}
-
-.mural-post:nth-child(5n+2) {
-    transform: rotate(-1deg);
-}
-
-.mural-post:nth-child(5n+3) {
-    transform: rotate(1deg);
-}
-
-.mural-post:nth-child(5n+4) {
-    transform: rotate(-1.5deg);
-}
-
-.mural-post:nth-child(5n+5) {
-    transform: rotate(0.5deg);
 }
 
 .mural-delete-btn:hover {

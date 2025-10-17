@@ -1,10 +1,11 @@
 import { db, auth } from "./firebase-init.js";
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, runTransaction, limit, startAfter, getDocs, where } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 function startMuralScript() {
     const form = document.getElementById('mural-form');
     const postsContainer = document.getElementById('mural-posts-container');
     const mensagemInput = document.getElementById('mural-mensagem');
+    const nomeInput = document.getElementById('mural-nome');
     const charCounter = document.getElementById('mural-char-counter');
 
     if (!form || !postsContainer) {
@@ -13,10 +14,16 @@ function startMuralScript() {
         return;
     }
 
+    // --- Lógica para lembrar o nome do utilizador ---
+    const savedName = localStorage.getItem('muralUserName');
+    if (savedName && nomeInput) {
+        nomeInput.value = savedName;
+    }
+
     // --- Lógica do Contador de Caracteres ---
     if (mensagemInput && charCounter) {
         const maxLength = mensagemInput.maxLength;
-        charCounter.textContent = `0 / ${maxLength}`; // Estado inicial
+        charCounter.textContent = `${mensagemInput.value.length} / ${maxLength}`; // Estado inicial
 
         mensagemInput.addEventListener('input', () => {
             const currentLength = mensagemInput.value.length;
@@ -29,11 +36,7 @@ function startMuralScript() {
 
     let unsubscribeFromPosts = null; // Para guardar a função de unsubscribe do onSnapshot
     let editTimerInterval = null; // Para guardar o intervalo do temporizador de edição
-    let lastVisiblePost = null; // Para a paginação
-    let isLoadingMore = false; // Para evitar múltiplos carregamentos
-    const POSTS_PER_PAGE = 10; // Número de posts a carregar de cada vez
-    let allPostsLoaded = false; // Flag para saber se todos os posts foram carregados
-    let loadMoreButton = null; // Referência para o botão "Carregar Mais"
+    let allPosts = new Map(); // Para guardar todos os posts e facilitar a construção da árvore de respostas
 
     const muralCollection = collection(db, 'mural_mensagens');
 
@@ -41,7 +44,6 @@ function startMuralScript() {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const nomeInput = document.getElementById('mural-nome'); // mensagemInput já foi declarado acima
         const submitButton = form.querySelector('button[type="submit"]');
         const parentId = form.dataset.parentId || null; // Verifica se é uma resposta
 
@@ -78,11 +80,14 @@ function startMuralScript() {
                 postData.location = location;
             }
 
+            // Guarda o nome do utilizador para futuras visitas
+            localStorage.setItem('muralUserName', nome);
+
             // Adiciona o documento ao Firestore
             await addDoc(muralCollection, postData);
 
             form.reset();
-            cancelReply(); // Limpa o estado de resposta do formulário
+            if (parentId) cancelReply(); // Limpa o estado de resposta do formulário
 
         } catch (error) {
             console.error("Erro ao adicionar mensagem: ", error);
@@ -91,6 +96,7 @@ function startMuralScript() {
             // Reativa o botão
             submitButton.disabled = false;
             submitButton.textContent = 'Submeter Mensagem';
+            charCounter.textContent = `0 / ${mensagemInput.maxLength}`;
         }
     });
 
@@ -150,59 +156,102 @@ function startMuralScript() {
 
         const q = query(muralCollection, orderBy('createdAt', 'desc'));
         // Guarda a função de unsubscribe para poder ser chamada mais tarde
-        unsubscribeFromPosts = onSnapshot(q, (querySnapshot) => {
-            // Usa docChanges para processar apenas as alterações
-            handlePostChanges(querySnapshot.docChanges());
+        unsubscribeFromPosts = onSnapshot(q, (snapshot) => {
+            const changes = snapshot.docChanges();
+
+            changes.forEach(change => {
+                const postData = { id: change.doc.id, ...change.doc.data() };
+                if (change.type === "added") {
+                    allPosts.set(postData.id, postData);
+                    // Notifica sobre o novo post se o mural não estiver visível
+                    showNewPostNotification(postData.id);
+                } else if (change.type === "modified") {
+                    allPosts.set(postData.id, postData);
+                } else if (change.type === "removed") {
+                    allPosts.delete(postData.id);
+                }
+            });
+
+            renderAllPosts();
         });
     }
 
     async function handleDeleteClick(event) {
         const postElement = event.target.closest('.mural-post');
         const postId = postElement.dataset.id;
+        const post = allPosts.get(postId);
 
-        if (confirm('Tem a certeza que quer apagar esta mensagem permanentemente?')) {
+        // Se o post tiver respostas, avisa o utilizador
+        const hasReplies = Array.from(allPosts.values()).some(p => p.parentId === postId);
+        const message = hasReplies ?
+            'Este post tem respostas. Apagá-lo também irá apagar todas as respostas. Tem a certeza?' :
+            'Tem a certeza que quer apagar esta mensagem permanentemente?';
+
+        showConfirmationModal(message, async () => {
             try {
+                // Se tiver respostas, apaga-as primeiro (ou usa uma Cloud Function para isso)
+                if (hasReplies) {
+                    const repliesToDelete = Array.from(allPosts.values()).filter(p => p.parentId === postId);
+                    for (const reply of repliesToDelete) {
+                        await deleteDoc(doc(db, 'mural_mensagens', reply.id));
+                    }
+                }
+                // Apaga o post principal
                 await deleteDoc(doc(db, 'mural_mensagens', postId));
                 showNotification('Mensagem apagada com sucesso.', 'success');
-                // O onSnapshot irá atualizar a UI automaticamente.
+                // O onSnapshot irá atualizar a UI.
             } catch (error) {
                 console.error("Erro ao apagar mensagem:", error);
                 showNotification('Não foi possível apagar a mensagem.', 'error');
             }
-        }
+        });
     }
 
-    function handlePostChanges(changes) {
-        // Remove a mensagem de "mural vazio" se ela existir e houver posts
-        const emptyMessage = postsContainer.querySelector('.mural-empty');
-        if (emptyMessage && postsContainer.children.length > 1) {
-            emptyMessage.remove();
-        }
+    function renderAllPosts() {
+        postsContainer.innerHTML = ''; // Limpa o container
 
-        changes.forEach((change, index) => {
-            if (change.type === "added") {
-                const postElement = createPostElement(change.doc);
-                // Adiciona a classe para a animação de "novo"
-                postElement.classList.add('new-post-animation');
-                // Adiciona um atraso para a animação de entrada inicial
-                postElement.style.animationDelay = `${index * 100}ms`;
-                // Insere o novo post no topo da lista
-                postsContainer.prepend(postElement);
+        const postsArray = Array.from(allPosts.values()).sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        const postMap = new Map(postsArray.map(p => [p.id, { ...p, children: [] }]));
+
+        const rootPosts = [];
+        postMap.forEach(post => {
+            if (post.parentId && postMap.has(post.parentId)) {
+                postMap.get(post.parentId).children.push(post);
+            } else {
+                rootPosts.push(post);
             }
-            if (change.type === "modified") {
-                const postElement = createPostElement(change.doc);
-                const oldElement = postsContainer.querySelector(`[data-id="${change.doc.id}"]`);
-                if (oldElement) {
-                    postsContainer.replaceChild(postElement, oldElement);
+        });
+
+        const fragment = document.createDocumentFragment();
+        rootPosts.forEach(post => {
+            const postElement = createPostElement(post);
+            fragment.appendChild(postElement);
+
+            // Ordena as respostas por data de criação (mais antigas primeiro)
+            post.children.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis());
+
+            if (post.children.length > 0) {
+                const repliesContainer = document.createElement('div');
+                repliesContainer.className = 'mural-replies-container';
+                post.children.forEach(reply => {
+                    const replyElement = createPostElement(reply);
+                    replyElement.classList.add('is-reply');
+                    repliesContainer.appendChild(replyElement);
+                });
+                // Adiciona o formulário de resposta no final das respostas, se aplicável
+                if (form.dataset.parentId === post.id) {
+                    repliesContainer.appendChild(form);
                 }
-            }
-            if (change.type === "removed") {
-                const oldElement = postsContainer.querySelector(`[data-id="${change.doc.id}"]`);
-                if (oldElement) {
-                    oldElement.remove();
+                postElement.appendChild(repliesContainer);
+            } else {
+                // Adiciona o formulário de resposta se não houver respostas ainda
+                if (form.dataset.parentId === post.id) {
+                    postElement.appendChild(form);
                 }
             }
         });
+
+        postsContainer.appendChild(fragment);
 
         // Mostra a mensagem de "mural vazio" se não houver posts
         if (postsContainer.children.length === 0) {
@@ -217,11 +266,10 @@ function startMuralScript() {
     // Inicia o temporizador para atualizar os contadores de edição
     startEditTimers();
 
-    function createPostElement(doc) {
-        const post = doc.data();
+    function createPostElement(post) {
         const postElement = document.createElement('div');
         postElement.className = 'mural-post';
-        postElement.dataset.id = doc.id;
+        postElement.dataset.id = post.id;
 
         const dataFormatada = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('pt-PT') : 'agora mesmo';
 
@@ -234,20 +282,25 @@ function startMuralScript() {
         const currentAuthorId = getOrCreateAuthorId();
         const EDIT_WINDOW_MINUTES = 1;
         const canEdit = post.authorId === currentAuthorId && postAgeInMinutes < EDIT_WINDOW_MINUTES;
+        const canReply = true; // Todos podem responder
 
         let controlsHTML = '';
 
         if (canEdit) {
-            controlsHTML += `<button class="mural-delete-btn" title="Apagar mensagem (disponível por ${EDIT_WINDOW_MINUTES} min)">×</button>`;
-            controlsHTML += `<button class="mural-edit-btn" title="Editar mensagem"><i class="fa-solid fa-pencil"></i><span class="edit-timer"></span></button>`;
+            controlsHTML += `<button class="mural-edit-btn" title="Editar mensagem"><i class="fa-solid fa-pencil"></i> Editar<span class="edit-timer"></span></button>`;
+            controlsHTML += `<button class="mural-delete-btn" title="Apagar mensagem (disponível por ${EDIT_WINDOW_MINUTES} min)"><i class="fa-solid fa-trash-can"></i> Apagar</button>`;
         }
+        if (canReply) {
+            controlsHTML += `<button class="mural-reply-btn" title="Responder a esta mensagem"><i class="fa-solid fa-reply"></i> Responder</button>`;
+        }
+
 
         postElement.innerHTML = `
             <p class="mural-post-content">${escapeHTML(post.mensagem)}</p>
-            <div class="mural-post-controls">${controlsHTML}</div>
             <div class="mural-post-footer">
                 <span class="mural-post-author"><i class="fa-solid fa-user-pen"></i> ${escapeHTML(post.nome)}</span>
-                <span class="mural-post-date"><i class="fa-regular fa-calendar-days"></i> ${dataFormatada}</span>
+                <div class="mural-post-controls">${controlsHTML}</div>
+                <span class="mural-post-date" title="${post.createdAt ? post.createdAt.toDate().toLocaleString('pt-PT') : ''}"><i class="fa-regular fa-calendar-days"></i> ${dataFormatada}</span>
             </div>
         `;
 
@@ -263,11 +316,13 @@ function startMuralScript() {
         const editBtn = target.closest('.mural-edit-btn');
         const saveBtn = target.closest('.mural-save-btn');
         const cancelBtn = target.closest('.mural-cancel-btn');
+        const replyBtn = target.closest('.mural-reply-btn');
 
         if (deleteBtn) handleDeleteClick(event);
         if (editBtn) handleEditClick(event);
         if (saveBtn) handleSaveClick(event);
         if (cancelBtn) handleCancelClick(event);
+        if (replyBtn) handleReplyClick(event);
     }
 
     function handleEditClick(event) {
@@ -275,7 +330,11 @@ function startMuralScript() {
         const contentElement = postElement.querySelector('.mural-post-content');
         const currentMessage = contentElement.innerText;
 
+        // Se já estiver a editar, não faz nada
+        if (postElement.classList.contains('is-editing')) return;
+
         postElement.classList.add('is-editing');
+        postElement.querySelector('.mural-post-footer').style.display = 'none';
         contentElement.style.display = 'none';
 
         const editFormHTML = `
@@ -287,7 +346,7 @@ function startMuralScript() {
                 </div>
             </div>
         `;
-        postElement.insertAdjacentHTML('afterbegin', editFormHTML);
+        postElement.insertAdjacentHTML('beforeend', editFormHTML);
         postElement.querySelector('.mural-edit-textarea').focus();
     }
 
@@ -300,18 +359,53 @@ function startMuralScript() {
         if (newMessage) {
             const postRef = doc(db, 'mural_mensagens', postId);
             await updateDoc(postRef, { mensagem: newMessage });
-            showNotification('Mensagem editada com sucesso.', 'success');
-            // O onSnapshot tratará de re-renderizar a UI.
+            // O onSnapshot tratará de re-renderizar a UI, não precisa de notificação aqui
+            // pois a mudança é visualmente imediata.
         }
     }
 
     function handleCancelClick(event) {
         const postElement = event.target.closest('.mural-post');
-        // Simplesmente remove a classe e o onSnapshot irá re-renderizar o post corretamente na próxima atualização.
-        // Para uma resposta imediata, poderíamos reverter o DOM, mas deixar o onSnapshot tratar disso é mais simples.
         postElement.classList.remove('is-editing');
         postElement.querySelector('.mural-post-edit-form').remove();
         postElement.querySelector('.mural-post-content').style.display = 'block';
+        postElement.querySelector('.mural-post-footer').style.display = 'flex';
+    }
+
+    function handleReplyClick(event) {
+        const postElement = event.target.closest('.mural-post');
+        const postId = postElement.dataset.id;
+
+        // Se já estiver a responder a este post, cancela a resposta
+        if (form.dataset.parentId === postId) {
+            cancelReply();
+            return;
+        }
+
+        // Move o formulário para o post alvo
+        form.dataset.parentId = postId;
+        form.querySelector('button[type="submit"]').textContent = 'Submeter Resposta';
+        form.querySelector('textarea').placeholder = 'Escreva a sua resposta...';
+
+        // Encontra ou cria o container de respostas
+        let repliesContainer = postElement.querySelector('.mural-replies-container');
+        if (!repliesContainer) {
+            repliesContainer = document.createElement('div');
+            repliesContainer.className = 'mural-replies-container';
+            postElement.appendChild(repliesContainer);
+        }
+
+        repliesContainer.appendChild(form);
+        mensagemInput.focus();
+    }
+
+    function cancelReply() {
+        const muralHeader = document.querySelector('.mural-header');
+        delete form.dataset.parentId;
+        form.reset();
+        form.querySelector('button[type="submit"]').textContent = 'Submeter Mensagem';
+        form.querySelector('textarea').placeholder = 'Escreva a sua mensagem aqui...';
+        muralHeader.appendChild(form); // Move o formulário de volta para o local original
     }
 
     /**
@@ -376,23 +470,30 @@ function startMuralScript() {
      * Mostra uma notificação de novo post se o mural não estiver visível.
      */
     function showNewPostNotification(postId) {
-        const muralSection = document.getElementById('mural-section');
-        const observer = new IntersectionObserver((entries) => {
-            if (!entries[0].isIntersecting) { // Se o mural NÃO está visível
-                let notification = document.getElementById('new-post-toast');
-                if (!notification) {
-                    notification = document.createElement('div');
-                    notification.id = 'new-post-toast';
-                    notification.innerHTML = `<span>Nova mensagem no mural!</span><button class="btn-link">Ver</button>`;
-                    document.body.appendChild(notification);
-                    notification.addEventListener('click', () => {
-                        document.querySelector(`[data-id="${postId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        notification.remove();
-                    });
-                }
-            }
-        }, { threshold: 0.1 });
-        observer.observe(muralSection);
+        const muralSection = document.getElementById('mural-section'); // O container do mural
+        if (!muralSection) return;
+
+        // Verifica se o mural está visível no ecrã
+        const rect = muralSection.getBoundingClientRect();
+        const isVisible = rect.top < window.innerHeight && rect.bottom >= 0;
+
+        if (isVisible) return; // Se o mural já está visível, não faz nada
+
+        // Remove qualquer notificação existente para evitar duplicados
+        document.getElementById('new-post-toast')?.remove();
+
+        const notification = document.createElement('div');
+        notification.id = 'new-post-toast';
+        notification.innerHTML = `<span>Nova mensagem no mural!</span><button class="btn-link">Ver</button>`;
+        document.body.appendChild(notification);
+
+        notification.addEventListener('click', () => {
+            const postElement = document.querySelector(`[data-id="${postId}"]`);
+            postElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            postElement?.classList.add('new-post-animation'); // Adiciona destaque
+            notification.remove();
+        });
+        setTimeout(() => notification.remove(), 5000); // Remove a notificação após 5 segundos
     }
 
     /**
@@ -423,7 +524,8 @@ function startMuralScript() {
                     editBtn.querySelector('.edit-timer').textContent = ` (${secondsLeft}s)`;
                 } else {
                     // Remove o botão de editar e o de apagar quando o tempo expira
-                    post.querySelector('.mural-post-controls').innerHTML = '';
+                    post.querySelector('.mural-edit-btn')?.remove();
+                    post.querySelector('.mural-delete-btn')?.remove();
                     post.removeAttribute('data-created-at'); // Para de ser processado
                 }
             });
