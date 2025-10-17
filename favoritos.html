@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-K9DV742R');</script>
+    <!-- End Google Tag Manager -->
+    <title>Meus Favoritos | UNKVOICES</title>
+    <meta name="description" content="Veja seus beats, kits e plugins favoritos salvos na UNKVOICES.">
+    <link rel="icon" href="assets/logo.svg" type="image/x-icon">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/conteudo.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K9DV742R"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <!-- O Header será carregado aqui -->
+    <div id="header-placeholder"></div>
+
+    <!-- A configuração `data-page-config` instrui o conteudo.js a mostrar apenas os favoritos -->
+    <main data-page-config='{"showOnlyFavorites": true, "hideFilters": ["genero", "categoria", "ano"]}'>
+        <section class="hero glass">
+            <h1><i class="fa-solid fa-heart"></i> Meus Favoritos</h1>
+            <p>Aqui estão todos os itens que você salvou. Eles ficam guardados no seu navegador e, se você fizer login, ficam salvos na sua conta para acessar de qualquer lugar!</p>
+        </section>
+
+        <input type="text" id="search" class="search-bar-full" placeholder="Pesquisar nos seus favoritos...">
+        <button id="toggle-filters-btn" class="toggle-filters-btn">☰ Filtrar</button>
+        <div class="filters">
+            <!-- Filtros podem ser adicionados aqui se necessário no futuro -->
+            <button id="clear-filters-btn" class="clear-filters-btn">Limpar</button>
+        </div>
+
+        <div id="results-counter" class="results-counter"></div>
+
+        <!-- Template para os cards de conteúdo (igual ao index.html) -->
+        <template id="card-template">
+            <div class="card" data-id="">
+                <div class="card-favorite-btn" title="Adicionar aos Favoritos"><i class="fa-regular fa-heart"></i></div>
+                <a href="#" class="card-link-wrapper">
+                    <div class="card-image-container" data-src-full="">
+                        <img src="" class="img-placeholder" alt="" loading="eager" decoding="async" width="320" height="180">
+                        <img data-src="" class="img-full" alt="" decoding="async" width="320" height="180">
+                    </div>
+                    <div class="card-content">
+                        <span class="badge"></span>
+                        <div class="card-title-line"><h3></h3><span class="card-price"></span></div>
+                        <p class="card-meta"></p>
+                        <span class="card-views"></span>
+                    </div>
+                </a>
+            </div>
+        </template>
+
+        <div id="conteudo-container" class="grid-dynamic"></div>
+        <div id="pagination-container" class="pagination"></div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+    <div id="alert-placeholder"></div>
+
+    <script src="js/firebase-init.js" type="module"></script>
+    <script src="js/conteudo.js" type="module"></script>
+    <script src="js/layout.js"></script>
+</body>
+</html>

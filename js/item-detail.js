@@ -1,5 +1,6 @@
 import { db } from './firebase-init.js';
 import { doc, getDoc, setDoc, increment, collection, getDocs, query, where, documentId } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { toggleFavorite, isFavorite } from './favorites.js';
 
 async function initializeItemDetail() {
     const container = document.getElementById("item-detail-view");
@@ -174,6 +175,20 @@ function renderItemDetails(item, viewCount = 0) {
     // Preço
     const priceText = item.preco > 0 ? `$${item.preco.toFixed(2)}` : "Grátis";
     clone.querySelector('.price').textContent = priceText;
+
+    // Botão de Favorito
+    const favoriteButton = document.createElement('button');
+    favoriteButton.id = 'favorite-detail-btn';
+    favoriteButton.className = 'btn btn-outline favorite-btn';
+    favoriteButton.title = 'Adicionar aos Favoritos';
+    const updateFavoriteButton = () => {
+        const isFav = isFavorite(item.id.toString());
+        favoriteButton.innerHTML = isFav ? '<i class="fa-solid fa-heart"></i> Favorito' : '<i class="fa-regular fa-heart"></i> Favoritar';
+        favoriteButton.classList.toggle('is-favorite', isFav);
+    };
+    updateFavoriteButton(); // Estado inicial
+    favoriteButton.addEventListener('click', () => { toggleFavorite(item.id.toString()); updateFavoriteButton(); });
+    actionsContainer.appendChild(favoriteButton);
 
     // Botão de Ação (Comprar/Baixar)
     if (item.link) {

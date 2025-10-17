@@ -5,6 +5,7 @@ Beats   /   Kits    /   Posts
 */
 import { db } from "./firebase-init.js";
 import { collection, onSnapshot, doc, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { toggleFavorite, isFavorite, getFavorites } from './favorites.js';
 
 
 function startContentScript() {
@@ -174,6 +175,14 @@ function startContentScript() {
         }
     }
 
+    function itemMatchesPageConfig(item) {
+        const favoriteIds = getFavorites();
+        return (
+            (!pageConfig.showOnlyFavorites || favoriteIds.includes(item.id.toString())) &&
+            (!pageConfig.categorias || pageConfig.categorias.includes(item.categoria)) &&
+            (!pageConfig.precoMin || item.preco >= pageConfig.precoMin)
+        );
+    }
     function renderContent(list) {
         // Limpa o container antes de adicionar novos elementos
         elements.container.innerHTML = '';
@@ -181,13 +190,22 @@ function startContentScript() {
 
         if (!list.length) {
             elements.container.innerHTML = `
-                <div class="no-results-container">
+                <div class="no-results-container" style="display: ${pageConfig.showOnlyFavorites ? 'none' : 'block'};">
                     <span class="icon">😕</span>
                     <h4>Nenhum resultado encontrado</h4>
                     <p>Tente ajustar os filtros ou o termo de pesquisa.</p>
                 </div>
             `;
             return;
+        }
+        if (list.length === 0 && pageConfig.showOnlyFavorites) {
+            elements.container.innerHTML = `
+                <div class="no-results-container">
+                    <span class="icon"><i class="fa-regular fa-heart"></i></span>
+                    <h4>Nenhum favorito encontrado</h4>
+                    <p>Clique no ícone de coração nos itens para adicioná-los aqui.</p>
+                </div>
+            `;
         }
 
         list.forEach(item => {
@@ -198,6 +216,14 @@ function startContentScript() {
             cardElement.dataset.id = item.id;
             cardElement.dataset.title = item.titulo;
             cardElement.dataset.cover = item.capa;
+
+            // --- Botão de Favorito ---
+            const favoriteBtn = cardClone.querySelector('.card-favorite-btn');
+            if (favoriteBtn) {
+                favoriteBtn.dataset.itemId = item.id;
+                favoriteBtn.classList.toggle('is-favorite', isFavorite(item.id.toString()));
+                favoriteBtn.querySelector('i').className = isFavorite(item.id.toString()) ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+            }
 
             // --- Link principal ---
             const mainLink = cardClone.querySelector('.card-link-wrapper');
@@ -278,15 +304,6 @@ function startContentScript() {
             }, 100);
         }
         return hasParams;
-    }
-
-    function itemMatchesPageConfig(item) {
-        return (
-            (!pageConfig.categorias || pageConfig.categorias.includes(item.categoria)) &&
-            (!pageConfig.precoMin || item.preco >= pageConfig.precoMin) &&
-            (!pageConfig.showOnlyYouTube || item.isYouTubePost === true) &&
-            (!pageConfig.home || true) // Lógica para a home page, se necessário
-        );
     }
 
     function populateFilters() {
@@ -384,6 +401,14 @@ function startContentScript() {
         // Delegação de eventos para os cliques nos cards (play, etc.)
         elements.container.addEventListener('click', handleCardClick);
 
+        // Listener para o evento de mudança de favoritos
+        window.addEventListener('favoritesChanged', (event) => {
+            if (pageConfig.showOnlyFavorites) {
+                applyFilters(); // Re-filtra a página de favoritos
+            } else {
+                updateFavoriteIcons(event.detail.favorites); // Apenas atualiza os ícones
+            }
+        });
         // Listeners para os filtros
         elements.search.addEventListener("input", handleFilterChange);
         Object.values(elements).filter(el => el && el.tagName === 'SELECT').forEach(select => {
@@ -406,6 +431,14 @@ function startContentScript() {
 
     function handleCardClick(event) {
         const card = event.target.closest('.card');
+        const favoriteBtn = event.target.closest('.card-favorite-btn');
+
+        // Se o clique foi no botão de favorito
+        if (favoriteBtn) {
+            toggleFavorite(favoriteBtn.dataset.itemId);
+            return; // Interrompe para não contar como clique no card
+        }
+
         if (!card) return; // Sai se o clique não foi dentro de um card
 
         // Ação: Incrementar a visualização a cada clique no card.
@@ -440,6 +473,19 @@ function startContentScript() {
 
         // Re-aplica os filtros (agora vazios) para resetar a visualização
         applyFilters();
+    }
+
+    function updateFavoriteIcons(favoriteIds) {
+        const cards = elements.container.querySelectorAll('.card');
+        cards.forEach(card => {
+            const favoriteBtn = card.querySelector('.card-favorite-btn');
+            if (favoriteBtn) {
+                const itemId = favoriteBtn.dataset.itemId;
+                const isFav = favoriteIds.includes(itemId);
+                favoriteBtn.classList.toggle('is-favorite', isFav);
+                favoriteBtn.querySelector('i').className = isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+            }
+        });
     }
 
     function updateURL() {

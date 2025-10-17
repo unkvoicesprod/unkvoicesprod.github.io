@@ -127,6 +127,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         color: var(--color-white);
         border-color: var(--color-accent-purple);
     }
+    .item-actions .favorite-btn {
+        border-color: var(--color-accent-pink);
+        color: var(--color-accent-pink);
+    }
+    .item-actions .favorite-btn:hover {
+        background: var(--color-accent-pink-hover);
+        border-color: var(--color-accent-pink-hover);
+        color: var(--color-white);
+    }
+    .item-actions .favorite-btn.is-favorite {
+        background: var(--color-accent-pink);
+        color: var(--color-white);
+    }
     .item-info .badge {
         margin-bottom: 1rem;
     }
@@ -307,7 +320,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
             <!-- Template para os cards de itens relacionados (reutilizado de outras páginas) -->
             <template id="card-template">
-                <div class="card" data-id="">
+                <div class="card" data-id=""> 
+                    <div class="card-favorite-btn" title="Adicionar aos Favoritos"><i class="fa-regular fa-heart"></i></div>
                     <a href="#" class="card-link-wrapper">
                         <div class="card-content">
                             <span class="badge"></span>

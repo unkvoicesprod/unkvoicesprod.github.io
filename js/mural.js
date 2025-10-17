@@ -1,6 +1,7 @@
 import { db, auth } from "./firebase-init.js";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { syncFavoritesOnLogin } from './favorites.js';
 
 // IMPORTANTE: O seu UID de administrador foi adicionado.
 const ADMIN_UID = "w8yiRQ1F2eRCjwAVcNWuCJcMqQ12";
@@ -36,6 +37,10 @@ function startMuralScript() {
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
         updateAuthUI();
+        if (user) {
+            // Sincroniza os favoritos quando o usuário faz login
+            syncFavoritesOnLogin(user);
+        }
         // Re-escuta as mensagens para adicionar/remover botões de apagar
         listenForPosts();
     });
@@ -162,6 +167,9 @@ function startMuralScript() {
             signInWithRedirect(auth, provider);
         }
         if (event.target.id === 'mural-logout-btn') {
+            // Limpa os favoritos locais ao fazer logout para evitar misturar com os de outro usuário
+            localStorage.removeItem('unkvoices_favorites');
+            window.dispatchEvent(new CustomEvent('favoritesChanged', { detail: { favorites: [] } }));
             signOut(auth);
         }
     });
