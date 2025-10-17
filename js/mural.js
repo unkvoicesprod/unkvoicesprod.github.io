@@ -10,11 +10,27 @@ function startMuralScript() {
     const form = document.getElementById('mural-form');
     const postsContainer = document.getElementById('mural-posts-container');
     const authStatusContainer = document.getElementById('mural-auth-status');
+    const mensagemInput = document.getElementById('mural-mensagem');
+    const charCounter = document.getElementById('mural-char-counter');
 
     if (!form || !postsContainer || !authStatusContainer) {
         // Se os elementos não existem, não faz nada.
         // Isso pode acontecer se o mural.html ainda não foi carregado.
         return;
+    }
+
+    // --- Lógica do Contador de Caracteres ---
+    if (mensagemInput && charCounter) {
+        const maxLength = mensagemInput.maxLength;
+        charCounter.textContent = `0 / ${maxLength}`; // Estado inicial
+
+        mensagemInput.addEventListener('input', () => {
+            const currentLength = mensagemInput.value.length;
+            charCounter.textContent = `${currentLength} / ${maxLength}`;
+
+            // Adiciona uma classe para feedback visual quando o limite é atingido
+            charCounter.classList.toggle('limit-reached', currentLength >= maxLength);
+        });
     }
 
     let currentUser = null;
@@ -51,8 +67,7 @@ function startMuralScript() {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const nomeInput = document.getElementById('mural-nome');
-        const mensagemInput = document.getElementById('mural-mensagem');
+        const nomeInput = document.getElementById('mural-nome'); // mensagemInput já foi declarado acima
         const submitButton = form.querySelector('button[type="submit"]');
 
         const nome = nomeInput.value.trim();
@@ -110,13 +125,16 @@ function startMuralScript() {
             return;
         }
 
-        querySnapshot.forEach((document) => {
+        querySnapshot.forEach((document, index) => {
             const post = document.data();
             const postElement = document.createElement('div');
             postElement.className = 'mural-post';
             postElement.dataset.id = document.id; // Guarda o ID do documento
 
             const dataFormatada = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('pt-PT') : 'agora mesmo';
+
+            // Adiciona um atraso escalonado para a animação de fade-in
+            postElement.style.animationDelay = `${index * 100}ms`;
 
             let adminControlsHTML = '';
             if (isAdmin) {
