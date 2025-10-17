@@ -1,5 +1,5 @@
 import { db } from './firebase-init.js';
-import { doc, getDoc, setDoc, increment, collection, getDocs, query, where, documentId } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, increment, collection, getDocs, query, where, documentId, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { toggleFavorite, isFavorite } from './favorites.js';
 
 async function initializeItemDetail() {
@@ -49,16 +49,19 @@ async function initializeItemDetail() {
         // 5. Otimização: Buscar contagens de visualizações para o item atual e os relacionados
         const relatedItems = getRelatedItems(item, allContent);
         const idsToFetchViews = [itemId, ...relatedItems.map(i => i.id)];
-        const viewCounts = await fetchSpecificViewCounts(idsToFetchViews);
+        const [viewCounts, likeCounts] = await Promise.all([
+            fetchSpecificCounts(idsToFetchViews, "views"),
+            fetchSpecificCounts(idsToFetchViews, "likes")
+        ]);
 
         // 6. Atualizar as meta tags da página dinamicamente
         updateMetaTags(item);
 
         // 7. Renderizar os detalhes do item na página, agora com a contagem de views
-        renderItemDetails(item, viewCounts[itemId] || 0);
+        renderItemDetails(item, viewCounts[itemId] || 0, likeCounts[itemId] || 0);
 
         // 8. Renderizar itens relacionados, passando as contagens
-        renderRelatedItems(item, allContent, viewCounts);
+        renderRelatedItems(item, allContent, { views: viewCounts, likes: likeCounts });
 
     } catch (error) {
         console.error("Erro ao carregar detalhes do item:", error);
@@ -134,27 +137,40 @@ async function incrementViewCount(itemId) {
 }
 
 /**
- * Otimização: Busca contagens de visualizações apenas para uma lista específica de IDs.
- * @param {string[]} itemIds Array de IDs dos itens para buscar as contagens.
+ * Incrementa a contagem de "likes" de um item no Firestore.
+ * @param {string} itemId O ID do item.
+ */
+async function incrementLikeCount(itemId) {
+    if (!db || !itemId) return;
+    try {
+        const likeRef = doc(db, "likes", itemId.toString());
+        await setDoc(likeRef, { count: increment(1) }, { merge: true });
+    } catch (error) { console.error("Falha ao incrementar like:", error); }
+}
+
+/**
+ * Otimização: Busca contagens (views ou likes) apenas para uma lista específica de IDs.
+ * @param {string[]} itemIds Array de IDs dos itens.
+ * @param {string} collectionName O nome da coleção ('views' ou 'likes').
  * @returns {Promise<Object<string, number>>} Um objeto mapeando ID para contagem.
  */
-async function fetchSpecificViewCounts(itemIds = []) {
-    if (!db || itemIds.length === 0) return {};
+async function fetchSpecificCounts(itemIds = [], collectionName) {
+    if (!db || itemIds.length === 0 || !collectionName) return {};
 
     // O Firestore permite até 30 IDs em uma cláusula 'in'
     if (itemIds.length > 30) {
-        console.warn("A busca de visualizações está limitada aos primeiros 30 IDs.");
+        console.warn(`A busca de contagens em '${collectionName}' está limitada aos primeiros 30 IDs.`);
         itemIds = itemIds.slice(0, 30);
     }
 
     const counts = {};
     try {
-        const q = query(collection(db, "views"), where(documentId(), "in", itemIds.map(String)));
+        const q = query(collection(db, collectionName), where(documentId(), "in", itemIds.map(String)));
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
             counts[doc.id] = doc.data().count;
         });
-    } catch (error) { console.error("Falha ao buscar contagens de visualizações específicas:", error); }
+    } catch (error) { console.error(`Falha ao buscar contagens de '${collectionName}':`, error); }
     return counts;
 }
 
@@ -183,7 +199,7 @@ function updateMetaTags(item) {
     document.querySelector('meta[property="twitter:url"]').setAttribute('content', fullUrl);
 }
 
-function renderItemDetails(item, viewCount = 0) {
+function renderItemDetails(item, viewCount = 0, likeCount = 0) {
     const container = document.getElementById("item-detail-view");
     const template = document.getElementById("item-detail-template");
 
@@ -223,7 +239,19 @@ function renderItemDetails(item, viewCount = 0) {
     clone.querySelector('.item-title').textContent = item.titulo;
     clone.querySelector('.item-description').textContent = item.descricao;
     clone.querySelector('.item-genre span').textContent = item.genero || 'N/A';
-    clone.querySelector('.item-views span').textContent = `${viewCount.toLocaleString('pt-PT')} visualizações`;
+    const viewsSpan = clone.querySelector('.item-views span');
+    viewsSpan.textContent = `${viewCount.toLocaleString('pt-PT')} visualizações`;
+
+    // Likes
+    const likesContainer = clone.querySelector('.item-likes');
+    const likedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
+    const isLiked = likedItems.includes(item.id.toString());
+    const likeIcon = likesContainer.querySelector('i');
+    likeIcon.className = isLiked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
+    if (isLiked) likesContainer.classList.add('is-liked');
+    const likeCountText = likesContainer.querySelector('.like-count');
+    likeCountText.textContent = likeCount.toLocaleString('pt-PT');
+
     clone.querySelector('.item-year span').textContent = item.ano || 'N/A';
 
     // Preço
@@ -319,6 +347,22 @@ function renderItemDetails(item, viewCount = 0) {
     socialButtons.querySelector('.facebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodedPageUrl}`;
     socialButtons.querySelector('.whatsapp').href = `https://api.whatsapp.com/send?text=${shareText}%20${encodedPageUrl}`;
 
+    // Event listener para o botão de like
+    likesContainer.addEventListener('click', () => {
+        const currentLikedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
+        if (!currentLikedItems.includes(item.id.toString())) {
+            incrementLikeCount(item.id.toString());
+            currentLikedItems.push(item.id.toString());
+            localStorage.setItem('unkvoices_liked_items', JSON.stringify(currentLikedItems));
+
+            // Atualiza UI do like
+            likesContainer.classList.add('is-liked');
+            likesContainer.querySelector('i').className = 'fa-solid fa-thumbs-up';
+            const currentCount = parseInt(likeCountText.textContent.replace(/\./g, ''), 10) || 0;
+            likeCountText.textContent = (currentCount + 1).toLocaleString('pt-PT');
+        }
+    });
+
     // Adiciona o conteúdo clonado e preenchido ao container
     container.appendChild(clone);
 }
@@ -346,7 +390,7 @@ function getRelatedItems(currentItem, allContent) {
     return related.sort(() => 0.5 - Math.random()).slice(0, 4);
 }
 
-function renderRelatedItems(currentItem, allContent, viewCounts) {
+function renderRelatedItems(currentItem, allContent, counts) {
     const relatedContainer = document.getElementById('related-items-container');
     const relatedSection = document.getElementById('related-items-section');
     const relatedTitle = relatedSection ? relatedSection.querySelector('h2') : null;
@@ -369,7 +413,7 @@ function renderRelatedItems(currentItem, allContent, viewCounts) {
     relatedContainer.innerHTML = ''; // Limpa o container
     const fragment = document.createDocumentFragment();
     relatedItems.forEach(item => {
-        const cardNode = createRelatedItemCard(item, viewCounts);
+        const cardNode = createRelatedItemCard(item, counts);
         if (cardNode) fragment.appendChild(cardNode);
     });
     relatedContainer.appendChild(fragment);
@@ -415,7 +459,7 @@ function observeCards(cards) {
     document.querySelectorAll('#related-items-container .card-image-container').forEach(img => imageObserver.observe(img));
 }
 
-function createRelatedItemCard(item, viewCounts = {}) {
+function createRelatedItemCard(item, counts = { views: {}, likes: {} }) {
     const template = document.getElementById('card-template');
     if (!template) return null;
 
@@ -442,8 +486,18 @@ function createRelatedItemCard(item, viewCounts = {}) {
     clone.querySelector('h3').textContent = item.titulo;
     clone.querySelector('.card-meta').innerHTML = `<strong>${item.genero}</strong> - ${item.ano}`;
 
-    const viewCount = viewCounts[item.id] || 0;
-    clone.querySelector('.card-views').innerHTML = `<i class="fa-solid fa-eye"></i> ${viewCount.toLocaleString('pt-PT')}`;
+    // Views
+    clone.querySelector('.card-views').innerHTML = `<i class="fa-solid fa-eye"></i> ${(counts.views[item.id] || 0).toLocaleString('pt-PT')}`;
+
+    // Likes
+    const likeElement = clone.querySelector('.card-likes');
+    const likedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
+    const isLiked = likedItems.includes(item.id.toString());
+    const likeIcon = isLiked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
+    likeElement.innerHTML = `<i class="${likeIcon}"></i> ${(counts.likes[item.id] || 0).toLocaleString('pt-PT')}`;
+    likeElement.classList.toggle('is-liked', isLiked);
+    // O card de relacionado não terá a funcionalidade de clique para dar like para simplificar.
+    likeElement.style.cursor = 'default';
 
     return clone;
 }

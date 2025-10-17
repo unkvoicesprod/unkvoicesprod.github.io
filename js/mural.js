@@ -1,5 +1,5 @@
 import { db, auth } from "./firebase-init.js";
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { syncFavoritesOnLogin } from './favorites.js';
 
@@ -83,14 +83,21 @@ function startMuralScript() {
         submitButton.textContent = 'A enviar...';
 
         try {
-            // Adiciona o documento ao Firestore
-            await addDoc(muralCollection, {
-                nome: nome,
+            const postData = {
                 mensagem: mensagem,
                 createdAt: serverTimestamp() // Usa o timestamp do servidor
-            });
+            };
 
-            // Limpa o formulário
+            if (currentUser) {
+                postData.uid = currentUser.uid;
+                postData.nome = currentUser.displayName;
+            } else {
+                postData.nome = nome;
+            }
+
+            // Adiciona o documento ao Firestore
+            await addDoc(muralCollection, postData);
+
             form.reset();
 
         } catch (error) {
@@ -99,6 +106,10 @@ function startMuralScript() {
         } finally {
             // Reativa o botão
             submitButton.disabled = false;
+            // Se o usuário estiver logado, o nome não deve ser limpo
+            if (currentUser) {
+                nomeInput.value = currentUser.displayName;
+            }
             submitButton.textContent = 'Submeter Mensagem';
         }
     });
@@ -136,14 +147,20 @@ function startMuralScript() {
             // Adiciona um atraso escalonado para a animação de fade-in
             postElement.style.animationDelay = `${index * 100}ms`;
 
-            let adminControlsHTML = '';
+            let controlsHTML = '';
+            const canEdit = isAdmin || (currentUser && currentUser.uid === post.uid);
+
             if (isAdmin) {
-                adminControlsHTML = `<button class="mural-delete-btn" title="Apagar mensagem">×</button>`;
+                controlsHTML += `<button class="mural-delete-btn" title="Apagar mensagem">×</button>`;
+            }
+            if (canEdit) {
+                // Adiciona o botão de editar no rodapé
+                controlsHTML += `<button class="mural-edit-btn" title="Editar mensagem"><i class="fa-solid fa-pencil"></i></button>`;
             }
 
             postElement.innerHTML = `
-                ${adminControlsHTML}
                 <p class="mural-post-content">${escapeHTML(post.mensagem)}</p>
+                <div class="mural-post-controls">${controlsHTML}</div>
                 <div class="mural-post-footer">
                     <span class="mural-post-author"><i class="fa-solid fa-user-pen"></i> ${escapeHTML(post.nome)}</span>
                     <span class="mural-post-date"><i class="fa-regular fa-calendar-days"></i> ${dataFormatada}</span>
@@ -152,12 +169,9 @@ function startMuralScript() {
             postsContainer.appendChild(postElement);
         });
 
-        // Adiciona os event listeners aos botões de apagar
-        if (isAdmin) {
-            postsContainer.querySelectorAll('.mural-delete-btn').forEach(button => {
-                button.addEventListener('click', handleDeleteClick);
-            });
-        }
+        // Usa delegação de eventos para os botões de controlo
+        postsContainer.removeEventListener('click', handlePostControlsClick); // Remove listener antigo para evitar duplicação
+        postsContainer.addEventListener('click', handlePostControlsClick);
     }
 
     async function handleDeleteClick(event) {
@@ -173,6 +187,62 @@ function startMuralScript() {
                 alert('Não foi possível apagar a mensagem.');
             }
         }
+    }
+
+    function handlePostControlsClick(event) {
+        const target = event.target;
+        const deleteBtn = target.closest('.mural-delete-btn');
+        const editBtn = target.closest('.mural-edit-btn');
+        const saveBtn = target.closest('.mural-save-btn');
+        const cancelBtn = target.closest('.mural-cancel-btn');
+
+        if (deleteBtn) handleDeleteClick(event);
+        if (editBtn) handleEditClick(event);
+        if (saveBtn) handleSaveClick(event);
+        if (cancelBtn) handleCancelClick(event);
+    }
+
+    function handleEditClick(event) {
+        const postElement = event.target.closest('.mural-post');
+        const contentElement = postElement.querySelector('.mural-post-content');
+        const currentMessage = contentElement.innerText;
+
+        postElement.classList.add('is-editing');
+        contentElement.style.display = 'none';
+
+        const editFormHTML = `
+            <div class="mural-post-edit-form">
+                <textarea class="mural-edit-textarea" rows="4">${currentMessage}</textarea>
+                <div class="mural-edit-actions">
+                    <button class="mural-cancel-btn btn-secondary">Cancelar</button>
+                    <button class="mural-save-btn btn">Guardar</button>
+                </div>
+            </div>
+        `;
+        postElement.insertAdjacentHTML('afterbegin', editFormHTML);
+        postElement.querySelector('.mural-edit-textarea').focus();
+    }
+
+    async function handleSaveClick(event) {
+        const postElement = event.target.closest('.mural-post');
+        const postId = postElement.dataset.id;
+        const textarea = postElement.querySelector('.mural-edit-textarea');
+        const newMessage = textarea.value.trim();
+
+        if (newMessage) {
+            const postRef = doc(db, 'mural_mensagens', postId);
+            await updateDoc(postRef, { mensagem: newMessage });
+            // O onSnapshot tratará de re-renderizar a UI.
+        }
+    }
+
+    function handleCancelClick(event) {
+        const postElement = event.target.closest('.mural-post');
+        // Simplesmente remove a classe e o onSnapshot irá re-renderizar o post corretamente na próxima atualização.
+        // Para uma resposta imediata, poderíamos reverter o DOM, mas deixar o onSnapshot tratar disso é mais simples.
+        postElement.classList.remove('is-editing');
+        postElement.querySelector('.mural-post-edit-form').remove();
+        postElement.querySelector('.mural-post-content').style.display = 'block';
     }
 
     // --- Delegação de Eventos para Autenticação ---
@@ -194,12 +264,20 @@ function startMuralScript() {
 
     function updateAuthUI() {
         if (currentUser) {
+            // Preenche e bloqueia o campo de nome se o utilizador estiver logado
+            const nomeInput = document.getElementById('mural-nome');
+            nomeInput.value = currentUser.displayName;
+            nomeInput.readOnly = true;
+
             const isAdmin = currentUser.uid === ADMIN_UID;
             authStatusContainer.innerHTML = `
                 <p>Login como: ${currentUser.displayName} ${isAdmin ? '(Admin)' : ''}</p>
                 <button id="mural-logout-btn" class="btn-secondary"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
             `;
         } else {
+            const nomeInput = document.getElementById('mural-nome');
+            nomeInput.readOnly = false; // Garante que o campo é editável
+
             authStatusContainer.innerHTML = `
                 <p><i class="fa-solid fa-lock"></i> Área de Moderação</p>
                 <button id="mural-login-btn" class="btn"><i class="fa-brands fa-google"></i> Login</button>

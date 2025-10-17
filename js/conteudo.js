@@ -13,6 +13,8 @@ function startContentScript() {
     let allContent = [];
     let pageConfig = {};
     let viewCounts = {}; // Novo: para armazenar as contagens de views
+    let likeCounts = {}; // Para armazenar as contagens de likes
+    let likedItems = []; // Para armazenar os IDs dos itens que o utilizador gostou
     let currentFilteredContent = [];
     let currentPage = 1;
     const itemsPerPage = 8;
@@ -37,6 +39,9 @@ function startContentScript() {
     async function init() {
         // O Skeleton Loader já está no HTML, então não precisamos mais inserir um loader via JS.
         // elements.container.innerHTML = `<div class="loader"></div>`;
+
+        // Carrega os itens que o utilizador já gostou a partir do localStorage
+        likedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
 
         loadPageConfig();
         applyPageUiSettings(); // Aplica configurações de UI, como esconder filtros
@@ -74,6 +79,7 @@ function startContentScript() {
 
             // Inicia o listener para as visualizações em tempo real
             listenForViewCounts();
+            listenForLikeCounts();
 
         } catch (error) {
             console.error("Falha ao carregar o conteúdo:", error);
@@ -98,6 +104,20 @@ function startContentScript() {
     }
 
     /**
+     * Inicia um listener em tempo real para as contagens de "likes" do Firestore.
+     */
+    function listenForLikeCounts() {
+        if (!db) return;
+        try {
+            onSnapshot(collection(db, "likes"), (querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    likeCounts[doc.id] = doc.data().count;
+                });
+                updateDisplayedLikeCounts();
+            });
+        } catch (error) { console.error("Erro ao buscar contagens de likes:", error); }
+    }
+    /**
      * Atualiza o texto da contagem de visualizações nos cards visíveis na página.
      */
     function updateDisplayedViewCounts() {
@@ -107,6 +127,21 @@ function startContentScript() {
             const viewCountSpan = card.querySelector('.card-views');
             if (itemId && viewCounts[itemId] && viewCountSpan) {
                 viewCountSpan.innerHTML = `<i class="fa-solid fa-eye"></i> ${viewCounts[itemId].toLocaleString('pt-PT')}`;
+            }
+        });
+    }
+
+    /**
+     * Atualiza o texto e o estado da contagem de "likes" nos cards visíveis.
+     */
+    function updateDisplayedLikeCounts() {
+        const cards = elements.container.querySelectorAll('.card');
+        cards.forEach(card => {
+            const itemId = card.dataset.id;
+            const likeElement = card.querySelector('.card-likes');
+            if (itemId && likeCounts[itemId] && likeElement) {
+                likeElement.innerHTML = `<i class="fa-solid fa-thumbs-up"></i> ${likeCounts[itemId].toLocaleString('pt-PT')}`;
+                likeElement.classList.toggle('is-liked', likedItems.includes(itemId));
             }
         });
     }
@@ -122,6 +157,20 @@ function startContentScript() {
             await setDoc(viewRef, { count: increment(1) }, { merge: true });
         } catch (error) { console.error("Falha ao incrementar visualização:", error); }
     }
+
+    /**
+     * Incrementa a contagem de "likes" de um item no Firestore.
+     * @param {string} itemId O ID do item.
+     */
+    async function incrementLikeCount(itemId) {
+        if (!db || !itemId) return;
+        try {
+            const likeRef = doc(db, "likes", itemId.toString());
+            await setDoc(likeRef, { count: increment(1) }, { merge: true });
+        } catch (error) { console.error("Falha ao incrementar like:", error); }
+    }
+
+
     async function processYouTubePosts(posts) {
         const postPromises = posts.map(async (post, index) => {
             try {
@@ -256,8 +305,15 @@ function startContentScript() {
             cardClone.querySelector('.card-meta').innerHTML = `<strong>${item.genero}</strong> - ${item.ano}`;
 
             // --- Contagem de Views ---
-            const viewCount = viewCounts[item.id] || 0;
-            cardClone.querySelector('.card-views').innerHTML = `<i class="fa-solid fa-eye"></i> ${viewCount.toLocaleString('pt-PT')}`;
+            cardClone.querySelector('.card-views').innerHTML = `<i class="fa-solid fa-eye"></i> ${(viewCounts[item.id] || 0).toLocaleString('pt-PT')}`;
+
+            // --- Contagem de Likes ---
+            const likeElement = cardClone.querySelector('.card-likes');
+            const likeCount = likeCounts[item.id] || 0;
+            const isLiked = likedItems.includes(item.id.toString());
+            const likeIcon = isLiked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
+            likeElement.innerHTML = `<i class="${likeIcon}"></i> ${likeCount.toLocaleString('pt-PT')}`;
+            likeElement.classList.toggle('is-liked', isLiked);
 
             fragment.appendChild(cardClone);
         });
@@ -431,6 +487,7 @@ function startContentScript() {
     function handleCardClick(event) {
         const card = event.target.closest('.card');
         const favoriteBtn = event.target.closest('.card-favorite-btn');
+        const likeBtn = event.target.closest('.card-likes');
 
         // Se o clique foi no botão de favorito
         if (favoriteBtn) {
@@ -438,6 +495,24 @@ function startContentScript() {
             return; // Interrompe para não contar como clique no card
         }
 
+        // Se o clique foi no botão de like
+        if (likeBtn) {
+            event.preventDefault(); // Previne a navegação do link do card
+            const itemId = card.dataset.id;
+            if (!likedItems.includes(itemId)) {
+                // Incrementa no Firebase
+                incrementLikeCount(itemId);
+                // Adiciona à lista local e ao localStorage
+                likedItems.push(itemId);
+                localStorage.setItem('unkvoices_liked_items', JSON.stringify(likedItems));
+                // Atualiza a UI imediatamente
+                likeBtn.classList.add('is-liked');
+                likeBtn.querySelector('i').className = 'fa-solid fa-thumbs-up';
+                likeCounts[itemId] = (likeCounts[itemId] || 0) + 1;
+                likeBtn.lastChild.textContent = ` ${likeCounts[itemId].toLocaleString('pt-PT')}`;
+            }
+            return;
+        }
         if (!card) return; // Sai se o clique não foi dentro de um card
 
         // Ação: Incrementar a visualização a cada clique no card.
