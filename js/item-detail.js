@@ -17,14 +17,21 @@ async function initializeItemDetail() {
     }
 
     try {
-        // 2. Otimização: Carregar apenas o item específico se a estrutura de dados permitir.
-        // Por enquanto, mantemos o fetch do JSON completo, mas esta é a principal área para melhoria futura.
-        // Exemplo futuro: const response = await fetch(`data/items/${itemId}.json`);
-        const response = await fetch("data/conteudo.json");
-        if (!response.ok) {
-            throw new Error("Não foi possível carregar o conteúdo.");
-        }
-        const allContent = await response.json();
+        // 2. Carrega tanto o conteúdo principal quanto os posts do YouTube
+        const [contentResponse, postsResponse] = await Promise.all([
+            fetch("data/conteudo.json"),
+            fetch("data/posts.json"),
+        ]);
+
+        if (!contentResponse.ok) throw new Error(`Erro ao carregar conteudo.json: ${contentResponse.status}`);
+        if (!postsResponse.ok) throw new Error(`Erro ao carregar posts.json: ${postsResponse.status}`);
+
+        const contentItems = await contentResponse.json();
+        const postItems = await postsResponse.json();
+
+        // Processa os posts do YouTube para obter os detalhes
+        const processedPosts = await processYouTubePosts(postItems);
+        const allContent = [...contentItems, ...processedPosts];
 
         // 3. Encontrar o item específico pelo ID
         const item = allContent.find(content => content.id.toString() === itemId);
@@ -35,7 +42,8 @@ async function initializeItemDetail() {
             return;
         }
 
-        // 4. Incrementar a visualização (se for a primeira vez)
+        // 4. Incrementar a visualização (se for a primeira vez e não for um post do YouTube)
+        // A visualização de posts do YouTube é contada na própria plataforma.
         triggerViewCountOnce(itemId);
 
         // 5. Otimização: Buscar contagens de visualizações para o item atual e os relacionados
@@ -59,6 +67,38 @@ async function initializeItemDetail() {
     }
 }
 
+/**
+ * Processa a lista de URLs do YouTube para obter metadados.
+ * (Lógica duplicada de conteudo.js para manter o módulo independente)
+ * @param {Array<object>} posts Lista de objetos com a chave youtubeUrl.
+ * @returns {Promise<Array<object>>} Uma lista de objetos de item processados.
+ */
+async function processYouTubePosts(posts) {
+    const postPromises = posts.map(async (post, index) => {
+        try {
+            const response = await fetch(`https://noembed.com/embed?url=${post.youtubeUrl}`);
+            const data = await response.json();
+
+            const url = new URL(post.youtubeUrl);
+            const videoId = url.searchParams.get('v') || url.pathname.split('/').pop();
+            const postId = `yt_${videoId || index}`;
+            return {
+                id: postId,
+                videoId: videoId,
+                titulo: data.title || `Post do YouTube #${index + 1}`,
+                capa: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                genero: data.author_name || "YouTube",
+                categoria: "Post",
+                ano: new Date().getFullYear(),
+                isYouTubePost: true,
+                preco: 0,
+                link: post.youtubeUrl,
+                descricao: data.title || `Um vídeo do canal ${data.author_name || 'UNKVOICES'}.`
+            };
+        } catch (error) { return null; }
+    });
+    return (await Promise.all(postPromises)).filter(p => p !== null);
+}
 /**
  * Dispara o incremento da contagem de visualizações, mas apenas uma vez por item por utilizador (usando localStorage).
  * @param {string} itemId O ID do item.
@@ -158,14 +198,28 @@ function renderItemDetails(item, viewCount = 0) {
     const badge = clone.querySelector('.badge');
     const actionsContainer = clone.querySelector('.item-actions');
     const socialButtons = clone.querySelector('.social-share-buttons');
+    const imageWrapper = clone.querySelector('.item-image-wrapper');
 
     // Preenche os dados básicos
-    clone.querySelector('.item-image').src = item.capa;
-    clone.querySelector('.item-image').alt = item.titulo;
+    if (item.isYouTubePost && item.videoId) {
+        // Se for um post do YouTube, substitui a imagem por um player embutido.
+        imageWrapper.innerHTML = `
+            <div class="youtube-player-container">
+                <iframe src="https://www.youtube.com/embed/${item.videoId}?autoplay=0&rel=0&controls=1" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                </iframe>
+            </div>`;
+    } else {
+        // Para outros itens, mantém a imagem.
+        imageWrapper.innerHTML = `<img class="item-image" src="${item.capa}" alt="${item.titulo}">`;
+    }
     infoDiv.dataset.title = item.titulo;
     infoDiv.dataset.cover = item.capa;
+    const badgeClassMap = { "beats": "beat", "kits & plugins": "kit", "vst": "kit", "post": "post" };
+    badge.className = `badge ${badgeClassMap[item.categoria.toLowerCase()] || 'kit'}`;
     badge.textContent = item.categoria;
-    badge.className = `badge ${item.categoria.toLowerCase() === 'beats' ? 'beat' : 'kit'}`;
     clone.querySelector('.item-title').textContent = item.titulo;
     clone.querySelector('.item-description').textContent = item.descricao;
     clone.querySelector('.item-genre span').textContent = item.genero || 'N/A';
@@ -191,7 +245,7 @@ function renderItemDetails(item, viewCount = 0) {
     actionsContainer.appendChild(favoriteButton);
 
     // Botão de Ação (Comprar/Baixar)
-    if (item.link) {
+    if (item.link && !item.isYouTubePost) { // Não mostra o botão "Comprar" para vídeos do YouTube
         const buttonText = item.preco === 0 ? '<i class="fa-solid fa-download"></i> Baixar' : '<i class="fa-solid fa-cart-shopping"></i> Comprar';
         const actionButton = document.createElement('a');
         actionButton.href = item.link;
@@ -204,7 +258,7 @@ function renderItemDetails(item, viewCount = 0) {
     }
 
     // Botão de Play
-    if (item.audioPreview) {
+    if (item.audioPreview && !item.isYouTubePost) {
         infoDiv.dataset.audioSrc = item.audioPreview;
         const playButton = document.createElement('button');
         playButton.id = 'play-detail-btn';
@@ -224,6 +278,18 @@ function renderItemDetails(item, viewCount = 0) {
         });
         actionsContainer.appendChild(playButton);
     }
+
+    // Botão "Ver no YouTube" para posts de vídeo
+    if (item.isYouTubePost) {
+        const youtubeButton = document.createElement('a');
+        youtubeButton.href = item.link;
+        youtubeButton.target = '_blank';
+        youtubeButton.rel = 'noopener noreferrer';
+        youtubeButton.className = 'btn download'; // Reutiliza o estilo do botão de download
+        youtubeButton.innerHTML = '<i class="fa-brands fa-youtube"></i> Ver no YouTube';
+        actionsContainer.appendChild(youtubeButton);
+    }
+
 
     // Botão de Copiar Link
     const copyLinkButton = document.createElement('button');

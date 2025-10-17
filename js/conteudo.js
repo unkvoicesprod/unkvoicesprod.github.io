@@ -227,9 +227,8 @@ function startContentScript() {
 
             // --- Link principal ---
             const mainLink = cardClone.querySelector('.card-link-wrapper');
-            // Para posts do YouTube, o link principal abre o vídeo. Para outros, a página de detalhes.
-            mainLink.href = item.isYouTubePost ? item.link : `item.html?id=${item.id}`;
-            if (item.isYouTubePost) mainLink.target = '_blank';
+            // Todos os cards agora levam para a página de detalhes.
+            mainLink.href = `item.html?id=${item.id}`;
 
             const imageContainer = cardClone.querySelector('.card-image-container');
             imageContainer.dataset.srcFull = item.capa;

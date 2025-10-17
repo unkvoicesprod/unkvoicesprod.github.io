@@ -71,13 +71,29 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       border: 1px solid var(--glass-border);
       margin: 0 auto; /* Garante a centralização dentro do wrapper */
     }
-    #item-detail-view img {
+    .item-image {
       width: 350px;
       height: 350px;
       object-fit: cover;
       border-radius: 16px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       animation: image-load-animation 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    .youtube-player-container {
+        position: relative;
+        width: 350px;
+        height: 350px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        animation: image-load-animation 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    .youtube-player-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
     }
     .item-info {
       flex: 1;
@@ -154,7 +170,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         flex-direction: column;
         align-items: center;
       }
-      #item-detail-view img {
+      .item-image, .youtube-player-container {
         width: 100%;
         max-width: 300px;
         display: block;
@@ -295,8 +311,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="item-page-wrapper">
             <!-- Template para a visualização de detalhes do item -->
             <template id="item-detail-template">
-                <img class="item-image" src="" alt="">
-                <div class="item-info" data-audio-src="" data-title="" data-cover="">
+                <div class="item-image-wrapper">
+                    <!-- A imagem ou o vídeo será inserido aqui pelo JS -->
+                </div>                <div class="item-info" data-audio-src="" data-title="" data-cover="">
                     <span class="badge"></span>
                     <h1 class="item-title"></h1>
                     <p class="item-description"></p>
