@@ -467,6 +467,17 @@
     color: var(--color-white);
 }
 
+/* --- ANIMAÇÃO DE BRILHO PARA SKELETON --- */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
 /* --- SKELETON LOADER PARA CARDS --- */
 .skeleton-card {
     /* Remove interações e animações do card esqueleto */
@@ -475,6 +486,13 @@
     opacity: 1 !important;
     box-shadow: none !important;
     animation: none !important;
+}
+
+.skeleton-card .skeleton {
+    background: linear-gradient(to right, var(--color-surface-1) 8%, var(--color-surface-hover) 18%, var(--color-surface-1) 33%);
+    background-size: 2000px 100%;
+    animation: shimmer 2s linear infinite;
+    border-radius: 8px;
 }
 
 .skeleton-card:hover {

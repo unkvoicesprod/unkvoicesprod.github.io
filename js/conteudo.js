@@ -34,8 +34,8 @@ function startContentScript() {
 
     // Função principal que inicia a aplicação
     async function init() {
-        // Exibe o loader antes de iniciar o carregamento
-        elements.container.innerHTML = `<div class="loader"></div>`;
+        // O Skeleton Loader já está no HTML, então não precisamos mais inserir um loader via JS.
+        // elements.container.innerHTML = `<div class="loader"></div>`;
 
         loadPageConfig();
         applyPageUiSettings(); // Aplica configurações de UI, como esconder filtros
@@ -130,14 +130,14 @@ function startContentScript() {
                 const url = new URL(post.youtubeUrl);
                 const videoId = url.searchParams.get('v') || url.pathname.split('/').pop();
                 const postId = `yt_${videoId || index}`; // ID mais robusto e único
-
                 return {
                     id: postId,
                     videoId: videoId, // Adiciona o ID do vídeo para uso posterior
                     titulo: data.title || `Post do YouTube #${index + 1}`,
                     capa: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-                    genero: "audio",
-                    categoria: "Beats", // Altera a categoria para "Beats"
+                    capaPlaceholder: `https://i.ytimg.com/vi/${videoId}/sddefault.jpg`, // Usar uma imagem de qualidade menor como placeholder
+                    genero: data.author_name || "YouTube",
+                    categoria: "Post", // Atribui a categoria correta para consistência
                     ano: new Date().getFullYear(),
                     isYouTubePost: true, // Adiciona um identificador para estes itens
                     preco: 0,
@@ -201,8 +201,10 @@ function startContentScript() {
 
             // --- Link principal ---
             const mainLink = cardClone.querySelector('.card-link-wrapper');
-            mainLink.href = item.isYouTubePost ? '#' : `item.html?id=${item.id}`;
-            mainLink.classList.toggle('no-action', item.isYouTubePost);
+            // Para posts do YouTube, o link principal abre o vídeo. Para outros, a página de detalhes.
+            mainLink.href = item.isYouTubePost ? item.link : `item.html?id=${item.id}`;
+            if (item.isYouTubePost) mainLink.target = '_blank';
+
             const imageContainer = cardClone.querySelector('.card-image-container');
             imageContainer.dataset.srcFull = item.capa;
 
@@ -406,33 +408,14 @@ function startContentScript() {
         const card = event.target.closest('.card');
         if (!card) return; // Sai se o clique não foi dentro de um card
 
-        const itemId = card.dataset.id;
         // Ação: Incrementar a visualização a cada clique no card.
-        incrementViewCount(itemId);
-
+        // A lógica para posts do YouTube foi simplificada. O link principal agora cuida da navegação.
+        // O modal não é mais necessário, pois o clique no card inteiro leva ao YouTube.
+        const itemId = card.dataset.id;
         const item = allContent.find(i => i.id.toString() === itemId);
 
-        // Se o item for um post do YouTube, mostra o alerta e para a execução.
-        if (item && item.isYouTubePost) {
-            event.preventDefault(); // Previne qualquer outra ação padrão (como seguir um link)
-
-            // Constrói o HTML para o player embutido e o botão secundário
-            const alertContent = `
-                <div class="youtube-player-container">
-                    <iframe src="https://www.youtube.com/embed/${item.videoId}?autoplay=1&rel=0&controls=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
-            `;
-
-            document.dispatchEvent(new CustomEvent('showAlert', {
-                detail: {
-                    title: item.titulo, // Usa o título do vídeo no alerta
-                    message: alertContent, // O corpo do alerta agora é o player
-                    actionText: '<i class="fa-brands fa-youtube"></i> Ver no YouTube', // Botão principal
-                    action: () => window.open(item.link, '_blank')
-                }
-            }));
-            return; // Interrompe a função aqui
-        }
+        // Incrementa a view para qualquer tipo de item clicado.
+        if (item) incrementViewCount(itemId);
     }
 
     function handleFilterChange(event) {

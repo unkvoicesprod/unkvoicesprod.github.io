@@ -9,6 +9,8 @@ async function initializeItemDetail() {
     const itemId = params.get('id');
 
     if (!itemId) {
+        // Remove o skeleton e mostra a mensagem de erro
+        container.classList.remove('skeleton-loading');
         container.innerHTML = "<h1>Item não encontrado</h1><p>O ID do item não foi fornecido na URL.</p>";
         return;
     }
@@ -27,6 +29,7 @@ async function initializeItemDetail() {
         const item = allContent.find(content => content.id.toString() === itemId);
 
         if (!item) {
+            container.classList.remove('skeleton-loading');
             container.innerHTML = "<h1>Item não encontrado</h1><p>Não existe um item com o ID fornecido.</p>";
             return;
         }
@@ -50,6 +53,7 @@ async function initializeItemDetail() {
 
     } catch (error) {
         console.error("Erro ao carregar detalhes do item:", error);
+        container.classList.remove('skeleton-loading');
         container.innerHTML = "<h1>Erro</h1><p>Ocorreu um erro ao carregar as informações. Tente novamente mais tarde.</p>";
     }
 }
@@ -144,6 +148,7 @@ function renderItemDetails(item, viewCount = 0) {
 
     if (!container || !template) return;
 
+    container.classList.remove('skeleton-loading'); // Remove a classe do skeleton
     container.innerHTML = ''; // Limpa o loader
     const clone = template.content.cloneNode(true);
 
@@ -244,19 +249,20 @@ function renderItemDetails(item, viewCount = 0) {
  * @returns {Array<object>} Uma lista de até 4 itens relacionados.
  */
 function getRelatedItems(currentItem, allContent) {
-    // 1. Tenta encontrar itens da mesma categoria (excluindo o atual)
-    const sameCategoryItems = allContent.filter(
+    // Filtra por mesma categoria, excluindo o item atual.
+    let related = allContent.filter(
         item => item.categoria === currentItem.categoria && item.id !== currentItem.id
     );
 
-    // 2. Se encontrar, embaralha e retorna até 4.
-    if (sameCategoryItems.length > 0) {
-        return sameCategoryItems.sort(() => 0.5 - Math.random()).slice(0, 4);
+    // Se não houver itens suficientes na mesma categoria, completa com itens aleatórios de outras categorias.
+    const needed = 4 - related.length;
+    if (needed > 0) {
+        const otherItems = allContent.filter(item => item.categoria !== currentItem.categoria && item.id !== currentItem.id);
+        related.push(...otherItems.sort(() => 0.5 - Math.random()).slice(0, needed));
     }
 
-    // 3. Se não, pega até 4 itens aleatórios de outras categorias como fallback.
-    const otherItems = allContent.filter(item => item.id !== currentItem.id);
-    return otherItems.sort(() => 0.5 - Math.random()).slice(0, 4);
+    // Embaralha o resultado final e pega os 4 primeiros.
+    return related.sort(() => 0.5 - Math.random()).slice(0, 4);
 }
 
 function renderRelatedItems(currentItem, allContent, viewCounts) {
