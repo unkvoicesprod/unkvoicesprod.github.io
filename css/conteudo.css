@@ -640,6 +640,11 @@
     opacity: 0.8;
 }
 
+.mural-form textarea:focus+.char-counter {
+    opacity: 1;
+    /* Torna o contador mais visível ao digitar */
+}
+
 .char-counter.limit-reached {
     color: var(--color-accent-pink);
 }
@@ -821,7 +826,8 @@
 
     .mural-delete-btn,
     .mural-edit-btn,
-    .mural-reply-btn {
+    .mural-reply-btn,
+    .mural-report-btn {
         background: transparent;
         border: 1px solid var(--glass-border);
         color: var(--color-text-secondary);
@@ -837,7 +843,8 @@
 
     .mural-delete-btn:hover,
     .mural-edit-btn:hover,
-    .mural-reply-btn:hover {
+    .mural-reply-btn:hover,
+    .mural-report-btn:hover {
         background: var(--color-surface-hover);
         color: var(--color-white);
     }
@@ -856,6 +863,30 @@
         color: var(--color-accent-purple);
         border-color: var(--color-accent-purple);
     }
+
+    .mural-report-btn:hover {
+        color: #ffc107;
+        /* Amarelo para alerta */
+        border-color: #ffc107;
+    }
+
+    .mural-report-btn:disabled {
+        cursor: not-allowed;
+        color: var(--color-text-secondary);
+        background: var(--color-surface-1);
+        opacity: 0.6;
+    }
+
+    .mural-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        padding: 2rem 0 1rem;
+        /* Usa a mesma classe da paginação principal */
+        /* A classe .pagination já está estilizada */
+    }
+
 
     .mural-post-edit-form {
         display: flex;
