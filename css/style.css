@@ -463,35 +463,6 @@ footer {
     z-index: 10;
 }
 
-.mural-delete-btn:hover {
-    background-color: var(--color-accent-pink-hover);
-}
-
-/* Botão de apagar para o admin */
-.mural-delete-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: var(--color-accent-pink);
-    color: var(--color-white);
-    border: none;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    font-size: 1.2rem;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s;
-}
-
-.mural-delete-btn:hover {
-    background-color: var(--color-accent-pink-hover);
-    transform: scale(1.1);
-}
-
 .mural-post-content {
     margin-bottom: 1rem;
     word-wrap: break-word;

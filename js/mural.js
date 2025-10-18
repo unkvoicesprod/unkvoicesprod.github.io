@@ -14,6 +14,11 @@ function startMuralScript() {
         return;
     }
 
+    // Define o limite de caracteres para o nome do utilizador
+    if (nomeInput) {
+        nomeInput.maxLength = 15;
+    }
+
     // --- Lógica para lembrar o nome do utilizador ---
     const savedName = localStorage.getItem('muralUserName');
     if (savedName && nomeInput) {
@@ -191,7 +196,7 @@ function startMuralScript() {
             try {
                 // Se tiver respostas, apaga-as primeiro (ou usa uma Cloud Function para isso)
                 if (hasReplies) {
-                    const repliesToDelete = Array.from(allPosts.values()).filter(p => p.parentId === postId);
+                    const repliesToDelete = Array.from(allPosts.values()).filter(p => p.parentId && p.parentId === postId);
                     for (const reply of repliesToDelete) {
                         await deleteDoc(doc(db, 'mural_mensagens', reply.id));
                     }
@@ -296,7 +301,7 @@ function startMuralScript() {
 
 
         postElement.innerHTML = `
-            <p class="mural-post-content">${escapeHTML(post.mensagem)}</p>
+            <p class="mural-post-content">${linkify(post.mensagem)}</p>
             <div class="mural-post-footer">
                 <span class="mural-post-author"><i class="fa-solid fa-user-pen"></i> ${escapeHTML(post.nome)}</span>
                 <div class="mural-post-controls">${controlsHTML}</div>
@@ -538,6 +543,22 @@ function escapeHTML(str) {
     const div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
+}
+
+/**
+ * Converte URLs num texto em links clicáveis.
+ * @param {string} text O texto a ser processado.
+ * @returns {string} O texto com tags <a> para os links.
+ */
+function linkify(text) {
+    if (!text) return '';
+    const escapedText = escapeHTML(text);
+    const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])|(\bwww\.[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+
+    return escapedText.replace(urlRegex, function (url) {
+        const fullUrl = url.startsWith('www.') ? 'http://' + url : url;
+        return `<a href="${fullUrl}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    });
 }
 
 // O script do mural só deve correr depois dos componentes HTML serem carregados
