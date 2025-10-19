@@ -1,5 +1,14 @@
 /* Reset básico */
 * {
+html {
+    scroll-behavior: smooth;
+    box-sizing: border-box; /* 1. Abordagem moderna para box-sizing */
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit; /* Herda o box-sizing do html */
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -361,6 +370,7 @@ footer {
 
     100% {
         background-position: 1000px 0;
+        transform: translateX(100%); /* 2. Animação mais performática */
     }
 }
 
@@ -368,7 +378,22 @@ footer {
     background: linear-gradient(to right, var(--color-surface-1) 8%, var(--color-surface-hover) 18%, var(--color-surface-1) 33%);
     background-size: 2000px 100%;
     animation: shimmer 2s linear infinite;
+    background-color: var(--color-surface-1);
     border-radius: 8px;
+    position: relative; /* Necessário para o pseudo-elemento */
+    overflow: hidden;   /* Esconde o brilho fora do elemento */
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, var(--color-surface-hover), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 1.5s linear infinite;
 }
 
 /* ================= MURAL DE MENSAGENS ================= */
@@ -455,11 +480,18 @@ footer {
     position: relative;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative; /* Garante que o z-index funcione no hover */
 }
 
 .mural-post:hover {
     transform: scale(1.05) rotate(0deg) !important;
     box-shadow: 0 8px 20px var(--glass-shadow-green);
+    /* 3. Otimização da animação de sombra */
+    transform: translateY(-5px) scale(1.02) rotate(0deg) !important; /* Adiciona um leve movimento vertical */
+    /* A sombra é uma propriedade cara de animar. A transição atual é aceitável,
+       mas para performance máxima, poderia ser substituída por um pseudo-elemento.
+       Por agora, a alteração no transform já melhora a percepção. */
+    box-shadow: 0 10px 25px var(--glass-shadow-green);
     z-index: 10;
 }
 
