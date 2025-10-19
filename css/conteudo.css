@@ -920,6 +920,7 @@
     .mural-delete-btn,
     .mural-edit-btn,
     .mural-reply-btn,
+    .mural-admin-delete-btn,
     .mural-report-btn {
         background: transparent;
         border: 1px solid var(--glass-border);
@@ -937,6 +938,7 @@
     .mural-delete-btn:hover,
     .mural-edit-btn:hover,
     .mural-reply-btn:hover,
+    .mural-admin-delete-btn:hover,
     .mural-report-btn:hover {
         background: var(--color-surface-hover);
         color: var(--color-white);
@@ -945,6 +947,12 @@
     .mural-delete-btn:hover {
         background: var(--color-accent-pink);
         border-color: var(--color-accent-pink);
+        color: var(--color-white);
+    }
+    
+    .mural-admin-delete-btn:hover {
+        background: #e65100; /* Laranja escuro para ação de admin */
+        border-color: #e65100;
         color: var(--color-white);
     }
 

@@ -69,6 +69,7 @@ function startMuralScript() {
     let userReports = JSON.parse(localStorage.getItem('muralUserReports')) || []; // Para guardar os posts reportados pelo utilizador
     let currentSortOrder = 'recentes'; // 'recentes' ou 'populares'
     let postViewObserver = null; // Observer para contar visualizações
+    let isCurrentUserAdmin = false; // Para guardar o estado de admin
 
     let currentPage = 1;
     const postsPerPage = 10;
@@ -189,6 +190,15 @@ function startMuralScript() {
 
     // Configura os botões de ordenação
     setupSortControls();
+
+    // Ouve as mudanças de estado de autenticação para saber se o utilizador é admin
+    window.addEventListener('authStateChanged', (event) => {
+        const { user, isAdmin } = event.detail;
+        if (isCurrentUserAdmin !== isAdmin) {
+            isCurrentUserAdmin = isAdmin;
+            renderAllPosts(); // Re-renderiza os posts para mostrar/esconder os controlos de admin
+        }
+    });
 
     function listenForPosts() {
         // Se já houver um listener ativo, cancela-o antes de criar um novo
@@ -514,6 +524,7 @@ function startMuralScript() {
         const postAgeInMinutes = post.createdAt ? (Date.now() - post.createdAt.toMillis()) / 60000 : 0;
         const currentAuthorId = getOrCreateAuthorId();
         const EDIT_WINDOW_MINUTES = 1; // Janela de 1 minuto para editar ou apagar
+        const canModerate = isCurrentUserAdmin;
         const canEdit = post.authorId === currentAuthorId && postAgeInMinutes < EDIT_WINDOW_MINUTES;
         const canReply = true; // Todos podem responder
 
@@ -531,6 +542,10 @@ function startMuralScript() {
         }
         if (canReply) {
             controlsHTML += `<button class="mural-reply-btn" title="Responder a esta mensagem"><i class="fa-solid fa-reply"></i> Responder</button>`;
+        }
+        // Adiciona o botão de apagar para administradores, se não for o autor do post dentro da janela de edição
+        if (canModerate && !canEdit) {
+            controlsHTML += `<button class="mural-admin-delete-btn" title="Apagar mensagem (Admin)"><i class="fa-solid fa-user-shield"></i> Apagar (Admin)</button>`;
         }
         controlsHTML += `<button class="mural-report-btn" title="Reportar mensagem" ${hasReported ? 'disabled' : ''}><i class="fa-solid fa-flag"></i> ${hasReported ? 'Reportado' : 'Reportar'}</button>`;
 
@@ -583,12 +598,14 @@ function startMuralScript() {
         const cancelBtn = target.closest('.mural-cancel-btn');
         const replyBtn = target.closest('.mural-reply-btn');
         const voteBtn = target.closest('.mural-vote-btn');
+        const adminDeleteBtn = target.closest('.mural-admin-delete-btn');
         const reportBtn = target.closest('.mural-report-btn');
 
         if (deleteBtn) handleDeleteClick(event);
         if (editBtn) handleEditClick(event);
         if (saveBtn) handleSaveClick(event);
         if (cancelBtn) handleCancelClick(event);
+        if (adminDeleteBtn) handleDeleteClick(event, true); // Passa um flag para indicar que é uma ação de admin
         if (replyBtn) handleReplyClick(event);
         if (voteBtn) handleVoteClick(event);
         if (reportBtn) handleReportClick(event);
@@ -734,7 +751,7 @@ function startMuralScript() {
             try {
                 await updateDoc(postRef, { mensagem: newMessage });
                 // Força a atualização da UI localmente para uma resposta visual imediata.
-                handleCancelClick(event, newMessage);
+                handleCancelClick(event, escapeHTML(newMessage));
             } catch (error) { console.error("Erro ao guardar a edição:", error); }
         }
     }
@@ -770,16 +787,18 @@ function startMuralScript() {
         form.querySelector('button[type="submit"]').textContent = 'Submeter Resposta';
         form.querySelector('textarea').placeholder = 'Escreva a sua resposta...';
 
-        // Encontra ou cria o container de respostas
+        // Encontra ou cria o container de respostas e garante que o formulário é adicionado no final
         let repliesContainer = postElement.querySelector('.mural-replies-container');
         if (!repliesContainer) {
             repliesContainer = document.createElement('div');
             repliesContainer.className = 'mural-replies-container';
             postElement.appendChild(repliesContainer);
         }
-
         repliesContainer.appendChild(form);
+
+        // Foca no campo de mensagem e rola para a vista
         mensagemInput.focus();
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function cancelReply() {
