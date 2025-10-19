@@ -16,7 +16,7 @@ function startMuralScript() {
 
     // Define o limite de caracteres para o nome do utilizador
     if (nomeInput) {
-        nomeInput.maxLength = 15;
+        nomeInput.maxLength = 50;
     }
 
     // --- Lógica para lembrar o nome do utilizador ---
