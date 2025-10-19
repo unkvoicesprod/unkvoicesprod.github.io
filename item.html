@@ -178,12 +178,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         font-weight: 500;
     }
     @media (max-width: 768px) {
+      .item-page-wrapper {
+        margin: 2rem auto; /* Reduz a margem vertical em telas menores */
+      }
       #item-detail-view {
         flex-direction: column;
         align-items: center;
+        padding: 1.5rem; /* Reduz o padding interno */
+        gap: 1.5rem; /* Reduz o espaçamento entre imagem e info */
       }
       .item-image, .youtube-player-container {
         width: 100%;
+        /* O max-width e height fixos foram removidos para permitir que a imagem 
+           se ajuste melhor à largura do container, mantendo a proporção. 
+           O player do YouTube já é responsivo por padrão.
+        */
         max-width: 300px;
         display: block;
         margin: 0 auto 2rem; /* Centraliza a imagem e adiciona espaço abaixo */
@@ -199,8 +208,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       .item-info .badge {
           align-self: center;
       }
+      .item-info .price {
+        font-size: 1.8rem; /* Reduz ligeiramente o tamanho do preço */
+      }
       .item-actions {
         justify-content: center;
+        flex-direction: column; /* Empilha os botões verticalmente */
+        width: 100%;
+        max-width: 300px; /* Limita a largura dos botões */
       }
     }
     /* Estilos para os botões de compartilhamento social */

@@ -331,6 +331,20 @@
     }
 }
 
+/* ================= MEDIA QUERIES PARA RESPONSIVIDADE (CONTEÚDO) ================= */
+
+@media (max-width: 768px) {
+    .grid-dynamic {
+        /* Em telas menores, usamos uma coluna para melhor legibilidade */
+        grid-template-columns: 1fr;
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+
+    .mural-section {
+        padding: 1rem;
+    }
+}
 
 /* ================= BOTÃO DE LIMPAR FILTROS ================= */
 .clear-filters-btn {
@@ -578,6 +592,41 @@
     margin-bottom: 2rem;
 }
 
+/* --- Controlos de Ordenação do Mural --- */
+.mural-sort-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+    padding: 10px;
+    background: var(--color-surface-1);
+    border-radius: 25px;
+    border: 1px solid var(--glass-border);
+}
+
+.mural-sort-controls .sort-label {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin-right: 5px;
+}
+
+.mural-sort-controls .sort-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.mural-sort-controls .sort-btn.active {
+    background: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+}
+
 .mural-auth-status {
     background: var(--color-surface-1);
     padding: 1rem;
@@ -667,6 +716,19 @@
     /* A transição foi mantida para outras possíveis animações */
 }
 
+/* Estilo para posts populares */
+.mural-post.is-popular {
+    border-color: var(--color-accent-green);
+    box-shadow: 0 0 15px var(--glass-shadow-green);
+}
+
+.mural-post-popular-icon {
+    color: #ffd700; /* Cor de ouro para a estrela */
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+}
+
 .mural-post.is-reply {
     margin-left: 2rem;
     /* O estilo visual foi removido, mantendo apenas a indentação para hierarquia. */
@@ -677,6 +739,25 @@
     flex-direction: column;
     gap: 1rem;
     /* Espaçamento entre as respostas */
+}
+
+/* Botão para carregar mais respostas */
+.mural-load-more-replies {
+    background: transparent;
+    border: none;
+    color: var(--color-accent-purple);
+    cursor: pointer;
+    font-weight: bold;
+    padding: 8px;
+    margin: 0 auto 1rem;
+    display: block;
+    text-align: center;
+    width: 100%;
+    transition: color 0.2s ease;
+}
+
+.mural-load-more-replies:hover {
+    text-decoration: underline;
 }
 
 @media (max-width: 600px) {
@@ -708,30 +789,8 @@
         word-wrap: break-word;
     }
 
-    .mural-post-footer {
-        display: flex;
-        justify-content: flex-end;
-        /* Alinha tudo à direita por padrão */
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-        font-size: 0.85rem;
-        color: var(--color-text-secondary);
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--glass-border);
-    }
-
-    .mural-post-footer span {
-        display: flex;
-        align-items: center;
-        flex-shrink: 0;
-        /* Impede que os itens encolham e quebrem linha facilmente */
-        gap: 6px;
-    }
-
     .mural-post-author {
-        margin-right: auto;
+        /* margin-right: auto; */ /* Removido para melhor alinhamento com a grid */
         /* Empurra o autor para a esquerda */
         font-weight: bold;
     }
@@ -755,6 +814,39 @@
             transform: scale(1);
         }
     }
+
+    .mural-post-footer {
+        display: grid;
+        grid-template-areas:
+            "author meta"
+            "controls controls";
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+        padding-top: 1rem;
+        border-top: 1px solid var(--glass-border);
+    }
+
+    .mural-post-author { grid-area: author; justify-self: start; }
+    .mural-post-controls { grid-area: controls; justify-self: center; }
+    .mural-post-meta { grid-area: meta; justify-self: end; display: flex; gap: 1rem; }
+
+    .mural-post-author,
+    .mural-post-date,
+    .mural-post-location,
+    .mural-post-views {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .mural-post-views {
+        color: var(--color-text-secondary);
+    }
+
+
 
 
 
@@ -808,6 +900,7 @@
     .mural-post-controls {
         display: flex;
         gap: 8px;
+        justify-content: center; /* Centraliza os controlos */
         align-items: center;
     }
 

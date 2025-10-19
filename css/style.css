@@ -140,6 +140,38 @@ header.scrolled {
     color: var(--color-text-secondary);
 }
 
+/* ================= MEDIA QUERIES PARA RESPONSIVIDADE ================= */
+
+@media (max-width: 768px) {
+    /* --- GERAL --- */
+    body {
+        font-size: 95%; /* Reduz ligeiramente o tamanho da fonte base */
+    }
+
+    /* --- CABEÇALHO --- */
+    header {
+        padding: 0.75rem 1rem;
+    }
+
+    .navbar .menu {
+        /* Em telas menores, o menu pode ser simplificado ou transformado em hamburguer.
+           Por agora, vamos reduzir o espaçamento para evitar quebra. */
+        gap: 1rem;
+    }
+
+    .navbar .menu a {
+        font-size: 0.9rem;
+    }
+
+    /* --- HERO SECTION --- */
+    .hero {
+        padding: 3rem 1rem;
+    }
+    .hero h1 {
+        font-size: 2rem;
+    }
+}
+
 .btn {
     display: inline-block;
     background: var(--color-accent-green);
