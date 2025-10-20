@@ -232,11 +232,10 @@ function renderItemDetails(item, viewCount = 0, likeCount = 0) {
         // Se for um post do YouTube, substitui a imagem por um player embutido.
         imageWrapper.innerHTML = `
             <div class="youtube-player-container">
-                <iframe src="https://www.youtube.com/embed/${item.videoId}?autoplay=0&rel=0&controls=1&playsinline=1&muted=1" 
+                <iframe src="https://www.youtube.com/embed/${item.videoId}?autoplay=0&rel=0&controls=1" 
                         frameborder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen
-                        webkit-playsinline playsinline>
+                        allowfullscreen>
                 </iframe>
             </div>`;
     } else {

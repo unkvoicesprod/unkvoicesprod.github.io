@@ -1,29 +1,6 @@
 import { db, auth } from "./firebase-init.js";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, increment, writeBatch } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
-let audioContext = null; // Variável global para o AudioContext
-
-/**
- * Inicia o AudioContext após a primeira interação do utilizador.
- * Isto é necessário para contornar as políticas de autoplay dos navegadores.
- */
-function initializeAudioContext() {
-    if (!audioContext) {
-        try {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            // Se o estado não for 'running', tentamos resumir.
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-        } catch (e) {
-            console.error("Web Audio API não é suportada neste navegador.", e);
-        }
-    }
-    // Remove o listener após a primeira interação para não correr desnecessariamente.
-    document.body.removeEventListener('click', initializeAudioContext, true);
-    document.body.removeEventListener('keydown', initializeAudioContext, true);
-}
-
 function startMuralScript() {
     const form = document.getElementById('mural-form');
     const postsContainer = document.getElementById('mural-posts-container');
@@ -39,7 +16,7 @@ function startMuralScript() {
 
     // Define o limite de caracteres para o nome do utilizador
     if (nomeInput) {
-        nomeInput.maxLength = 50;
+        nomeInput.maxLength = 15;
     }
 
     // --- Lógica para lembrar o nome do utilizador ---
@@ -67,9 +44,6 @@ function startMuralScript() {
     let allPosts = new Map(); // Para guardar todos os posts e facilitar a construção da árvore de respostas
     let userVotes = JSON.parse(localStorage.getItem('muralUserVotes')) || {}; // Para guardar os votos do utilizador
     let userReports = JSON.parse(localStorage.getItem('muralUserReports')) || []; // Para guardar os posts reportados pelo utilizador
-    let currentSortOrder = 'recentes'; // 'recentes' ou 'populares'
-    let postViewObserver = null; // Observer para contar visualizações
-    let isCurrentUserAdmin = false; // Para guardar o estado de admin
 
     let currentPage = 1;
     const postsPerPage = 10;
@@ -106,8 +80,7 @@ function startMuralScript() {
                 authorId: getOrCreateAuthorId(), // ID anónimo para o autor
                 likes: 0,
                 dislikes: 0,
-                votes: {}, // Para rastrear quem votou
-                views: 0 // Novo campo para visualizações
+                votes: {} // Para rastrear quem votou
             };
 
             // Se for uma resposta, adiciona o parentId
@@ -188,18 +161,6 @@ function startMuralScript() {
     // Inicia a escuta por posts assim que o script começa
     listenForPosts();
 
-    // Configura os botões de ordenação
-    setupSortControls();
-
-    // Ouve as mudanças de estado de autenticação para saber se o utilizador é admin
-    window.addEventListener('authStateChanged', (event) => {
-        const { user, isAdmin } = event.detail;
-        if (isCurrentUserAdmin !== isAdmin) {
-            isCurrentUserAdmin = isAdmin;
-            renderAllPosts(); // Re-renderiza os posts para mostrar/esconder os controlos de admin
-        }
-    });
-
     function listenForPosts() {
         // Se já houver um listener ativo, cancela-o antes de criar um novo
         if (unsubscribeFromPosts) {
@@ -210,8 +171,7 @@ function startMuralScript() {
         // Guarda a função de unsubscribe para poder ser chamada mais tarde
         unsubscribeFromPosts = onSnapshot(q, (snapshot) => {
             const changes = snapshot.docChanges();
-            let needsRender = false;
-            
+
             changes.forEach(change => {
                 const postData = { id: change.doc.id, ...change.doc.data() };
                 if (change.type === "added") {
@@ -223,45 +183,10 @@ function startMuralScript() {
                 } else if (change.type === "removed") {
                     allPosts.delete(postData.id);
                 }
-                needsRender = true;
             });
 
-            if (needsRender) {
-                renderAllPosts();
-            }
+            renderAllPosts();
         });
-    }
-
-    /**
-     * Incrementa a contagem de visualizações de um post no Firestore.
-     * @param {string} postId O ID do post.
-     */
-    async function incrementPostViewCount(postId) {
-        if (!db || !postId) return;
-        try {
-            const postRef = doc(db, "mural_mensagens", postId);
-            await updateDoc(postRef, { views: increment(1) });
-        } catch (error) {
-            console.error("Falha ao incrementar visualização do post:", error);
-        }
-    }
-
-    /**
-     * Dispara o incremento da contagem de visualizações, mas apenas uma vez por post por utilizador.
-     * @param {string} postId O ID do post.
-     */
-    function triggerPostViewCount(postId) {
-        if (!postId) return;
-        try {
-            const viewedPostsKey = 'unkvoices_viewed_posts';
-            let viewedPosts = JSON.parse(localStorage.getItem(viewedPostsKey)) || [];
-
-            if (!viewedPosts.includes(postId)) {
-                incrementPostViewCount(postId);
-                viewedPosts.push(postId);
-                localStorage.setItem(viewedPostsKey, JSON.stringify(viewedPosts));
-            }
-        } catch (error) { console.error("Erro ao gerir o estado de visualização do post:", error); }
     }
 
     async function handleDeleteClick(event) {
@@ -300,23 +225,9 @@ function startMuralScript() {
     function renderAllPosts() {
         postsContainer.innerHTML = ''; // Limpa o container
 
-        let postsArray = Array.from(allPosts.values())
-            .filter(p => !p.parentId); // Filtra apenas os posts principais
-
-        // Aplica a ordenação selecionada
-        if (currentSortOrder === 'populares') {
-            // Ordena por likes (descendente), e depois por data (descendente) como critério de desempate
-            postsArray.sort((a, b) => {
-                const likesA = a.likes || 0;
-                const likesB = b.likes || 0;
-                if (likesB !== likesA) {
-                    return likesB - likesA;
-                }
-                return (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0);
-            });
-        } else { // 'recentes' (padrão)
-            postsArray.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
-        }
+        const postsArray = Array.from(allPosts.values())
+            .filter(p => !p.parentId) // Filtra apenas os posts principais
+            .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
 
         // Mapeia todos os posts (incluindo respostas) para construir a árvore
         const postMap = new Map(postsArray.map(p => [p.id, { ...p, children: [] }]));
@@ -338,53 +249,26 @@ function startMuralScript() {
             const postElement = createPostElement(post);
             fragment.appendChild(postElement);
 
-            const replies = post.children.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis());
-            const REPLIES_TO_SHOW_INITIALLY = 3;
+            // Ordena as respostas por data de criação (mais antigas primeiro)
+            post.children.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis());
 
-            if (replies.length > 0) {
+            if (post.children.length > 0) {
                 const repliesContainer = document.createElement('div');
                 repliesContainer.className = 'mural-replies-container';
-
-                // Se houver mais respostas do que o limite inicial, mostra o botão "carregar mais"
-                if (replies.length > REPLIES_TO_SHOW_INITIALLY) {
-                    const loadMoreButton = document.createElement('button');
-                    loadMoreButton.className = 'mural-load-more-replies';
-                    loadMoreButton.textContent = `Ver mais ${replies.length - REPLIES_TO_SHOW_INITIALLY} respostas`;
-                    loadMoreButton.addEventListener('click', () => {
-                        // Renderiza as respostas restantes
-                        replies.slice(0, replies.length - REPLIES_TO_SHOW_INITIALLY).forEach(reply => {
-                            const replyElement = createPostElement(reply);
-                            replyElement.classList.add('is-reply');
-                            // Insere antes das respostas já visíveis
-                            repliesContainer.insertBefore(replyElement, repliesContainer.firstChild);
-                        });
-                        loadMoreButton.remove(); // Remove o botão após o clique
-                    }, { once: true });
-                    repliesContainer.appendChild(loadMoreButton);
-                }
-
-                // Mostra as últimas N respostas
-                const initialReplies = replies.slice(-REPLIES_TO_SHOW_INITIALLY);
-                initialReplies.forEach(reply => {
+                post.children.forEach(reply => {
                     const replyElement = createPostElement(reply);
                     replyElement.classList.add('is-reply');
                     repliesContainer.appendChild(replyElement);
                 });
-
                 // Adiciona o formulário de resposta no final das respostas, se aplicável
                 if (form.dataset.parentId === post.id) {
                     repliesContainer.appendChild(form);
                 }
                 postElement.appendChild(repliesContainer);
-
             } else {
                 // Adiciona o formulário de resposta se não houver respostas ainda
                 if (form.dataset.parentId === post.id) {
-                    // Cria um container de respostas para manter a consistência
-                    const repliesContainer = document.createElement('div');
-                    repliesContainer.className = 'mural-replies-container';
-                    repliesContainer.appendChild(form);
-                    postElement.appendChild(repliesContainer);
+                    postElement.appendChild(form);
                 }
             }
         });
@@ -397,73 +281,12 @@ function startMuralScript() {
         // Mostra a mensagem de "mural vazio" se não houver posts
         if (postsContainer.children.length === 0) {
             postsContainer.innerHTML = '<p class="mural-empty">Ainda ninguém deixou uma mensagem. Sê o primeiro!</p>';
-        } else {
-            // Inicia o observador de visualizações para os posts renderizados
-            observePostViews();
         }
 
         // Garante que o event listener está sempre ativo
         postsContainer.removeEventListener('click', handlePostControlsClick);
         postsContainer.addEventListener('click', handlePostControlsClick);
     }
-    
-    /**
-     * Cria e configura os botões de ordenação no cabeçalho do mural.
-     */
-    function setupSortControls() {
-        const muralHeader = document.querySelector('.mural-header');
-        if (!muralHeader) return;
-
-        const sortContainer = document.createElement('div');
-        sortContainer.className = 'mural-sort-controls';
-        sortContainer.innerHTML = `
-            <span class="sort-label">Ordenar por:</span>
-            <button class="sort-btn active" data-sort="recentes">Mais Recentes</button>
-            <button class="sort-btn" data-sort="populares">Mais Populares</button>
-        `;
-
-        muralHeader.appendChild(sortContainer);
-
-        sortContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('sort-btn')) {
-                const newSortOrder = e.target.dataset.sort;
-                if (newSortOrder !== currentSortOrder) {
-                    currentSortOrder = newSortOrder;
-                    sortContainer.querySelector('.sort-btn.active').classList.remove('active');
-                    e.target.classList.add('active');
-                    renderAllPosts(); // Re-renderiza os posts com a nova ordenação
-                }
-            }
-        });
-    }
-    
-    /**
-     * Usa IntersectionObserver para detetar quando os posts entram na área visível
-     * e aciona a contagem de visualização.
-     */
-    function observePostViews() {
-        if (postViewObserver) {
-            postViewObserver.disconnect(); // Limpa o observador anterior
-        }
-
-        postViewObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const postElement = entry.target;
-                    const postId = postElement.dataset.id;
-                    triggerPostViewCount(postId);
-                    observer.unobserve(postElement); // Para de observar após a primeira visualização
-                }
-            });
-        }, { threshold: 0.5 }); // Aciona quando 50% do post está visível
-
-        const postsToObserve = postsContainer.querySelectorAll('.mural-post');
-        postsToObserve.forEach(post => {
-            postViewObserver.observe(post);
-        });
-    }
-    
-    
 
     function renderPagination(totalPosts) {
         const pageCount = Math.ceil(totalPosts / postsPerPage);
@@ -515,16 +338,9 @@ function startMuralScript() {
             postElement.dataset.createdAt = post.createdAt.toMillis();
         }
 
-        // Lógica para destacar posts populares
-        const POPULAR_THRESHOLD = 5; // Mínimo de likes para ser considerado popular
-        if (post.likes >= POPULAR_THRESHOLD) {
-            postElement.classList.add('is-popular');
-        }
-
         const postAgeInMinutes = post.createdAt ? (Date.now() - post.createdAt.toMillis()) / 60000 : 0;
         const currentAuthorId = getOrCreateAuthorId();
-        const EDIT_WINDOW_MINUTES = 1; // Janela de 1 minuto para editar ou apagar
-        const canModerate = isCurrentUserAdmin;
+        const EDIT_WINDOW_MINUTES = 1;
         const canEdit = post.authorId === currentAuthorId && postAgeInMinutes < EDIT_WINDOW_MINUTES;
         const canReply = true; // Todos podem responder
 
@@ -537,15 +353,11 @@ function startMuralScript() {
         let controlsHTML = '';
 
         if (canEdit) {
-            controlsHTML += `<button class="mural-edit-btn" title="Editar mensagem"><i class="fa-solid fa-pencil"></i> Editar<span class="edit-timer"></span></button>`; // O temporizador será preenchido por startEditTimers
-            controlsHTML += `<button class="mural-delete-btn" title="Apagar mensagem"><i class="fa-solid fa-trash-can"></i> Apagar</button>`;
+            controlsHTML += `<button class="mural-edit-btn" title="Editar mensagem"><i class="fa-solid fa-pencil"></i> Editar<span class="edit-timer"></span></button>`;
+            controlsHTML += `<button class="mural-delete-btn" title="Apagar mensagem (disponível por ${EDIT_WINDOW_MINUTES} min)"><i class="fa-solid fa-trash-can"></i> Apagar</button>`;
         }
         if (canReply) {
             controlsHTML += `<button class="mural-reply-btn" title="Responder a esta mensagem"><i class="fa-solid fa-reply"></i> Responder</button>`;
-        }
-        // Adiciona o botão de apagar para administradores, se não for o autor do post dentro da janela de edição
-        if (canModerate && !canEdit) {
-            controlsHTML += `<button class="mural-admin-delete-btn" title="Apagar mensagem (Admin)"><i class="fa-solid fa-user-shield"></i> Apagar (Admin)</button>`;
         }
         controlsHTML += `<button class="mural-report-btn" title="Reportar mensagem" ${hasReported ? 'disabled' : ''}><i class="fa-solid fa-flag"></i> ${hasReported ? 'Reportado' : 'Reportar'}</button>`;
 
@@ -561,26 +373,12 @@ function startMuralScript() {
             </div>
         `;
 
-        // Adiciona a localização se existir
-        const locationHTML = post.location ?
-            `<span class="mural-post-location" title="Localização do autor"><i class="fa-solid fa-map-marker-alt"></i> ${escapeHTML(post.location)}</span>` :
-            '';
-
-        // Adiciona o ícone de popular se necessário
-        const popularIconHTML = post.likes >= POPULAR_THRESHOLD ?
-            `<span class="mural-post-popular-icon" title="Post popular"><i class="fa-solid fa-star"></i></span>` :
-            '';
-
         postElement.innerHTML = `
             <p class="mural-post-content">${linkify(post.mensagem)}</p>
             <div class="mural-post-footer">
-                <span class="mural-post-author"><i class="fa-solid fa-user-pen"></i> ${escapeHTML(post.nome)} ${popularIconHTML}</span>
-                <div class="mural-post-controls">${votesHTML} ${controlsHTML}</div>
-                <div class="mural-post-meta">
-                    <span class="mural-post-views" title="Visualizações"><i class="fa-solid fa-eye"></i> ${post.views || 0}</span>
-                    ${locationHTML}
-                    <span class="mural-post-date" title="${post.createdAt ? post.createdAt.toDate().toLocaleString('pt-PT') : ''}"><i class="fa-regular fa-calendar-days"></i> ${dataFormatada}</span>
-                </div>
+                <span class="mural-post-author"><i class="fa-solid fa-user-pen"></i> ${escapeHTML(post.nome)}</span> ${votesHTML}
+                <div class="mural-post-controls">${controlsHTML}</div>
+                <span class="mural-post-date" title="${post.createdAt ? post.createdAt.toDate().toLocaleString('pt-PT') : ''}"><i class="fa-regular fa-calendar-days"></i> ${dataFormatada}</span>
             </div>
         `;
 
@@ -598,14 +396,12 @@ function startMuralScript() {
         const cancelBtn = target.closest('.mural-cancel-btn');
         const replyBtn = target.closest('.mural-reply-btn');
         const voteBtn = target.closest('.mural-vote-btn');
-        const adminDeleteBtn = target.closest('.mural-admin-delete-btn');
         const reportBtn = target.closest('.mural-report-btn');
 
         if (deleteBtn) handleDeleteClick(event);
         if (editBtn) handleEditClick(event);
         if (saveBtn) handleSaveClick(event);
         if (cancelBtn) handleCancelClick(event);
-        if (adminDeleteBtn) handleDeleteClick(event, true); // Passa um flag para indicar que é uma ação de admin
         if (replyBtn) handleReplyClick(event);
         if (voteBtn) handleVoteClick(event);
         if (reportBtn) handleReportClick(event);
@@ -751,7 +547,7 @@ function startMuralScript() {
             try {
                 await updateDoc(postRef, { mensagem: newMessage });
                 // Força a atualização da UI localmente para uma resposta visual imediata.
-                handleCancelClick(event, escapeHTML(newMessage));
+                handleCancelClick(event, newMessage);
             } catch (error) { console.error("Erro ao guardar a edição:", error); }
         }
     }
@@ -787,18 +583,16 @@ function startMuralScript() {
         form.querySelector('button[type="submit"]').textContent = 'Submeter Resposta';
         form.querySelector('textarea').placeholder = 'Escreva a sua resposta...';
 
-        // Encontra ou cria o container de respostas e garante que o formulário é adicionado no final
+        // Encontra ou cria o container de respostas
         let repliesContainer = postElement.querySelector('.mural-replies-container');
         if (!repliesContainer) {
             repliesContainer = document.createElement('div');
             repliesContainer.className = 'mural-replies-container';
             postElement.appendChild(repliesContainer);
         }
-        repliesContainer.appendChild(form);
 
-        // Foca no campo de mensagem e rola para a vista
+        repliesContainer.appendChild(form);
         mensagemInput.focus();
-        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function cancelReply() {
@@ -869,24 +663,6 @@ function startMuralScript() {
     }
 
     /**
-     * Reproduz um som de notificação.
-     * O áudio só pode ser reproduzido após a primeira interação do utilizador com a página.
-     */
-    function playNotificationSound() {
-        if (!audioContext || audioContext.state !== 'running') return; // Não toca som se o contexto não estiver pronto
-
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Volume baixo
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.1); // Duração curta
-    }
-
-    /**
      * Mostra uma notificação de novo post se o mural não estiver visível.
      */
     function showNewPostNotification(postId) {
@@ -898,9 +674,6 @@ function startMuralScript() {
         const isVisible = rect.top < window.innerHeight && rect.bottom >= 0;
 
         if (isVisible) return; // Se o mural já está visível, não faz nada
-
-        // Toca o som de notificação
-        playNotificationSound();
 
         // Remove qualquer notificação existente para evitar duplicados
         document.getElementById('new-post-toast')?.remove();
@@ -938,7 +711,7 @@ function startMuralScript() {
                 const editBtn = post.querySelector('.mural-edit-btn');
                 if (!editBtn) return;
 
-                const EDIT_WINDOW_MS = 1 * 60 * 1000; // 1 minuto em milissegundos
+                const EDIT_WINDOW_MS = 1 * 60 * 1000; // 1 minuto
                 const timePassed = Date.now() - createdAt;
                 const timeRemaining = EDIT_WINDOW_MS - timePassed;
 
@@ -978,10 +751,6 @@ function linkify(text) {
         return `<a href="${fullUrl}" target="_blank" rel="noopener noreferrer">${url}</a>`;
     });
 }
-
-// Adiciona listeners para a primeira interação do utilizador para inicializar o áudio.
-document.body.addEventListener('click', initializeAudioContext, { once: true, capture: true });
-document.body.addEventListener('keydown', initializeAudioContext, { once: true, capture: true });
 
 // O script do mural só deve correr depois dos componentes HTML serem carregados
 document.addEventListener('componentsLoaded', startMuralScript, { once: true });

@@ -487,13 +487,13 @@ function startContentScript() {
                 decrementLikeCount(itemId);
                 likedItems = likedItems.filter(id => id !== itemId);
                 likeBtn.classList.remove('is-liked');
-                const newCount = (likeCounts[itemId] || 1) - 1;
-                likeBtn.innerHTML = `<i class="fa-regular fa-thumbs-up"></i> ${newCount.toLocaleString('pt-PT')}`;
+                likeCounts[itemId] = (likeCounts[itemId] || 1) - 1;
+                likeBtn.innerHTML = `<i class="fa-regular fa-thumbs-up"></i> ${likeCounts[itemId].toLocaleString('pt-PT')}`;
             } else {
                 // O utilizador quer dar like
                 // Incrementa no Firebase
                 incrementLikeCount(itemId);
-                // Adiciona à lista local
+                // Adiciona à lista local e ao localStorage
                 likedItems.push(itemId);
                 // Atualiza a UI imediatamente
                 likeBtn.classList.add('is-liked');
