@@ -373,12 +373,22 @@ function startMuralScript() {
             </div>
         `;
 
+        const metaHTML = `
+            <div class="mural-post-meta">
+                ${post.location ? `<span class="mural-post-location" title="Localização (aproximada)"><i class="fa-solid fa-location-dot"></i> ${escapeHTML(post.location)}</span>` : ''}
+                <span class="mural-post-date" title="${post.createdAt ? post.createdAt.toDate().toLocaleString('pt-PT') : ''}"><i class="fa-regular fa-calendar-days"></i> ${dataFormatada}</span>
+            </div>
+        `;
+
         postElement.innerHTML = `
             <p class="mural-post-content">${linkify(post.mensagem)}</p>
             <div class="mural-post-footer">
-                <span class="mural-post-author"><i class="fa-solid fa-user-pen"></i> ${escapeHTML(post.nome)}</span> ${votesHTML}
-                <div class="mural-post-controls">${controlsHTML}</div>
-                <span class="mural-post-date" title="${post.createdAt ? post.createdAt.toDate().toLocaleString('pt-PT') : ''}"><i class="fa-regular fa-calendar-days"></i> ${dataFormatada}</span>
+                <div class="mural-post-author"><i class="fa-solid fa-user-pen"></i> ${escapeHTML(post.nome)}</div>
+                ${metaHTML}
+                <div class="mural-post-footer-actions">
+                    ${votesHTML}
+                    <div class="mural-post-controls">${controlsHTML}</div>
+                </div>
             </div>
         `;
 

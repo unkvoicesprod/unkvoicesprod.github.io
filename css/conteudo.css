@@ -723,7 +723,8 @@
 }
 
 .mural-post-popular-icon {
-    color: #ffd700; /* Cor de ouro para a estrela */
+    color: #ffd700;
+    /* Cor de ouro para a estrela */
     margin-left: 8px;
     display: inline-flex;
     align-items: center;
@@ -773,380 +774,439 @@
     animation: new-post-highlight 1.5s ease-out forwards;
 }
 
-.mural-post {
-    .mural-empty {
-        animation: post-fade-in 0.5s ease-out forwards;
+.mural-empty {
+    animation: post-fade-in 0.5s ease-out forwards;
+}
+
+.mural-post.is-editing {
+    background: var(--color-surface-hover);
+}
+
+.mural-post-content {
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+    word-wrap: break-word;
+}
+
+/* Adiciona estilo para os links dentro do conteúdo do post */
+.mural-post-content a {
+    color: var(--color-accent-green);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.mural-post-content a:hover {
+    text-decoration: underline;
+}
+
+.mural-post-author {
+    /* margin-right: auto; */
+    /* Removido para melhor alinhamento com a grid */
+    /* Empurra o autor para a esquerda */
+    font-weight: bold;
+}
+
+/* Animação para os ícones do rodapé */
+.mural-post-footer span:hover i,
+.mural-post-controls button:hover i {
+    animation: icon-pulse 0.5s ease-in-out;
+}
+
+@keyframes icon-pulse {
+    0% {
+        transform: scale(1);
     }
 
-    .mural-post.is-editing {
-        background: var(--color-surface-hover);
+    50% {
+        transform: scale(1.2);
     }
 
-    .mural-post-content {
-        color: var(--color-text-primary);
-        line-height: 1.6;
-        margin: 0 0 1rem 0;
-        word-wrap: break-word;
+    100% {
+        transform: scale(1);
     }
+}
 
-    .mural-post-author {
-        /* margin-right: auto; */ /* Removido para melhor alinhamento com a grid */
-        /* Empurra o autor para a esquerda */
-        font-weight: bold;
-    }
+.mural-post-footer {
+    display: grid;
+    grid-template-areas:
+        "author meta"
+        "actions actions";
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    /* Reduz o espaçamento vertical */
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    padding-top: 1rem;
+    border-top: 1px solid var(--glass-border);
+}
 
-    /* Animação para os ícones do rodapé */
-    .mural-post-footer span:hover i,
-    .mural-post-controls button:hover i {
-        animation: icon-pulse 0.5s ease-in-out;
-    }
+.mural-post-author {
+    grid-area: author;
+    justify-self: start;
+    font-size: 0.85rem;
+}
 
-    @keyframes icon-pulse {
-        0% {
-            transform: scale(1);
-        }
+.mural-post-meta {
+    grid-area: meta;
+    justify-self: end;
+    display: flex;
+    flex-wrap: wrap;
+    /* Permite que os itens de meta quebrem a linha se necessário */
+    justify-content: flex-end;
+    gap: 1rem;
+    font-size: 0.85rem;
+}
 
-        50% {
-            transform: scale(1.2);
-        }
+.mural-post-author,
+.mural-post-date,
+.mural-post-location,
+.mural-post-views {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 
-        100% {
-            transform: scale(1);
-        }
-    }
-
-    .mural-post-footer {
-        display: grid;
-        grid-template-areas:
-            "author meta"
-            "controls controls";
-        grid-template-columns: 1fr auto;
-        align-items: center;
-        gap: 1rem;
-        font-size: 0.85rem;
-        color: var(--color-text-secondary);
-        padding-top: 1rem;
-        border-top: 1px solid var(--glass-border);
-    }
-
-    .mural-post-author { grid-area: author; justify-self: start; }
-    .mural-post-controls { grid-area: controls; justify-self: center; }
-    .mural-post-meta { grid-area: meta; justify-self: end; display: flex; gap: 1rem; }
-
-    .mural-post-author,
-    .mural-post-date,
-    .mural-post-location,
-    .mural-post-views {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .mural-post-views {
-        color: var(--color-text-secondary);
-    }
+.mural-post-views {
+    color: var(--color-text-secondary);
+}
 
 
 
 
 
-    /* Container para todas as ações (votos e controlos de edição) */
-    .mural-post-actions {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 1rem;
-        flex-grow: 1;
-        /* Ocupa o espaço central */
-    }
+/* Container para todas as ações (votos e controlos de edição) */
+.mural-post-footer-actions {
+    grid-area: actions;
+    display: flex;
+    justify-content: space-between;
+    /* Espaça os votos e os controlos */
+    align-items: center;
+    flex-wrap: wrap;
+    /* Permite que os controlos passem para baixo em telas médias */
+    gap: 1rem;
+    /* Espaço entre votos e controlos */
+    padding-top: 0.5rem;
+}
 
-    /* Container específico para os botões de voto */
-    .mural-post-votes {
-        display: flex;
-        gap: 0.5rem;
-    }
+/* Container específico para os botões de voto */
+.mural-post-votes {
+    display: flex;
+    gap: 0.5rem;
+}
 
-    .mural-vote-btn {
-        background: transparent;
-        border: 1px solid var(--glass-border);
-        color: var(--color-text-secondary);
-        border-radius: 20px;
-        padding: 4px 12px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.2s ease-in-out;
-    }
+.mural-vote-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--color-text-secondary);
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease-in-out;
+}
 
-    .mural-vote-btn:hover {
-        background: var(--color-surface-hover);
-        color: var(--color-white);
-    }
+.mural-vote-btn:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-white);
+}
 
-    .mural-vote-btn.like-btn:hover,
-    .mural-vote-btn.like-btn.active {
-        color: var(--color-accent-green);
-        border-color: var(--color-accent-green);
-    }
+.mural-vote-btn.like-btn:hover,
+.mural-vote-btn.like-btn.active {
+    color: var(--color-accent-green);
+    border-color: var(--color-accent-green);
+}
 
-    .mural-vote-btn.dislike-btn:hover,
-    .mural-vote-btn.dislike-btn.active {
-        color: var(--color-accent-pink);
-        border-color: var(--color-accent-pink);
-    }
+.mural-vote-btn.dislike-btn:hover,
+.mural-vote-btn.dislike-btn.active {
+    color: var(--color-accent-pink);
+    border-color: var(--color-accent-pink);
+}
 
-    /* Container para os botões de editar/apagar */
-    .mural-post-controls {
-        display: flex;
-        gap: 8px;
-        justify-content: center; /* Centraliza os controlos */
-        align-items: center;
-    }
+/* Container para os botões de editar/apagar */
+.mural-post-controls {
+    display: flex;
+    gap: 0.5rem;
+    /* Reduz o espaço entre os botões */
+    flex-wrap: wrap;
+    /* Permite que os botões quebrem a linha */
+}
 
-    /* Botão para carregar mais posts */
-    .load-more-btn {
-        display: block;
-        margin: 2rem auto;
-        width: 50%;
-        max-width: 300px;
-    }
+/* Botão para carregar mais posts */
+.load-more-btn {
+    display: block;
+    margin: 2rem auto;
+    width: 50%;
+    max-width: 300px;
+}
 
-    .load-more-btn:disabled {
-        cursor: not-allowed;
-        background: var(--color-surface-hover);
-    }
+.load-more-btn:disabled {
+    cursor: not-allowed;
+    background: var(--color-surface-hover);
+}
 
-    .mural-delete-btn,
-    .mural-edit-btn,
-    .mural-reply-btn,
-    .mural-admin-delete-btn,
-    .mural-report-btn {
-        background: transparent;
-        border: 1px solid var(--glass-border);
-        color: var(--color-text-secondary);
-        border-radius: 20px;
-        padding: 4px 12px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.85rem;
-        transition: all 0.2s ease-in-out;
-    }
+.mural-delete-btn,
+.mural-edit-btn,
+.mural-reply-btn,
+.mural-admin-delete-btn,
+.mural-report-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--color-text-secondary);
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    transition: all 0.2s ease-in-out;
+}
 
-    .mural-delete-btn:hover,
-    .mural-edit-btn:hover,
-    .mural-reply-btn:hover,
-    .mural-admin-delete-btn:hover,
-    .mural-report-btn:hover {
-        background: var(--color-surface-hover);
-        color: var(--color-white);
-    }
+.mural-delete-btn:hover,
+.mural-edit-btn:hover,
+.mural-reply-btn:hover,
+.mural-admin-delete-btn:hover,
+.mural-report-btn:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-white);
+}
 
-    .mural-delete-btn:hover {
-        background: var(--color-accent-pink);
-        border-color: var(--color-accent-pink);
-        color: var(--color-white);
-    }
-    
-    .mural-admin-delete-btn:hover {
-        background: #e65100; /* Laranja escuro para ação de admin */
-        border-color: #e65100;
-        color: var(--color-white);
-    }
+.mural-delete-btn:hover {
+    background: var(--color-accent-pink);
+    border-color: var(--color-accent-pink);
+    color: var(--color-white);
+}
 
-    .mural-edit-btn {
-        font-size: 0.8rem;
-    }
+.mural-admin-delete-btn:hover {
+    background: #e65100;
+    /* Laranja escuro para ação de admin */
+    border-color: #e65100;
+    color: var(--color-white);
+}
 
-    .mural-reply-btn:hover {
-        color: var(--color-accent-purple);
-        border-color: var(--color-accent-purple);
-    }
+.mural-edit-btn {
+    font-size: 0.8rem;
+}
 
-    .mural-report-btn:hover {
-        color: #ffc107;
-        /* Amarelo para alerta */
-        border-color: #ffc107;
-    }
+.mural-reply-btn:hover {
+    color: var(--color-accent-purple);
+    border-color: var(--color-accent-purple);
+}
 
-    .mural-report-btn:disabled {
-        cursor: not-allowed;
-        color: var(--color-text-secondary);
-        background: var(--color-surface-1);
-        opacity: 0.6;
-    }
+.mural-report-btn:hover {
+    color: #ffc107;
+    /* Amarelo para alerta */
+    border-color: #ffc107;
+}
 
-    .mural-pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-        padding: 2rem 0 1rem;
-        /* Usa a mesma classe da paginação principal */
-        /* A classe .pagination já está estilizada */
-    }
+.mural-report-btn:disabled {
+    cursor: not-allowed;
+    color: var(--color-text-secondary);
+    background: var(--color-surface-1);
+    opacity: 0.6;
+}
 
+.mural-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 2rem 0 1rem;
+    /* Usa a mesma classe da paginação principal */
+    /* A classe .pagination já está estilizada */
+}
 
-    .mural-post-edit-form {
-        display: flex;
+/* --- OTIMIZAÇÃO PARA ECRÃS PEQUENOS --- */
+@media (max-width: 480px) {
+    .mural-post-footer-actions {
         flex-direction: column;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .mural-edit-textarea {
-        width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid var(--glass-border);
-        background: var(--color-surface-1);
-        color: var(--color-text-primary);
-        font-family: inherit;
-        resize: vertical;
-    }
-
-    .mural-edit-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-    }
-
-    /* --- MODAL DE CONFIRMAÇÃO --- */
-    .confirmation-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(5px);
-        display: flex;
-        justify-content: center;
+        /* Empilha os votos e controlos */
         align-items: center;
-        z-index: 1000;
-        animation: post-fade-in 0.3s ease;
+        /* Centraliza os grupos */
+        gap: 1.5rem;
+        /* Aumenta o espaço quando empilhado */
     }
 
-    .confirmation-modal-content {
-        background: var(--color-surface-2);
-        padding: 2rem;
-        border-radius: 16px;
-        border: 1px solid var(--glass-border);
-        box-shadow: 0 0 30px var(--card-shadow-pink);
-        text-align: center;
-        max-width: 90%;
-        width: 400px;
+    /* Esconde o texto dos botões, deixando só o ícone */
+    .mural-post-controls .btn-text {
+        display: none;
     }
 
-    .confirmation-modal-content p {
-        margin: 0 0 1.5rem 0;
-        font-size: 1.1rem;
-        color: var(--color-text-primary);
+    .mural-edit-btn,
+    .mural-delete-btn,
+    .mural-reply-btn,
+    .mural-report-btn {
+        padding: 8px 10px;
+        /* Ajusta o padding para botões só com ícone */
+        font-size: 1rem;
+        /* Aumenta o tamanho do ícone */
+    }
+}
+
+
+.mural-post-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.mural-edit-textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: var(--color-surface-1);
+    color: var(--color-text-primary);
+    font-family: inherit;
+    resize: vertical;
+}
+
+.mural-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* --- MODAL DE CONFIRMAÇÃO --- */
+.confirmation-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: post-fade-in 0.3s ease;
+}
+
+.confirmation-modal-content {
+    background: var(--color-surface-2);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 0 30px var(--card-shadow-pink);
+    text-align: center;
+    max-width: 90%;
+    width: 400px;
+}
+
+.confirmation-modal-content p {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.1rem;
+    color: var(--color-text-primary);
+}
+
+.confirmation-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.btn-danger {
+    background-color: var(--color-accent-pink);
+    color: var(--color-white);
+}
+
+.btn-danger:hover {
+    background-color: var(--color-accent-pink-hover);
+}
+
+/* --- NOTIFICAÇÃO DE NOVO POST (TOAST) --- */
+#new-post-toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+    padding: 12px 20px;
+    border-radius: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slide-down-fade-in 0.5s ease-out;
+}
+
+#new-post-toast .btn-link {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: var(--color-white);
+    padding: 6px 12px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#new-post-toast .btn-link:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Keyframes para a animação de fade-in dos posts */
+@keyframes post-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
     }
 
-    .confirmation-modal-actions {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Keyframes para destacar um novo post */
+@keyframes new-post-highlight {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+        box-shadow: 0 0 0px var(--color-accent-green);
     }
 
-    .btn-danger {
-        background-color: var(--color-accent-pink);
-        color: var(--color-white);
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 25px var(--color-accent-green);
     }
 
-    .btn-danger:hover {
-        background-color: var(--color-accent-pink-hover);
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+}
+
+@keyframes slide-down-fade-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50px);
     }
 
-    /* --- NOTIFICAÇÃO DE NOVO POST (TOAST) --- */
-    #new-post-toast {
-        position: fixed;
-        top: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: var(--color-accent-green);
-        color: var(--color-text-on-accent);
-        padding: 12px 20px;
-        border-radius: 25px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        z-index: 1001;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        animation: slide-down-fade-in 0.5s ease-out;
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50);
     }
+}
 
-    #new-post-toast .btn-link {
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
-        color: var(--color-white);
-        padding: 6px 12px;
-        border-radius: 15px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    #new-post-toast .btn-link:hover {
-        background: rgba(255, 255, 255, 0.4);
-    }
-
-    /* Keyframes para a animação de fade-in dos posts */
-    @keyframes post-fade-in {
-        from {
-            opacity: 0;
-            transform: translateY(15px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Keyframes para destacar um novo post */
-    @keyframes new-post-highlight {
-        0% {
-            opacity: 0;
-            transform: translateY(20px) scale(0.98);
-            box-shadow: 0 0 0px var(--color-accent-green);
-        }
-
-        50% {
-            opacity: 1;
-            box-shadow: 0 0 25px var(--color-accent-green);
-        }
-
-        100% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-    }
-
-    @keyframes slide-down-fade-in {
-        from {
-            opacity: 0;
-            transform: translate(-50%, -50px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translate(-50%, -50);
-        }
-    }
-
-    /* Classe para acessibilidade: esconde visualmente mas mantém para leitores de tela */
-    .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border-width: 0;
-    }
+/* Classe para acessibilidade: esconde visualmente mas mantém para leitores de tela */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
