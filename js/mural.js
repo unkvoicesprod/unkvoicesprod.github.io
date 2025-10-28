@@ -147,25 +147,34 @@ function startMuralScript() {
         const match = text.match(urlRegex);
         if (!match) return null;
 
-        const url = match[0];
+        const url = match[0]; // O primeiro link encontrado
         // Usando um proxy CORS para evitar problemas de same-origin
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
 
         try {
             const response = await fetch(proxyUrl);
+            if (!response.ok) throw new Error(`API do proxy falhou com status: ${response.status}`);
+
             const data = await response.json();
             const html = data.contents;
 
-            if (!html) return null;
+            if (!html) throw new Error("O conteúdo do link está vazio.");
 
             // Usar DOMParser para analisar o HTML de forma segura
             const doc = new DOMParser().parseFromString(html, 'text/html');
 
             const getMeta = (prop) => doc.querySelector(`meta[property='${prop}'], meta[name='${prop}']`)?.getAttribute('content') || null;
 
+            const title = getMeta('og:title') || doc.querySelector('title')?.textContent || null;
+
+            // Se não conseguirmos extrair um título, consideramos a busca falha e retornamos null.
+            if (!title) {
+                return null;
+            }
+
             const preview = {
                 url: url,
-                title: getMeta('og:title') || doc.querySelector('title')?.textContent || '',
+                title: title,
                 description: getMeta('og:description') || '',
                 image: getMeta('og:image') || null,
             };
@@ -175,10 +184,7 @@ function startMuralScript() {
                 preview.image = new URL(preview.image, url).href;
             }
 
-            // Retorna a pré-visualização apenas se tiver um título
-            if (preview.title) {
-                return preview;
-            }
+            return preview;
             return null;
         } catch (error) {
             console.error("Erro ao buscar pré-visualização do link:", error);
@@ -242,6 +248,9 @@ function startMuralScript() {
                     allPosts.delete(postData.id);
                 }
             });
+
+            // Após qualquer mudança, processa os posts para adicionar pré-visualizações de link
+            document.querySelectorAll('.mural-post').forEach(processPostForLinkPreview);
 
             renderAllPosts();
         });
@@ -465,17 +474,18 @@ function startMuralScript() {
 
         let linkPreviewHTML = '';
         if (post.linkPreview && post.linkPreview.title) {
+            const domain = new URL(post.linkPreview.url).hostname;
             linkPreviewHTML = `
-                <div class="mural-link-preview">
-                    <a href="${post.linkPreview.url}" target="_blank" rel="noopener noreferrer">
+                <a href="${post.linkPreview.url}" target="_blank" rel="noopener noreferrer" class="mural-link-preview">
+                    <div class="mural-link-preview-content">
                         ${post.linkPreview.image ? `<img src="${post.linkPreview.image}" alt="Pré-visualização de ${post.linkPreview.title}" class="link-preview-image">` : ''}
                         <div class="link-preview-info">
                             <div class="link-preview-title">${escapeHTML(post.linkPreview.title)}</div>
                             <div class="link-preview-description">${escapeHTML(post.linkPreview.description)}</div>
-                            <div class="link-preview-url">${escapeHTML(post.linkPreview.url)}</div>
+                            <div class="link-preview-url">${escapeHTML(domain)}</div>
                         </div>
-                    </a>
-                </div>
+                    </div>
+                </a>
             `;
         }
 
@@ -494,6 +504,83 @@ function startMuralScript() {
 
         return postElement;
     }
+
+    /**
+     * Processa um post para encontrar um link e exibir uma pré-visualização.
+     * Inclui um skeleton loader e fallback.
+     * @param {HTMLElement} postElement O elemento do post a ser processado.
+     */
+    async function processPostForLinkPreview(postElement) {
+        // Se o post já tem uma pré-visualização ou um skeleton, não faz nada.
+        if (postElement.querySelector('.mural-link-preview, .mural-link-preview-skeleton')) {
+            return;
+        }
+
+        const contentElement = postElement.querySelector('.mural-post-content');
+        if (!contentElement) return;
+
+        const urlRegex = /(https?:\/\/[^\s]+)/;
+        const match = contentElement.textContent.match(urlRegex);
+        const firstLink = match ? match[0] : null;
+
+        if (!firstLink) return;
+
+        // 1. Inserir o Skeleton Loader imediatamente
+        const skeletonId = `skeleton-${postElement.dataset.id}`;
+        const skeletonHTML = `
+            <div id="${skeletonId}" class="mural-link-preview-skeleton">
+                <div class="skeleton skeleton-image"></div>
+                <div class="skeleton-info">
+                    <div class="skeleton skeleton-line title"></div>
+                    <div class="skeleton skeleton-line desc"></div>
+                </div>
+            </div>
+        `;
+        contentElement.insertAdjacentHTML('afterend', skeletonHTML);
+
+        // 2. Tentar buscar os metadados
+        const metadata = await getLinkPreview(contentElement.textContent);
+        const skeletonElement = document.getElementById(skeletonId);
+
+        if (!skeletonElement) return; // O post pode ter sido removido enquanto a API carregava
+
+        let finalPreviewHTML;
+
+        if (metadata) {
+            // 3a. Sucesso: Montar a pré-visualização completa
+            const domain = new URL(metadata.url).hostname;
+            finalPreviewHTML = `
+                <a href="${metadata.url}" target="_blank" rel="noopener noreferrer" class="mural-link-preview">
+                    <div class="mural-link-preview-content">
+                        ${metadata.image ? `<img src="${metadata.image}" alt="Pré-visualização de ${metadata.title}" class="link-preview-image">` : ''}
+                        <div class="link-preview-info">
+                            <div class="link-preview-title">${escapeHTML(metadata.title)}</div>
+                            <div class="link-preview-description">${escapeHTML(metadata.description)}</div>
+                            <div class="link-preview-url">${escapeHTML(domain)}</div>
+                        </div>
+                    </div>
+                </a>
+            `;
+        } else {
+            // 3b. Falha: Montar a pré-visualização de fallback (genérica)
+            const domain = new URL(firstLink).hostname;
+            finalPreviewHTML = `
+                <a href="${firstLink}" target="_blank" rel="noopener noreferrer" class="mural-link-preview">
+                    <div class="mural-link-preview-content">
+                        <div class="link-preview-info">
+                            <div class="link-preview-title">${escapeHTML(firstLink)}</div>
+                            <div class="link-preview-url">${escapeHTML(domain)}</div>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }
+
+        // 4. Substituir o skeleton pelo resultado final
+        // Usar `outerHTML` garante que o elemento skeleton seja completamente substituído.
+        skeletonElement.outerHTML = finalPreviewHTML;
+    }
+
 
     /**
      * Cria um elemento de avatar para o utilizador com as suas iniciais.

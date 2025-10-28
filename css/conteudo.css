@@ -1082,6 +1082,19 @@
     gap: 10px;
 }
 
+/* --- ANIMAÇÃO DE FADE-IN PARA PRÉ-VISUALIZAÇÃO --- */
+@keyframes link-preview-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* --- PRÉ-VISUALIZAÇÃO DE LINK NO MURAL --- */
 .mural-link-preview {
     margin: 1rem 0;
@@ -1135,6 +1148,110 @@
     text-overflow: ellipsis;
     margin-top: 4px;
 }
+
+/* --- PRÉ-VISUALIZAÇÃO DE LINK NO MURAL --- */
+.mural-link-preview {
+    margin-top: 1rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-surface-1);
+    transition: background-color 0.3s ease;
+    display: block;
+    /* Garante que o 'a' se comporte como bloco */
+    text-decoration: none;
+    animation: link-preview-fade-in 0.4s ease-out forwards;
+}
+
+.mural-link-preview:hover {
+    background: var(--color-surface-hover);
+    border-color: var(--color-accent-purple);
+}
+
+.mural-link-preview-content {
+    display: flex;
+    align-items: stretch;
+}
+
+.mural-link-preview .link-preview-image {
+    width: 120px;
+    height: auto;
+    object-fit: cover;
+    flex-shrink: 0;
+    background-color: var(--color-surface-1);
+}
+
+.mural-link-preview .link-preview-info {
+    padding: 12px 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    /* Evita que o texto empurre o layout */
+    flex-grow: 1;
+}
+
+.mural-link-preview .link-preview-title {
+    font-weight: bold;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+}
+
+.mural-link-preview .link-preview-description,
+.mural-link-preview .link-preview-url {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+}
+
+/* --- SKELETON LOADER PARA PRÉ-VISUALIZAÇÃO DE LINK --- */
+.mural-link-preview-skeleton {
+    margin-top: 1rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-surface-1);
+    display: flex;
+    animation: link-preview-fade-in 0.4s ease-out forwards;
+}
+
+.mural-link-preview-skeleton .skeleton-image {
+    width: 120px;
+    height: 120px;
+    /* Altura fixa para o skeleton */
+    flex-shrink: 0;
+}
+
+.mural-link-preview-skeleton .skeleton-info {
+    padding: 12px 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex-grow: 1;
+    gap: 10px;
+    /* Espaço entre as linhas do skeleton */
+}
+
+.mural-link-preview-skeleton .skeleton-line {
+    height: 16px;
+    border-radius: 4px;
+}
+
+.mural-link-preview-skeleton .skeleton-line.title {
+    width: 70%;
+}
+
+.mural-link-preview-skeleton .skeleton-line.desc {
+    width: 90%;
+}
+
 
 /* --- MODAL DE CONFIRMAÇÃO --- */
 .confirmation-modal-overlay {
