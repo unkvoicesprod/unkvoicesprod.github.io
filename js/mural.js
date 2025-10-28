@@ -525,11 +525,19 @@ function startMuralScript() {
 
         if (!firstLink) return;
 
+        // 1. Evitar pré-visualização para links diretos de imagem
+        const imageRegex = /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i;
+        if (imageRegex.test(firstLink)) {
+            return; // Não faz nada se for um link de imagem
+        }
+
         // 1. Inserir o Skeleton Loader imediatamente
         const skeletonId = `skeleton-${postElement.dataset.id}`;
         const skeletonHTML = `
             <div id="${skeletonId}" class="mural-link-preview-skeleton">
-                <div class="skeleton skeleton-image"></div>
+                <div class="skeleton-image-wrapper">
+                    <div class="skeleton skeleton-image"></div>
+                </div>
                 <div class="skeleton-info">
                     <div class="skeleton skeleton-line title"></div>
                     <div class="skeleton skeleton-line desc"></div>
@@ -550,29 +558,35 @@ function startMuralScript() {
             // 3a. Sucesso: Montar a pré-visualização completa
             const domain = new URL(metadata.url).hostname;
             finalPreviewHTML = `
-                <a href="${metadata.url}" target="_blank" rel="noopener noreferrer" class="mural-link-preview">
-                    <div class="mural-link-preview-content">
-                        ${metadata.image ? `<img src="${metadata.image}" alt="Pré-visualização de ${metadata.title}" class="link-preview-image">` : ''}
+                <div class="mural-link-preview">
+                    <button class="mural-remove-preview-btn" data-post-id="${postElement.dataset.id}" title="Remover pré-visualização">&times;</button>
+                    <a href="${metadata.url}" target="_blank" rel="noopener noreferrer" class="mural-link-preview-content">
+                        ${metadata.image
+                    ? `<img src="${metadata.image}" alt="Pré-visualização de ${metadata.title}" class="link-preview-image">`
+                    : `<div class="link-preview-no-image"><i class="fa-solid fa-link"></i></div>`
+                }
                         <div class="link-preview-info">
                             <div class="link-preview-title">${escapeHTML(metadata.title)}</div>
                             <div class="link-preview-description">${escapeHTML(metadata.description)}</div>
                             <div class="link-preview-url">${escapeHTML(domain)}</div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </div>
             `;
         } else {
             // 3b. Falha: Montar a pré-visualização de fallback (genérica)
             const domain = new URL(firstLink).hostname;
             finalPreviewHTML = `
-                <a href="${firstLink}" target="_blank" rel="noopener noreferrer" class="mural-link-preview">
-                    <div class="mural-link-preview-content">
+                <div class="mural-link-preview">
+                    <button class="mural-remove-preview-btn" data-post-id="${postElement.dataset.id}" title="Remover pré-visualização">&times;</button>
+                    <a href="${firstLink}" target="_blank" rel="noopener noreferrer" class="mural-link-preview-content">
+                        <div class="link-preview-no-image"><i class="fa-solid fa-link"></i></div>
                         <div class="link-preview-info">
                             <div class="link-preview-title">${escapeHTML(firstLink)}</div>
                             <div class="link-preview-url">${escapeHTML(domain)}</div>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </div>
             `;
         }
 
@@ -654,6 +668,7 @@ function startMuralScript() {
         const voteBtn = target.closest('.mural-vote-btn');
         const reportBtn = target.closest('.mural-report-btn');
         const copyBtn = target.closest('.mural-copy-btn'); // Novo
+        const removePreviewBtn = target.closest('.mural-remove-preview-btn');
 
         if (deleteBtn) handleDeleteClick(event);
         if (editBtn) handleEditClick(event);
@@ -663,6 +678,23 @@ function startMuralScript() {
         if (voteBtn) handleVoteClick(event);
         if (reportBtn) handleReportClick(event);
         if (copyBtn) handleCopyClick(event); // Novo
+        if (removePreviewBtn) handleRemovePreviewClick(event);
+    }
+
+    /**
+     * Remove a pré-visualização de um link de um post.
+     * @param {Event} event O evento de clique.
+     */
+    async function handleRemovePreviewClick(event) {
+        const removeBtn = event.target;
+        const postId = removeBtn.dataset.postId;
+        if (!postId) return;
+
+        removeBtn.disabled = true; // Desativa para evitar cliques múltiplos
+
+        const postRef = doc(db, 'mural_mensagens', postId);
+        try { await updateDoc(postRef, { linkPreview: null }); }
+        catch (error) { console.error("Erro ao remover pré-visualização:", error); }
     }
 
     function handleCopyClick(event) {
@@ -822,10 +854,17 @@ function startMuralScript() {
 
         if (newMessage) {
             const postRef = doc(db, 'mural_mensagens', postId);
+            const saveButton = postElement.querySelector('.mural-save-btn');
+            saveButton.disabled = true;
+            saveButton.textContent = 'A guardar...';
+
             try {
-                await updateDoc(postRef, { mensagem: newMessage });
-                // Força a atualização da UI localmente para uma resposta visual imediata.
-                handleCancelClick(event, newMessage);
+                // 2. Reavalia o link ao editar
+                const newLinkPreview = await getLinkPreview(newMessage);
+                await updateDoc(postRef, {
+                    mensagem: newMessage,
+                    linkPreview: newLinkPreview // Atualiza ou remove a pré-visualização
+                });
             } catch (error) { console.error("Erro ao guardar a edição:", error); }
         }
     }

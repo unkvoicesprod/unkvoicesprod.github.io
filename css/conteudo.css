@@ -1161,6 +1161,8 @@
     /* Garante que o 'a' se comporte como bloco */
     text-decoration: none;
     animation: link-preview-fade-in 0.4s ease-out forwards;
+    position: relative;
+    /* Necessário para posicionar o botão de remover */
 }
 
 .mural-link-preview:hover {
@@ -1171,6 +1173,45 @@
 .mural-link-preview-content {
     display: flex;
     align-items: stretch;
+}
+
+/* --- Ícone genérico para pré-visualização sem imagem --- */
+.mural-link-preview .link-preview-no-image {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-surface-2);
+    color: var(--color-text-secondary);
+    font-size: 2rem;
+}
+
+/* --- Botão para remover a pré-visualização --- */
+.mural-remove-preview-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    color: var(--color-white);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    line-height: 1;
+    z-index: 2;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.mural-remove-preview-btn:hover {
+    background: var(--color-accent-pink);
+    transform: scale(1.1);
 }
 
 .mural-link-preview .link-preview-image {
@@ -1222,11 +1263,17 @@
     animation: link-preview-fade-in 0.4s ease-out forwards;
 }
 
-.mural-link-preview-skeleton .skeleton-image {
+.mural-link-preview-skeleton .skeleton-image-wrapper {
     width: 120px;
     height: 120px;
     /* Altura fixa para o skeleton */
     flex-shrink: 0;
+    display: flex;
+}
+
+.mural-link-preview-skeleton .skeleton-image {
+    width: 100%;
+    height: 100%;
 }
 
 .mural-link-preview-skeleton .skeleton-info {
