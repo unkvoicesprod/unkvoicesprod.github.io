@@ -6,6 +6,7 @@ function startMuralScript() {
     const postsContainer = document.getElementById('mural-posts-container');
     const mensagemInput = document.getElementById('mural-mensagem');
     const nomeInput = document.getElementById('mural-nome');
+    const sortControlsContainer = document.getElementById('mural-sort-controls');
     const charCounter = document.getElementById('mural-char-counter');
 
     if (!form || !postsContainer) {
@@ -47,6 +48,7 @@ function startMuralScript() {
 
     let currentPage = 1;
     const postsPerPage = 10;
+    let currentSortOrder = 'recent'; // 'recent' ou 'popular'
 
     const muralCollection = collection(db, 'mural_mensagens');
 
@@ -189,6 +191,13 @@ function startMuralScript() {
         });
     }
 
+    // --- Lógica de Ordenação ---
+    sortControlsContainer.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            currentSortOrder = e.target.dataset.sort;
+            renderAllPosts(); // Re-renderiza os posts com a nova ordem
+        }
+    });
     async function handleDeleteClick(event) {
         const postElement = event.target.closest('.mural-post');
         const postId = postElement.dataset.id;
@@ -225,10 +234,19 @@ function startMuralScript() {
     function renderAllPosts() {
         postsContainer.innerHTML = ''; // Limpa o container
 
-        const postsArray = Array.from(allPosts.values())
-            .filter(p => !p.parentId) // Filtra apenas os posts principais
-            .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        // Atualiza a classe 'active' nos botões de ordenação
+        sortControlsContainer.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.sort === currentSortOrder);
+        });
 
+        let postsArray = Array.from(allPosts.values()).filter(p => !p.parentId);
+
+        // Aplica a ordenação
+        if (currentSortOrder === 'popular') {
+            postsArray.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+        } else { // 'recent' é o padrão
+            postsArray.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+        }
         // Mapeia todos os posts (incluindo respostas) para construir a árvore
         const postMap = new Map(postsArray.map(p => [p.id, { ...p, children: [] }]));
 

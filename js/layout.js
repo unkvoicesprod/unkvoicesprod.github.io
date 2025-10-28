@@ -38,17 +38,30 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
+    let lastScrollY = 0; // Mover a variável para fora da função para que não seja reiniciada
+
     // Função para controlar a aparência do header ao rolar
     const handleHeaderScroll = () => {
         const header = document.querySelector('header');
         if (!header) return;
 
         window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+
             if (window.scrollY > 50) { // Adiciona a classe após rolar 50px
                 header.classList.add('scrolled');
             } else {
                 header.classList.remove('scrolled');
             }
+
+            // Lógica para esconder/mostrar a navbar
+            if (currentScrollY > lastScrollY && currentScrollY > 50) { // Rolando para baixo
+                header.classList.add('hidden');
+            } else { // Rolando para cima
+                header.classList.remove('hidden');
+            }
+
+            lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; // Atualiza a última posição
         });
     };
 

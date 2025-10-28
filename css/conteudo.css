@@ -627,6 +627,41 @@
     color: var(--color-text-on-accent);
 }
 
+/* --- Controlos de Ordenação do Mural --- */
+.mural-sort-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+    padding: 10px;
+    background: var(--color-surface-1);
+    border-radius: 25px;
+    border: 1px solid var(--glass-border);
+}
+
+.mural-sort-controls .sort-label {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin-right: 5px;
+}
+
+.mural-sort-controls .sort-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.mural-sort-controls .sort-btn.active {
+    background: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+}
+
 .mural-auth-status {
     background: var(--color-surface-1);
     padding: 1rem;

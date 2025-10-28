@@ -25,6 +25,7 @@ function startContentScript() {
         filtroGenero: document.getElementById("filtro-genero"),
         filtroCategoria: document.getElementById("filtro-categoria"),
         filtroAno: document.getElementById("filtro-ano"),
+        filtroOrdem: document.getElementById("filtro-ordem"), // Novo filtro de ordem
         filtersContainer: document.querySelector(".filters"),
         toggleFiltersBtn: document.getElementById("toggle-filters-btn"),
         paginationContainer: document.getElementById("pagination-container"),
@@ -396,6 +397,7 @@ function startContentScript() {
                 genero: elements.filtroGenero.value,
                 categoria: elements.filtroCategoria.value,
                 ano: elements.filtroAno.value,
+                ordem: elements.filtroOrdem ? elements.filtroOrdem.value : 'recent', // Obtém o valor da ordem, com fallback
             };
 
             const filtered = filterContent(searchTerm, selected);
@@ -410,7 +412,7 @@ function startContentScript() {
         }, cards.length > 0 ? animationDuration : 0); // Se não houver cards, executa imediatamente
     }
 
-    function filterContent(searchTerm, selected) {
+    function filterContent(searchTerm, selected, sortOrder) {
         return allContent.filter(item => {
             if (!itemMatchesPageConfig(item)) return false;
 
@@ -425,6 +427,20 @@ function startContentScript() {
                 (selected.ano === "" || item.ano.toString() === selected.ano);
 
             return matchesSearch && matchesFilters;
+        }).sort((a, b) => {
+            // Aplica a ordenação após a filtragem
+            switch (selected.ordem) {
+                case 'popular':
+                    // Ordena por mais likes, decrescente
+                    return (likeCounts[b.id] || 0) - (likeCounts[a.id] || 0);
+                case 'recent':
+                    // Ordena por ano, decrescente
+                    return (b.ano || 0) - (a.ano || 0);
+                case 'title_asc':
+                    return a.titulo.localeCompare(b.titulo);
+                default:
+                    return 0; // Ordem padrão (do JSON ou aleatória)
+            }
         });
     }
 
@@ -552,6 +568,7 @@ function startContentScript() {
             genero: elements.filtroGenero.value,
             categoria: elements.filtroCategoria.value,
             ano: elements.filtroAno.value,
+            ordem: elements.filtroOrdem ? elements.filtroOrdem.value : 'recent',
         };
 
         for (const [key, value] of Object.entries(selected)) {

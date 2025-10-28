@@ -81,7 +81,13 @@ header {
     padding: 1rem 2rem;
     border-bottom: 1px solid transparent;
     /* Começa sem borda */
-    transition: background-color 0.4s ease, padding 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease;
+    transition: background-color 0.4s ease, padding 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease, transform 0.4s ease;
+}
+
+/* Estilo para esconder a navbar */
+header.hidden {
+    transform: translateY(-100%);
+    /* Move a navbar para cima, fora da vista */
 }
 
 header.scrolled {
@@ -143,9 +149,11 @@ header.scrolled {
 /* ================= MEDIA QUERIES PARA RESPONSIVIDADE ================= */
 
 @media (max-width: 768px) {
+
     /* --- GERAL --- */
     body {
-        font-size: 95%; /* Reduz ligeiramente o tamanho da fonte base */
+        font-size: 95%;
+        /* Reduz ligeiramente o tamanho da fonte base */
     }
 
     /* --- CABEÇALHO --- */
@@ -167,6 +175,7 @@ header.scrolled {
     .hero {
         padding: 3rem 1rem;
     }
+
     .hero h1 {
         font-size: 2rem;
     }
