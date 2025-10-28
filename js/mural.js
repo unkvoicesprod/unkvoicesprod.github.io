@@ -68,14 +68,17 @@ function startMuralScript() {
         }
 
         // Desativa o botão para evitar submissões múltiplas
+        // e inicia a animação de progresso
         submitButton.disabled = true;
         submitButton.textContent = 'A enviar...';
+        submitButton.classList.add('is-submitting');
+
+        // A animação de preenchimento tem 2s. Vamos garantir que o processo
+        // pareça demorar pelo menos isso para a animação ser visível.
+        const animationPromise = new Promise(resolve => setTimeout(resolve, 2000));
 
         try {
-            // 1. Obter a localização do utilizador (pode ser null)
             const location = await getUserLocation();
-
-            // 2. Tentar obter a pré-visualização do link, se houver
             const linkPreview = await getLinkPreview(mensagem);
 
             const postData = {
@@ -88,38 +91,52 @@ function startMuralScript() {
                 votes: {} // Para rastrear quem votou
             };
 
-            // Se for uma resposta, adiciona o parentId
             if (parentId) {
                 postData.parentId = parentId;
             }
-
-            // 3. Adicionar a localização ao postData se ela foi obtida
             if (location) {
                 postData.location = location;
             }
-
-            // 4. Adicionar a pré-visualização do link se ela foi obtida
             if (linkPreview) {
                 postData.linkPreview = linkPreview;
             }
 
-            // Guarda o nome do utilizador para futuras visitas
             localStorage.setItem('muralUserName', nome);
 
-            // Adiciona o documento ao Firestore
-            await addDoc(muralCollection, postData);
+            // Espera que o envio para o Firestore e a animação mínima terminem.
+            await Promise.all([
+                addDoc(muralCollection, postData),
+                animationPromise
+            ]);
+
+            // Sucesso
+            submitButton.classList.remove('is-submitting');
+            submitButton.classList.add('is-success');
+            submitButton.textContent = 'Enviado!';
+            showToastNotification('Mensagem enviada com sucesso!', 'success');
 
             form.reset();
             if (parentId) cancelReply(); // Limpa o estado de resposta do formulário
 
         } catch (error) {
             console.error("Erro ao adicionar mensagem: ", error);
-            showNotification('Ocorreu um erro ao enviar a sua mensagem. Tente novamente.', 'error');
+            // Erro
+            submitButton.classList.remove('is-submitting');
+            submitButton.classList.add('is-error');
+            submitButton.textContent = 'Erro!';
+            showToastNotification('Falha ao enviar a mensagem.', 'error');
         } finally {
-            // Reativa o botão
-            submitButton.disabled = false;
-            submitButton.textContent = 'Submeter Mensagem';
-            charCounter.textContent = `0 / ${mensagemInput.maxLength}`;
+            // Reativa o botão após um tempo para o utilizador ver o resultado
+            setTimeout(() => {
+                submitButton.disabled = false;
+                submitButton.classList.remove('is-success', 'is-error');
+                if (form.dataset.parentId) {
+                    submitButton.textContent = 'Submeter Resposta';
+                } else {
+                    submitButton.textContent = 'Submeter Mensagem';
+                }
+                charCounter.textContent = `0 / ${mensagemInput.maxLength}`;
+            }, 3000); // 3 segundos para mostrar o estado de sucesso/erro
         }
     });
 
@@ -922,22 +939,30 @@ function startMuralScript() {
     }
 
     /**
-     * Mostra uma notificação simples na tela.
+     * Mostra uma notificação "toast" global no topo da página.
      * @param {string} message A mensagem a ser exibida.
      * @param {string} type 'success' ou 'error'.
      */
-    function showNotification(message, type = 'success') {
-        const alertPlaceholder = document.getElementById('alert-placeholder');
-        if (!alertPlaceholder) return;
+    function showToastNotification(message, type = 'success') {
+        // Remove qualquer toast existente para evitar sobreposição
+        document.getElementById('toast-notification')?.remove();
 
         const notification = document.createElement('div');
-        notification.className = `custom-alert ${type}`;
+        notification.id = 'toast-notification';
+        notification.className = type; // 'success' ou 'error'
         notification.textContent = message;
+        document.body.appendChild(notification);
 
-        alertPlaceholder.appendChild(notification);
+        // Adiciona a classe para a animação de entrada
+        requestAnimationFrame(() => notification.classList.add('show'));
 
-        // Remove a notificação após 3 segundos
-        setTimeout(() => notification.remove(), 3000);
+        // Agenda a remoção da notificação
+        setTimeout(() => {
+            notification.classList.remove('show');
+            notification.classList.add('hide');
+            // Remove o elemento do DOM após a animação de saída
+            notification.addEventListener('animationend', () => notification.remove());
+        }, 4000); // O toast fica visível por 4 segundos
     }
 
     /**

@@ -674,6 +674,53 @@
     max-width: 250px;
 }
 
+/* --- ESTILOS DO BOTÃO DE SUBMISSÃO DO MURAL COM PROGRESSO --- */
+.mural-form button[type="submit"] {
+    position: relative;
+    overflow: hidden;
+    transition: background-color 0.4s ease, color 0.4s ease;
+    z-index: 1;
+}
+
+/* Pseudo-elemento para a barra de progresso */
+.mural-form button[type="submit"]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background-color: var(--color-accent-green);
+    transition: width 2s cubic-bezier(0.25, 1, 0.5, 1);
+    /* Animação de preenchimento */
+    z-index: -1;
+}
+
+/* Estado de envio: ativa a animação de preenchimento */
+.mural-form button[type="submit"].is-submitting::before {
+    width: 100%;
+}
+
+/* Estado de sucesso: botão fica verde */
+.mural-form button[type="submit"].is-success {
+    background-color: var(--color-accent-green);
+    color: var(--color-text-on-accent);
+    border-color: var(--color-accent-green);
+}
+
+/* Estado de erro: botão fica vermelho */
+.mural-form button[type="submit"].is-error {
+    background-color: var(--color-accent-pink);
+    color: var(--color-white);
+    border-color: var(--color-accent-pink);
+}
+
+/* Garante que a animação de preenchimento não ocorra nos estados finais */
+.mural-form button[type="submit"].is-success::before,
+.mural-form button[type="submit"].is-error::before {
+    width: 0;
+}
+
 .textarea-wrapper {
     position: relative;
     width: 100%;
@@ -1423,6 +1470,67 @@
     to {
         opacity: 1;
         transform: translate(-50%, -50);
+    }
+}
+
+/* --- NOTIFICAÇÃO TOAST GLOBAL --- */
+#toast-notification {
+    position: fixed;
+    top: 80px;
+    /* Abaixo do header */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 14px 24px;
+    border-radius: 12px;
+    color: var(--color-white);
+    font-weight: bold;
+    z-index: 2000;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+}
+
+#toast-notification.show {
+    animation: toast-slide-in 0.5s ease-out forwards;
+}
+
+#toast-notification.hide {
+    animation: toast-fade-out 0.5s ease-in forwards;
+}
+
+#toast-notification.success {
+    background-color: var(--color-accent-green);
+}
+
+#toast-notification.error {
+    background-color: var(--color-accent-pink);
+}
+
+@keyframes toast-slide-in {
+    from {
+        opacity: 0;
+        visibility: hidden;
+        transform: translate(-50%, -20px);
+    }
+
+    to {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%);
+    }
+}
+
+@keyframes toast-fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+        visibility: hidden;
     }
 }
 
