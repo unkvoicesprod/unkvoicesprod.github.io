@@ -288,7 +288,10 @@ function startMuralScript() {
     }
 
     function renderAllPosts() {
-        postsContainer.innerHTML = ''; // Limpa o container
+        // Limpa o container apenas se for a primeira página
+        if (currentPage === 1) {
+            postsContainer.innerHTML = '';
+        }
 
         // Atualiza a classe 'active' nos botões de ordenação
         sortControlsContainer.querySelectorAll('.sort-btn').forEach(btn => {
@@ -315,10 +318,13 @@ function startMuralScript() {
             }
         });
 
-        // Paginação
-        const paginatedRootPosts = rootPosts.slice((currentPage - 1) * postsPerPage, currentPage * postsPerPage);
+        // Fatiar os posts para a página atual
+        const startIndex = (currentPage - 1) * postsPerPage;
+        const endIndex = startIndex + postsPerPage;
+        const paginatedRootPosts = rootPosts.slice(startIndex, endIndex);
 
         const fragment = document.createDocumentFragment();
+
         paginatedRootPosts.forEach(post => {
             const postElement = createPostElement(post);
             fragment.appendChild(postElement);
@@ -350,51 +356,49 @@ function startMuralScript() {
         postsContainer.appendChild(fragment);
 
         // Renderiza os botões de paginação
-        renderPagination(rootPosts.length);
+        setupLoadMoreButton(rootPosts.length);
 
         // Mostra a mensagem de "mural vazio" se não houver posts
-        if (postsContainer.children.length === 0) {
+        if (postsContainer.children.length === 0 && currentPage === 1) {
             postsContainer.innerHTML = '<p class="mural-empty">Ainda ninguém deixou uma mensagem. Sê o primeiro!</p>';
         }
 
         // Garante que o event listener está sempre ativo
         postsContainer.removeEventListener('click', handlePostControlsClick);
         postsContainer.addEventListener('click', handlePostControlsClick);
+
+        // Anima os novos posts que foram carregados
+        const newPosts = Array.from(fragment.children);
+        newPosts.forEach((post, index) => {
+            setTimeout(() => post.classList.add('post-fade-in-animation'), index * 100);
+        });
     }
 
-    function renderPagination(totalPosts) {
+    function setupLoadMoreButton(totalPosts) {
         const pageCount = Math.ceil(totalPosts / postsPerPage);
-        const paginationContainer = document.getElementById('mural-pagination') || document.createElement('div');
-        paginationContainer.id = 'mural-pagination';
-        paginationContainer.className = 'pagination mural-pagination';
-        paginationContainer.innerHTML = '';
+        let loadMoreBtn = document.getElementById('mural-load-more-btn');
 
-        if (pageCount <= 1) {
-            // Se o container de paginação já existe no DOM, remove-o
-            if (paginationContainer.parentNode) {
-                paginationContainer.parentNode.removeChild(paginationContainer);
-            }
+        // Remove o botão se não houver mais páginas
+        if (pageCount <= currentPage) {
+            loadMoreBtn?.remove();
             return;
         }
 
-        for (let i = 1; i <= pageCount; i++) {
-            const btn = document.createElement('button');
-            btn.innerText = i;
-            btn.dataset.page = i;
-            if (i === currentPage) {
-                btn.classList.add('active');
-            }
-            btn.addEventListener('click', () => {
-                currentPage = i;
+        // Cria o botão se ele não existir
+        if (!loadMoreBtn) {
+            loadMoreBtn = document.createElement('button');
+            loadMoreBtn.id = 'mural-load-more-btn';
+            loadMoreBtn.className = 'btn load-more-btn';
+            loadMoreBtn.textContent = 'Carregar Mais Mensagens';
+            loadMoreBtn.addEventListener('click', () => {
+                currentPage++;
                 renderAllPosts();
-                // Rola para o topo do mural
-                document.getElementById('mural-section')?.scrollIntoView({ behavior: 'smooth' });
             });
-            paginationContainer.appendChild(btn);
+            // Insere o botão após o container de posts
+            postsContainer.insertAdjacentElement('afterend', loadMoreBtn);
         }
 
-        // Adiciona o container de paginação após o container de posts
-        postsContainer.insertAdjacentElement('afterend', paginationContainer);
+        loadMoreBtn.style.display = 'block';
     }
 
     // Inicia o temporizador para atualizar os contadores de edição
@@ -454,7 +458,8 @@ function startMuralScript() {
             </div>
         `;
 
-        const avatarElement = createAvatar(post.nome);
+        const avatarInfo = createAvatar(post.nome);
+        const avatarElement = avatarInfo.element;
 
         let linkPreviewHTML = '';
         if (post.linkPreview && post.linkPreview.title) {
@@ -476,7 +481,7 @@ function startMuralScript() {
             <p class="mural-post-content">${linkify(post.mensagem)}</p>
             ${linkPreviewHTML}
             <div class="mural-post-footer">
-                <div class="mural-post-author">${avatarElement.outerHTML} ${escapeHTML(post.nome)}</div>
+                <div class="mural-post-author">${avatarElement.outerHTML} <span style="color: ${avatarInfo.bgColor};">${escapeHTML(post.nome)}</span></div>
                 ${metaHTML}
                 <div class="mural-post-footer-actions">
                     ${votesHTML}
@@ -485,12 +490,15 @@ function startMuralScript() {
             </div>
         `;
 
-        // Adiciona a animação de fade-in padrão para todos os posts criados
-        postElement.classList.add('post-fade-in-animation');
-
         return postElement;
     }
 
+    /**
+     * Cria um elemento de avatar para o utilizador com as suas iniciais.
+     * Gera uma cor de fundo consistente com base no nome.
+     * @param {string} name O nome do autor do post.
+     * @returns {HTMLElement} O elemento do avatar.
+     */
     function createAvatar(name) {
         const avatar = document.createElement('div');
         avatar.className = 'mural-avatar';
@@ -499,50 +507,51 @@ function startMuralScript() {
         let initials = '';
         if (nameParts.length > 1) {
             initials = nameParts[0][0] + nameParts[nameParts.length - 1][0];
-        } else if (name.length > 0) {
-            initials = name.substring(0, 3);
+        } else if (name.length > 1) {
+            // Pega a primeira e a última letra, mesmo de uma só palavra
+            initials = name[0] + name[name.length - 1];
+        } else if (name.length === 1) {
+            // Se for apenas uma letra, usa só ela
+            initials = name[0];
         }
 
         avatar.textContent = initials.toUpperCase();
 
         // Gera uma cor de fundo aleatória e consistente baseada no nome
         const colors = [
-            // Escuros
             '#c62828', '#ad1457', '#6a1b9a', '#4527a0', '#283593', '#1565c0', '#0277bd', '#00838f', '#00695c', '#2e7d32',
-            '#558b2f', '#ef6c00', '#d84315', '#4e342e', '#424242', '#37474f',
-            // Claros
-            '#ef9a9a', '#f48fb1', '#ce93d8', '#b39ddb', '#9fa8da', '#90caf9', '#81d4fa', '#80deea', '#a5d6a7',
-            '#c5e1a5', '#e6ee9c', '#fff59d', '#ffcc80', '#ffab91', '#bcaaa4'
+            '#558b2f', '#ef6c00', '#d84315', '#4e342e', '#424242', '#37474f'
         ];
         const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
         const bgColor = colors[charCodeSum % colors.length];
 
         avatar.style.backgroundColor = bgColor;
-        avatar.style.color = getTextColorForBg(bgColor);
+        avatar.style.color = getContrastingShade(bgColor);
 
-        return avatar;
+        return { element: avatar, bgColor: bgColor };
     }
 
     /**
-     * Determina se o texto deve ser preto ou branco com base na luminosidade da cor de fundo.
+     * Gera uma tonalidade mais clara ou mais escura de uma cor para garantir o contraste do texto.
+     * Retorna branco ou preto com base na luminosidade da cor de fundo.
      * @param {string} bgColor Cor de fundo em formato hexadecimal (ex: '#RRGGBB').
-     * @returns {string} Retorna '#000000' para fundos claros e '#FFFFFF' para fundos escuros.
+     * @returns {string} A cor '#FFFFFF' (branco) ou '#000000' (preto).
      */
-    function getTextColorForBg(bgColor) {
+    function getContrastingShade(bgColor) {
         const hex = bgColor.replace('#', '');
         const r = parseInt(hex.substring(0, 2), 16);
         const g = parseInt(hex.substring(2, 4), 16);
         const b = parseInt(hex.substring(4, 6), 16);
-
-        // Fórmula para calcular a luminosidade percebida
         const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
-        // Se a luminosidade for maior que 0.5, o fundo é considerado claro.
-        if (luminance > 0.5) {
-            return '#000000'; // Preto para fundos claros
-        } else {
-            return '#FFFFFF'; // Branco para fundos escuros
+        // Caso especial: se a cor for predominantemente azul (componente azul é o maior),
+        // e não for um azul muito claro, força a cor do texto para branco.
+        if (b > r && b > g && luminance < 0.6) {
+            return '#FFFFFF';
         }
+
+        // Retorna branco para fundos escuros e preto para fundos claros.
+        return luminance > 0.5 ? '#000000' : '#FFFFFF';
     }
 
     function handlePostControlsClick(event) {
@@ -714,7 +723,7 @@ function startMuralScript() {
         postElement.classList.remove('is-editing');
         postElement.querySelector('.mural-post-edit-form').remove();
         postElement.querySelector('.mural-post-content').style.display = 'block';
-        postElement.querySelector('.mural-post-footer').style.display = 'flex';
+        postElement.querySelector('.mural-post-footer').style.display = 'grid';
 
         // Se uma nova mensagem for passada (após salvar), atualiza o conteúdo.
         if (typeof newMessage === 'string') {

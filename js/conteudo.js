@@ -241,12 +241,14 @@ function startContentScript() {
             (!pageConfig.precoMin || item.preco >= pageConfig.precoMin)
         );
     }
-    function renderContent(list) {
+    function renderContent(list, append = false) {
         // Limpa o container antes de adicionar novos elementos
-        elements.container.innerHTML = '';
+        if (!append) {
+            elements.container.innerHTML = '';
+        }
         const fragment = document.createDocumentFragment(); // Usar um fragmento para melhor performance
 
-        if (!list.length) {
+        if (!list.length && !append) {
             elements.container.innerHTML = `
                 <div class="no-results-container">
                     <span class="icon">😕</span>
@@ -406,7 +408,7 @@ function startContentScript() {
             currentPage = 1;
 
             updateResultsCounter();
-            setupPagination();
+            setupLoadMoreButton();
             displayPage(currentPage); // A primeira exibição não precisa destacar nada
             updateURL(); // Atualiza a URL com os filtros atuais
         }, cards.length > 0 ? animationDuration : 0); // Se não houver cards, executa imediatamente
@@ -609,43 +611,42 @@ function startContentScript() {
         elements.container.querySelectorAll('.card-image-container').forEach(img => imageObserver.observe(img));
     }
 
-    function displayPage(page) {
+    function displayPage(page, append = false) {
         currentPage = page;
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
         const paginatedItems = currentFilteredContent.slice(start, end);
 
-        renderContent(paginatedItems);
+        renderContent(paginatedItems, append);
 
-        updatePaginationButtons();
+        updateLoadMoreButton();
     }
 
-    function setupPagination() {
+    function setupLoadMoreButton() {
         elements.paginationContainer.innerHTML = '';
         const pageCount = Math.ceil(currentFilteredContent.length / itemsPerPage);
 
         if (pageCount <= 1) return;
 
-        for (let i = 1; i <= pageCount; i++) {
-            const btn = document.createElement('button');
-            btn.innerText = i;
-            btn.dataset.page = i;
-            btn.addEventListener('click', (e) => {
-                const pageNum = parseInt(e.target.dataset.page, 10);
-                displayPage(pageNum);
-            });
-            elements.paginationContainer.appendChild(btn);
-        }
+        const loadMoreBtn = document.createElement('button');
+        loadMoreBtn.id = 'load-more-btn';
+        loadMoreBtn.className = 'btn load-more-btn'; // Reutilizando a classe de botão principal
+        loadMoreBtn.textContent = 'Carregar Mais';
+
+        loadMoreBtn.addEventListener('click', () => {
+            displayPage(currentPage + 1, true); // Carrega a próxima página e apensa
+        });
+
+        elements.paginationContainer.appendChild(loadMoreBtn);
+        updateLoadMoreButton();
     }
 
-    function updatePaginationButtons() {
-        const buttons = elements.paginationContainer.querySelectorAll('button');
-        buttons.forEach(button => {
-            button.classList.remove('active');
-            if (parseInt(button.dataset.page, 10) === currentPage) {
-                button.classList.add('active');
-            }
-        });
+    function updateLoadMoreButton() {
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        if (!loadMoreBtn) return;
+
+        const allItemsLoaded = (currentPage * itemsPerPage) >= currentFilteredContent.length;
+        loadMoreBtn.style.display = allItemsLoaded ? 'none' : 'block';
     }
 
     // Inicia a aplicação
