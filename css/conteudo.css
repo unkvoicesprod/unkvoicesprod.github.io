@@ -824,6 +824,26 @@
     word-wrap: break-word;
 }
 
+/* --- Avatar do Utilizador no Mural --- */
+.mural-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--color-accent-purple);
+    color: var(--color-white);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    /* Mais negrito */
+    font-size: 0.8rem;
+    margin-right: 8px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    /* Adiciona espaçamento interno para as letras não tocarem as bordas */
+    /* Sombra para melhor legibilidade */
+}
+
 /* Adiciona estilo para os links dentro do conteúdo do post */
 .mural-post-content a {
     color: var(--color-accent-green);
@@ -838,6 +858,8 @@
 .mural-post-author {
     /* margin-right: auto; */
     /* Removido para melhor alinhamento com a grid */
+    display: flex;
+    align-items: center;
     /* Empurra o autor para a esquerda */
     font-weight: bold;
 }
@@ -892,15 +914,6 @@
     justify-content: flex-end;
     gap: 1rem;
     font-size: 0.85rem;
-}
-
-.mural-post-author,
-.mural-post-date,
-.mural-post-location,
-.mural-post-views {
-    display: flex;
-    align-items: center;
-    gap: 6px;
 }
 
 .mural-post-views {
@@ -1105,6 +1118,60 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+}
+
+/* --- PRÉ-VISUALIZAÇÃO DE LINK NO MURAL --- */
+.mural-link-preview {
+    margin: 1rem 0;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-surface-1);
+    transition: background-color 0.3s ease;
+}
+
+.mural-link-preview:hover {
+    background: var(--color-surface-hover);
+}
+
+.mural-link-preview a {
+    text-decoration: none;
+    display: flex;
+    align-items: stretch;
+}
+
+.mural-link-preview .link-preview-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.mural-link-preview .link-preview-info {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    /* Evita que o texto empurre o layout */
+}
+
+.mural-link-preview .link-preview-title {
+    font-weight: bold;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mural-link-preview .link-preview-description,
+.mural-link-preview .link-preview-url {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 4px;
 }
 
 /* --- MODAL DE CONFIRMAÇÃO --- */

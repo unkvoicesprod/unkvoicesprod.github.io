@@ -75,6 +75,9 @@ function startMuralScript() {
             // 1. Obter a localização do utilizador (pode ser null)
             const location = await getUserLocation();
 
+            // 2. Tentar obter a pré-visualização do link, se houver
+            const linkPreview = await getLinkPreview(mensagem);
+
             const postData = {
                 mensagem: mensagem,
                 createdAt: serverTimestamp(), // Usa o timestamp do servidor
@@ -90,9 +93,14 @@ function startMuralScript() {
                 postData.parentId = parentId;
             }
 
-            // 2. Adicionar a localização ao postData se ela foi obtida
+            // 3. Adicionar a localização ao postData se ela foi obtida
             if (location) {
                 postData.location = location;
+            }
+
+            // 4. Adicionar a pré-visualização do link se ela foi obtida
+            if (linkPreview) {
+                postData.linkPreview = linkPreview;
             }
 
             // Guarda o nome do utilizador para futuras visitas
@@ -129,6 +137,54 @@ function startMuralScript() {
         return authorId;
     }
 
+    /**
+     * Tenta obter uma pré-visualização de um link a partir de um texto.
+     * @param {string} text O texto que pode conter um link.
+     * @returns {Promise<object|null>} Um objeto com os dados da pré-visualização ou null.
+     */
+    async function getLinkPreview(text) {
+        const urlRegex = /(https?:\/\/[^\s]+)/;
+        const match = text.match(urlRegex);
+        if (!match) return null;
+
+        const url = match[0];
+        // Usando um proxy CORS para evitar problemas de same-origin
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+
+        try {
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            const html = data.contents;
+
+            if (!html) return null;
+
+            // Usar DOMParser para analisar o HTML de forma segura
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+
+            const getMeta = (prop) => doc.querySelector(`meta[property='${prop}'], meta[name='${prop}']`)?.getAttribute('content') || null;
+
+            const preview = {
+                url: url,
+                title: getMeta('og:title') || doc.querySelector('title')?.textContent || '',
+                description: getMeta('og:description') || '',
+                image: getMeta('og:image') || null,
+            };
+
+            // Se a imagem tiver um caminho relativo, torna-a absoluta
+            if (preview.image && !preview.image.startsWith('http')) {
+                preview.image = new URL(preview.image, url).href;
+            }
+
+            // Retorna a pré-visualização apenas se tiver um título
+            if (preview.title) {
+                return preview;
+            }
+            return null;
+        } catch (error) {
+            console.error("Erro ao buscar pré-visualização do link:", error);
+            return null;
+        }
+    }
     /**
      * Tenta obter a localização do utilizador (cidade e país).
      * Requer permissão do utilizador.
@@ -398,10 +454,29 @@ function startMuralScript() {
             </div>
         `;
 
+        const avatarElement = createAvatar(post.nome);
+
+        let linkPreviewHTML = '';
+        if (post.linkPreview && post.linkPreview.title) {
+            linkPreviewHTML = `
+                <div class="mural-link-preview">
+                    <a href="${post.linkPreview.url}" target="_blank" rel="noopener noreferrer">
+                        ${post.linkPreview.image ? `<img src="${post.linkPreview.image}" alt="Pré-visualização de ${post.linkPreview.title}" class="link-preview-image">` : ''}
+                        <div class="link-preview-info">
+                            <div class="link-preview-title">${escapeHTML(post.linkPreview.title)}</div>
+                            <div class="link-preview-description">${escapeHTML(post.linkPreview.description)}</div>
+                            <div class="link-preview-url">${escapeHTML(post.linkPreview.url)}</div>
+                        </div>
+                    </a>
+                </div>
+            `;
+        }
+
         postElement.innerHTML = `
             <p class="mural-post-content">${linkify(post.mensagem)}</p>
+            ${linkPreviewHTML}
             <div class="mural-post-footer">
-                <div class="mural-post-author"><i class="fa-solid fa-user-pen"></i> ${escapeHTML(post.nome)}</div>
+                <div class="mural-post-author">${avatarElement.outerHTML} ${escapeHTML(post.nome)}</div>
                 ${metaHTML}
                 <div class="mural-post-footer-actions">
                     ${votesHTML}
@@ -414,6 +489,60 @@ function startMuralScript() {
         postElement.classList.add('post-fade-in-animation');
 
         return postElement;
+    }
+
+    function createAvatar(name) {
+        const avatar = document.createElement('div');
+        avatar.className = 'mural-avatar';
+
+        const nameParts = name.trim().split(/\s+/);
+        let initials = '';
+        if (nameParts.length > 1) {
+            initials = nameParts[0][0] + nameParts[nameParts.length - 1][0];
+        } else if (name.length > 0) {
+            initials = name.substring(0, 3);
+        }
+
+        avatar.textContent = initials.toUpperCase();
+
+        // Gera uma cor de fundo aleatória e consistente baseada no nome
+        const colors = [
+            // Escuros
+            '#c62828', '#ad1457', '#6a1b9a', '#4527a0', '#283593', '#1565c0', '#0277bd', '#00838f', '#00695c', '#2e7d32',
+            '#558b2f', '#ef6c00', '#d84315', '#4e342e', '#424242', '#37474f',
+            // Claros
+            '#ef9a9a', '#f48fb1', '#ce93d8', '#b39ddb', '#9fa8da', '#90caf9', '#81d4fa', '#80deea', '#a5d6a7',
+            '#c5e1a5', '#e6ee9c', '#fff59d', '#ffcc80', '#ffab91', '#bcaaa4'
+        ];
+        const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const bgColor = colors[charCodeSum % colors.length];
+
+        avatar.style.backgroundColor = bgColor;
+        avatar.style.color = getTextColorForBg(bgColor);
+
+        return avatar;
+    }
+
+    /**
+     * Determina se o texto deve ser preto ou branco com base na luminosidade da cor de fundo.
+     * @param {string} bgColor Cor de fundo em formato hexadecimal (ex: '#RRGGBB').
+     * @returns {string} Retorna '#000000' para fundos claros e '#FFFFFF' para fundos escuros.
+     */
+    function getTextColorForBg(bgColor) {
+        const hex = bgColor.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        // Fórmula para calcular a luminosidade percebida
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+        // Se a luminosidade for maior que 0.5, o fundo é considerado claro.
+        if (luminance > 0.5) {
+            return '#000000'; // Preto para fundos claros
+        } else {
+            return '#FFFFFF'; // Branco para fundos escuros
+        }
     }
 
     function handlePostControlsClick(event) {
