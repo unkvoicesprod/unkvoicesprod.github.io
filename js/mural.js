@@ -405,11 +405,12 @@ function startMuralScript() {
     startEditTimers();
 
     function createPostElement(post) {
-        const postElement = document.createElement('div');
+        const postElement = document.createElement('article'); // 1. Melhoria de Acessibilidade: Usar <article>
         postElement.className = 'mural-post';
+        postElement.setAttribute('aria-labelledby', `post-author-${post.id}`); // 2. Acessibilidade: Associa o post ao autor
         postElement.dataset.id = post.id;
 
-        const dataFormatada = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString('pt-PT') : 'agora mesmo';
+        const dataFormatada = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' }) : 'agora mesmo';
 
         // Guarda o timestamp para o contador de edição
         if (post.createdAt) {
@@ -431,30 +432,31 @@ function startMuralScript() {
         let controlsHTML = '';
 
         if (canEdit) {
-            controlsHTML += `<button class="mural-edit-btn" title="Editar mensagem"><i class="fa-solid fa-pencil"></i> Editar<span class="edit-timer"></span></button>`;
-            controlsHTML += `<button class="mural-delete-btn" title="Apagar mensagem (disponível por ${EDIT_WINDOW_MINUTES} min)"><i class="fa-solid fa-trash-can"></i> Apagar</button>`;
+            controlsHTML += `<button class="mural-edit-btn" title="Editar mensagem" aria-label="Editar mensagem"><i class="fa-solid fa-pencil" aria-hidden="true"></i> Editar<span class="edit-timer"></span></button>`;
+            controlsHTML += `<button class="mural-delete-btn" title="Apagar mensagem" aria-label="Apagar mensagem"><i class="fa-solid fa-trash-can" aria-hidden="true"></i> Apagar</button>`;
         }
         if (canReply) {
-            controlsHTML += `<button class="mural-reply-btn" title="Responder a esta mensagem"><i class="fa-solid fa-reply"></i> Responder</button>`;
+            controlsHTML += `<button class="mural-reply-btn" title="Responder a esta mensagem" aria-label="Responder a esta mensagem"><i class="fa-solid fa-reply" aria-hidden="true"></i> Responder</button>`;
         }
-        controlsHTML += `<button class="mural-report-btn" title="Reportar mensagem" ${hasReported ? 'disabled' : ''}><i class="fa-solid fa-flag"></i> ${hasReported ? 'Reportado' : 'Reportar'}</button>`;
+        controlsHTML += `<button class="mural-copy-btn" title="Copiar texto da mensagem" aria-label="Copiar texto da mensagem"><i class="fa-solid fa-copy" aria-hidden="true"></i> Copiar</button>`;
+        controlsHTML += `<button class="mural-report-btn" title="Reportar mensagem" aria-label="Reportar mensagem como inapropriada" ${hasReported ? 'disabled' : ''}><i class="fa-solid fa-flag" aria-hidden="true"></i> ${hasReported ? 'Reportado' : 'Reportar'}</button>`;
 
 
         const votesHTML = `
             <div class="mural-post-votes">
-                <button class="mural-vote-btn like-btn ${isLiked ? 'active' : ''}" data-vote="like" title="Gostei">
-                    <i class="fa-solid fa-thumbs-up"></i> <span>${post.likes || 0}</span>
+                <button class="mural-vote-btn like-btn ${isLiked ? 'active' : ''}" data-vote="like" title="Gostei" aria-label="Gostar do post. Atualmente com ${post.likes || 0} gostos.">
+                    <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>${post.likes || 0}</span>
                 </button>
-                <button class="mural-vote-btn dislike-btn ${isDisliked ? 'active' : ''}" data-vote="dislike" title="Não gostei">
-                    <i class="fa-solid fa-thumbs-down"></i> <span>${post.dislikes || 0}</span>
+                <button class="mural-vote-btn dislike-btn ${isDisliked ? 'active' : ''}" data-vote="dislike" title="Não gostei" aria-label="Não gostar do post. Atualmente com ${post.dislikes || 0} não gostos.">
+                    <i class="fa-solid fa-thumbs-down" aria-hidden="true"></i> <span>${post.dislikes || 0}</span>
                 </button>
             </div>
         `;
 
         const metaHTML = `
             <div class="mural-post-meta">
-                ${post.location ? `<span class="mural-post-location" title="Localização (aproximada)"><i class="fa-solid fa-location-dot"></i> ${escapeHTML(post.location)}</span>` : ''}
-                <span class="mural-post-date" title="${post.createdAt ? post.createdAt.toDate().toLocaleString('pt-PT') : ''}"><i class="fa-regular fa-calendar-days"></i> ${dataFormatada}</span>
+                ${post.location ? `<span class="mural-post-location" title="Localização (aproximada)"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${escapeHTML(post.location)}</span>` : ''}
+                <span class="mural-post-date" title="${post.createdAt ? post.createdAt.toDate().toLocaleString('pt-PT') : ''}"><i class="fa-regular fa-calendar-days" aria-hidden="true"></i> ${dataFormatada}</span>
             </div>
         `;
 
@@ -481,7 +483,7 @@ function startMuralScript() {
             <p class="mural-post-content">${linkify(post.mensagem)}</p>
             ${linkPreviewHTML}
             <div class="mural-post-footer">
-                <div class="mural-post-author">${avatarElement.outerHTML} <span style="color: ${avatarInfo.bgColor};">${escapeHTML(post.nome)}</span></div>
+                <div class="mural-post-author" id="post-author-${post.id}">${avatarElement.outerHTML} <span style="color: ${avatarInfo.bgColor};">${escapeHTML(post.nome)}</span></div>
                 ${metaHTML}
                 <div class="mural-post-footer-actions">
                     ${votesHTML}
@@ -502,6 +504,7 @@ function startMuralScript() {
     function createAvatar(name) {
         const avatar = document.createElement('div');
         avatar.className = 'mural-avatar';
+        avatar.setAttribute('aria-hidden', 'true'); // Melhoria de Acessibilidade
 
         const nameParts = name.trim().split(/\s+/);
         let initials = '';
@@ -563,6 +566,7 @@ function startMuralScript() {
         const replyBtn = target.closest('.mural-reply-btn');
         const voteBtn = target.closest('.mural-vote-btn');
         const reportBtn = target.closest('.mural-report-btn');
+        const copyBtn = target.closest('.mural-copy-btn'); // Novo
 
         if (deleteBtn) handleDeleteClick(event);
         if (editBtn) handleEditClick(event);
@@ -571,6 +575,27 @@ function startMuralScript() {
         if (replyBtn) handleReplyClick(event);
         if (voteBtn) handleVoteClick(event);
         if (reportBtn) handleReportClick(event);
+        if (copyBtn) handleCopyClick(event); // Novo
+    }
+
+    function handleCopyClick(event) {
+        const copyBtn = event.target.closest('.mural-copy-btn');
+        const postElement = copyBtn.closest('.mural-post');
+        const contentElement = postElement.querySelector('.mural-post-content');
+        const textToCopy = contentElement.innerText;
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i> Copiado!`;
+            copyBtn.disabled = true;
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHTML;
+                copyBtn.disabled = false;
+            }, 2000);
+        }).catch(err => {
+            console.error('Falha ao copiar texto: ', err);
+            showNotification('Não foi possível copiar o texto.', 'error');
+        });
     }
 
     async function handleVoteClick(event) {
@@ -910,9 +935,10 @@ function escapeHTML(str) {
 function linkify(text) {
     if (!text) return '';
     const escapedText = escapeHTML(text);
+    const textWithBreaks = escapedText.replace(/\n/g, '<br>');
     const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])|(\bwww\.[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
 
-    return escapedText.replace(urlRegex, function (url) {
+    return textWithBreaks.replace(urlRegex, function (url) {
         const fullUrl = url.startsWith('www.') ? 'http://' + url : url;
         return `<a href="${fullUrl}" target="_blank" rel="noopener noreferrer">${url}</a>`;
     });

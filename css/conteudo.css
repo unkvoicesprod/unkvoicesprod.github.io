@@ -965,7 +965,8 @@
 .mural-edit-btn,
 .mural-reply-btn,
 .mural-admin-delete-btn,
-.mural-report-btn {
+.mural-report-btn,
+.mural-copy-btn {
     background: transparent;
     border: 1px solid var(--glass-border);
     color: var(--color-text-secondary);
@@ -983,7 +984,8 @@
 .mural-edit-btn:hover,
 .mural-reply-btn:hover,
 .mural-admin-delete-btn:hover,
-.mural-report-btn:hover {
+.mural-report-btn:hover,
+.mural-copy-btn:hover {
     background: var(--color-surface-hover);
     color: var(--color-white);
 }
@@ -1006,6 +1008,11 @@
 }
 
 .mural-reply-btn:hover {
+    color: var(--color-accent-purple);
+    border-color: var(--color-accent-purple);
+}
+
+.mural-copy-btn:hover {
     color: var(--color-accent-purple);
     border-color: var(--color-accent-purple);
 }
