@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
             loadComponent("header-placeholder", "data/header.html"),
             loadComponent("footer-placeholder", "data/footer.html"),
             loadComponent("alert-placeholder", "data/alert.html"),
-            loadComponent("mural-placeholder", "data/mural.html") // Adicionado
+            loadComponent("mural-placeholder", "data/mural.html") // Carrega apenas se o placeholder existir
         ]);
         // Dispara um evento global quando tudo estiver carregado
         document.dispatchEvent(new Event('componentsLoaded'));

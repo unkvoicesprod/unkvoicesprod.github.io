@@ -335,10 +335,18 @@
 
 @media (max-width: 768px) {
     .grid-dynamic {
-        /* Em telas menores, usamos uma coluna para melhor legibilidade */
         grid-template-columns: 1fr;
         padding: 1rem;
         gap: 1.5rem;
+    }
+
+    .mural-section {
+        margin: 2rem auto;
+        padding: 1rem;
+    }
+
+    .mural-post {
+        padding: 1rem;
     }
 
     .mural-section {
