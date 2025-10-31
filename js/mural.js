@@ -1,5 +1,5 @@
 import { db, auth } from "./firebase-init.js";
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, increment, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, increment, writeBatch, getDoc, where } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 function startMuralScript() {
     const form = document.getElementById('mural-form');
