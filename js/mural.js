@@ -8,6 +8,10 @@ function startMuralScript() {
     const nomeInput = document.getElementById('mural-nome');
     const sortControlsContainer = document.getElementById('mural-sort-controls');
     const charCounter = document.getElementById('mural-char-counter');
+    const imageUploadInput = document.getElementById('mural-imagem-upload');
+    const imagePreviewContainer = document.getElementById('mural-image-preview-container');
+    const imagePreview = document.getElementById('mural-image-preview');
+    const removeImageBtn = document.getElementById('mural-remove-image-btn');
 
     if (!form || !postsContainer) {
         // Se os elementos não existem, não faz nada.
@@ -45,12 +49,76 @@ function startMuralScript() {
     let allPosts = new Map(); // Para guardar todos os posts e facilitar a construção da árvore de respostas
     let userVotes = JSON.parse(localStorage.getItem('muralUserVotes')) || {}; // Para guardar os votos do utilizador
     let userReports = JSON.parse(localStorage.getItem('muralUserReports')) || []; // Para guardar os posts reportados pelo utilizador
+    let resizedImageDataURL = null; // Para guardar a imagem redimensionada
 
     let currentPage = 1;
     const postsPerPage = 10;
     let currentSortOrder = 'recent'; // 'recent' ou 'popular'
 
     const muralCollection = collection(db, 'mural_mensagens');
+
+    // --- Lógica de Upload e Redimensionamento de Imagem ---
+    if (imageUploadInput) {
+        imageUploadInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            resizeImage(file, 500, 500, (dataUrl) => {
+                resizedImageDataURL = dataUrl;
+                imagePreview.src = dataUrl;
+                imagePreviewContainer.style.display = 'flex';
+            });
+        });
+    }
+
+    if (removeImageBtn) {
+        removeImageBtn.addEventListener('click', () => {
+            resizedImageDataURL = null;
+            imageUploadInput.value = ''; // Limpa o input de ficheiro
+            imagePreviewContainer.style.display = 'none';
+        });
+    }
+
+    /**
+     * Redimensiona uma imagem para as dimensões alvo, cortando-a para caber.
+     * @param {File} file O ficheiro da imagem.
+     * @param {number} targetWidth A largura final.
+     * @param {number} targetHeight A altura final.
+     * @param {function(string): void} callback Função chamada com o Data URL da imagem redimensionada.
+     */
+    function resizeImage(file, targetWidth, targetHeight, callback) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+                const ctx = canvas.getContext('2d');
+
+                // Calcula a proporção para preencher o canvas e depois cortar
+                const sourceAspectRatio = img.width / img.height;
+                const targetAspectRatio = targetWidth / targetHeight;
+                let sourceX = 0, sourceY = 0, sourceWidth = img.width, sourceHeight = img.height;
+
+                if (sourceAspectRatio > targetAspectRatio) { // Imagem mais larga que o alvo
+                    sourceWidth = img.height * targetAspectRatio;
+                    sourceX = (img.width - sourceWidth) / 2;
+                } else { // Imagem mais alta que o alvo
+                    sourceHeight = img.width / targetAspectRatio;
+                    sourceY = (img.height - sourceHeight) / 2;
+                }
+
+                // Desenha a imagem cortada e redimensionada no canvas
+                ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, targetWidth, targetHeight);
+
+                // Converte o canvas para um Data URL com compressão JPEG
+                callback(canvas.toDataURL('image/jpeg', 0.85)); // 85% de qualidade
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
 
     // --- Lidar com a submissão do formulário ---
     form.addEventListener('submit', async (e) => {
@@ -88,7 +156,8 @@ function startMuralScript() {
                 authorId: getOrCreateAuthorId(), // ID anónimo para o autor
                 likes: 0,
                 dislikes: 0,
-                votes: {} // Para rastrear quem votou
+                votes: {}, // Para rastrear quem votou
+                imageUrl: resizedImageDataURL // Adiciona a imagem (pode ser null)
             };
 
             if (parentId) {
@@ -117,6 +186,10 @@ function startMuralScript() {
 
             form.reset();
             if (parentId) cancelReply(); // Limpa o estado de resposta do formulário
+            // Limpa a pré-visualização da imagem
+            resizedImageDataURL = null;
+            imageUploadInput.value = '';
+            imagePreviewContainer.style.display = 'none';
 
         } catch (error) {
             console.error("Erro ao adicionar mensagem: ", error);
@@ -507,6 +580,13 @@ function startMuralScript() {
         }
 
         postElement.innerHTML = `
+            ${post.imageUrl ? `
+                <div class="mural-post-image-container">
+                    <a href="${post.imageUrl}" target="_blank" title="Ver imagem em tamanho real">
+                        <img src="${post.imageUrl}" alt="Imagem anexada por ${escapeHTML(post.nome)}" class="mural-post-image" loading="lazy">
+                    </a>
+                </div>
+            ` : ''}
             <p class="mural-post-content">${linkify(post.mensagem)}</p>
             ${linkPreviewHTML}
             <div class="mural-post-footer">

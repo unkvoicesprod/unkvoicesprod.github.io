@@ -831,6 +831,19 @@
     animation: new-post-highlight 1.5s ease-out forwards;
 }
 
+/* --- Estilos para a imagem dentro do post --- */
+.mural-post-image-container {
+    margin-bottom: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.mural-post-image {
+    max-width: 100%;
+    display: block;
+    cursor: pointer;
+}
+
 .mural-empty {
     animation: post-fade-in 0.5s ease-out forwards;
 }

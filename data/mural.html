@@ -14,6 +14,16 @@
                 <textarea id="mural-mensagem" name="mensagem" placeholder="Escreva a sua mensagem aqui..." required maxlength="800" rows="4" aria-label="Sua mensagem"></textarea>
                 <div id="mural-char-counter" class="char-counter">0 / 800</div>
             </div>
+            <div class="form-group-inline">
+                <label for="mural-imagem-upload" class="btn btn-secondary">
+                    <i class="fa-solid fa-camera"></i> Anexar Imagem
+                </label>
+                <input type="file" id="mural-imagem-upload" name="imagem" accept="image/png, image/jpeg, image/webp" style="display: none;">
+                <div id="mural-image-preview-container" class="image-preview-container" style="display: none;">
+                    <img id="mural-image-preview" src="#" alt="Pré-visualização da imagem" />
+                    <button type="button" id="mural-remove-image-btn" class="remove-image-btn" title="Remover imagem">&times;</button>
+                </div>
+            </div>
             <button type="submit" class="btn" aria-label="Submeter sua mensagem">Submeter Mensagem</button>
         </form>
     </div>
