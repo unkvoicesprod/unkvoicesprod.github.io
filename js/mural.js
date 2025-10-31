@@ -1,5 +1,5 @@
 import { db, auth } from "./firebase-init.js";
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, increment, writeBatch } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, deleteDoc, updateDoc, increment, writeBatch, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 function startMuralScript() {
     const form = document.getElementById('mural-form');
@@ -8,8 +8,8 @@ function startMuralScript() {
     const nomeInput = document.getElementById('mural-nome');
     const sortControlsContainer = document.getElementById('mural-sort-controls');
     const charCounter = document.getElementById('mural-char-counter');
-    const imageUploadInput = document.getElementById('mural-imagem-upload');
-    const imagePreviewContainer = document.getElementById('mural-image-preview-container');
+    const imageUploadInput = document.getElementById('mural-imagens-upload');
+    const imagePreviewContainer = document.getElementById('mural-images-preview-container');
     const imagePreview = document.getElementById('mural-image-preview');
     const removeImageBtn = document.getElementById('mural-remove-image-btn');
 
@@ -48,7 +48,7 @@ function startMuralScript() {
     let editTimerInterval = null; // Para guardar o intervalo do temporizador de edição
     let allPosts = new Map(); // Para guardar todos os posts e facilitar a construção da árvore de respostas
     let userVotes = JSON.parse(localStorage.getItem('muralUserVotes')) || {}; // Para guardar os votos do utilizador
-    let userReports = JSON.parse(localStorage.getItem('muralUserReports')) || []; // Para guardar os posts reportados pelo utilizador
+    let userReports = JSON.parse(localStorage.getItem('muralUserReports')) || {}; // Para guardar os posts reportados pelo utilizador
     let resizedImageDataURL = null; // Para guardar a imagem redimensionada
 
     let currentPage = 1;
@@ -57,25 +57,37 @@ function startMuralScript() {
 
     const muralCollection = collection(db, 'mural_mensagens');
 
+    let uploadedImages = []; // Array para guardar as imagens redimensionadas
+
     // --- Lógica de Upload e Redimensionamento de Imagem ---
     if (imageUploadInput) {
         imageUploadInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
 
-            resizeImage(file, 500, 500, (dataUrl) => {
-                resizedImageDataURL = dataUrl;
-                imagePreview.src = dataUrl;
-                imagePreviewContainer.style.display = 'flex';
+            // Limita a 5 imagens
+            const filesToProcess = files.slice(0, 5 - uploadedImages.length);
+
+            filesToProcess.forEach(file => {
+                if (uploadedImages.length < 5) {
+                    resizeImage(file, 500, 500, (dataUrl) => {
+                        uploadedImages.push(dataUrl);
+                        renderImagePreviews();
+                    });
+                }
             });
+
+            // Limpa o input para permitir selecionar os mesmos ficheiros novamente
+            e.target.value = '';
         });
     }
 
     if (removeImageBtn) {
         removeImageBtn.addEventListener('click', () => {
-            resizedImageDataURL = null;
+            // Este botão agora limpa todas as imagens
+            uploadedImages = [];
             imageUploadInput.value = ''; // Limpa o input de ficheiro
-            imagePreviewContainer.style.display = 'none';
+            renderImagePreviews();
         });
     }
 
@@ -120,6 +132,33 @@ function startMuralScript() {
         reader.readAsDataURL(file);
     }
 
+    function renderImagePreviews() {
+        const previewContainer = document.getElementById('mural-images-preview-container');
+        previewContainer.innerHTML = ''; // Limpa as pré-visualizações existentes
+
+        if (uploadedImages.length > 0) {
+            previewContainer.style.display = 'flex';
+        } else {
+            previewContainer.style.display = 'none';
+        }
+
+        uploadedImages.forEach((dataUrl, index) => {
+            const previewWrapper = document.createElement('div');
+            previewWrapper.className = 'image-preview-wrapper';
+            previewWrapper.innerHTML = `
+                <img src="${dataUrl}" alt="Pré-visualização da imagem ${index + 1}" />
+                <button type="button" class="remove-single-image-btn" data-index="${index}" title="Remover esta imagem">&times;</button>
+            `;
+            previewContainer.appendChild(previewWrapper);
+
+            previewWrapper.querySelector('.remove-single-image-btn').addEventListener('click', (e) => {
+                const indexToRemove = parseInt(e.target.dataset.index, 10);
+                uploadedImages.splice(indexToRemove, 1);
+                renderImagePreviews();
+            });
+        });
+    }
+
     // --- Lidar com a submissão do formulário ---
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -154,10 +193,8 @@ function startMuralScript() {
                 createdAt: serverTimestamp(), // Usa o timestamp do servidor
                 nome: nome,
                 authorId: getOrCreateAuthorId(), // ID anónimo para o autor
-                likes: 0,
-                dislikes: 0,
-                votes: {}, // Para rastrear quem votou
-                imageUrl: resizedImageDataURL // Adiciona a imagem (pode ser null)
+                reactions: {}, // Objeto para guardar as contagens de reações
+                imageUrls: uploadedImages // Adiciona o array de imagens
             };
 
             if (parentId) {
@@ -184,12 +221,11 @@ function startMuralScript() {
             submitButton.textContent = 'Enviado!';
             showToastNotification('Mensagem enviada com sucesso!', 'success');
 
-            form.reset();
+            form.reset(); // Limpa os campos de nome e mensagem
             if (parentId) cancelReply(); // Limpa o estado de resposta do formulário
-            // Limpa a pré-visualização da imagem
-            resizedImageDataURL = null;
-            imageUploadInput.value = '';
-            imagePreviewContainer.style.display = 'none';
+            // Limpa as imagens enviadas e as pré-visualizações
+            uploadedImages = [];
+            renderImagePreviews();
 
         } catch (error) {
             console.error("Erro ao adicionar mensagem: ", error);
@@ -208,6 +244,7 @@ function startMuralScript() {
                 } else {
                     submitButton.textContent = 'Submeter Mensagem';
                 }
+                // Atualiza o contador de caracteres para o estado inicial
                 charCounter.textContent = `0 / ${mensagemInput.maxLength}`;
             }, 3000); // 3 segundos para mostrar o estado de sucesso/erro
         }
@@ -522,6 +559,7 @@ function startMuralScript() {
         const canEdit = post.authorId === currentAuthorId && postAgeInMinutes < EDIT_WINDOW_MINUTES;
         const canReply = true; // Todos podem responder
 
+        const userReaction = userVotes[post.id]; // 'like', 'love', etc.
         const hasReported = userReports.includes(post.id);
         const userVote = userVotes[post.id];
         const isLiked = userVote === 'like';
@@ -540,15 +578,23 @@ function startMuralScript() {
         controlsHTML += `<button class="mural-copy-btn" title="Copiar texto da mensagem" aria-label="Copiar texto da mensagem"><i class="fa-solid fa-copy" aria-hidden="true"></i> Copiar</button>`;
         controlsHTML += `<button class="mural-report-btn" title="Reportar mensagem" aria-label="Reportar mensagem como inapropriada" ${hasReported ? 'disabled' : ''}><i class="fa-solid fa-flag" aria-hidden="true"></i> ${hasReported ? 'Reportado' : 'Reportar'}</button>`;
 
-
+        const reactions = ['👍', '❤️', '😂', '😮', '😢', '😡'];
         const votesHTML = `
-            <div class="mural-post-votes">
-                <button class="mural-vote-btn like-btn ${isLiked ? 'active' : ''}" data-vote="like" title="Gostei" aria-label="Gostar do post. Atualmente com ${post.likes || 0} gostos.">
-                    <i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> <span>${post.likes || 0}</span>
-                </button>
-                <button class="mural-vote-btn dislike-btn ${isDisliked ? 'active' : ''}" data-vote="dislike" title="Não gostei" aria-label="Não gostar do post. Atualmente com ${post.dislikes || 0} não gostos.">
-                    <i class="fa-solid fa-thumbs-down" aria-hidden="true"></i> <span>${post.dislikes || 0}</span>
-                </button>
+            <div class="mural-reactions-wrapper">
+                <div class="mural-reactions-summary">
+                    ${getTopReactions(post.reactions, 3)}
+                </div>
+                <div class="mural-reaction-button-container">
+                    <button class="mural-reaction-btn ${userReaction ? 'active' : ''}" data-post-id="${post.id}" aria-label="Reagir a esta mensagem">
+                        <i class="fa-regular fa-face-smile"></i>
+                        <span>${userReaction ? reactions[userReaction] : 'Reagir'}</span>
+                    </button>
+                    <div class="mural-emoji-picker">
+                        ${reactions.map((emoji, index) => `
+                            <button class="emoji-option" data-reaction="${index}" title="${emoji}">${emoji}</button>
+                        `).join('')}
+                    </div>
+                </div>
             </div>
         `;
 
@@ -580,14 +626,17 @@ function startMuralScript() {
         }
 
         postElement.innerHTML = `
-            ${post.imageUrl ? `
-                <div class="mural-post-image-container">
-                    <a href="${post.imageUrl}" target="_blank" title="Ver imagem em tamanho real">
-                        <img src="${post.imageUrl}" alt="Imagem anexada por ${escapeHTML(post.nome)}" class="mural-post-image" loading="lazy">
-                    </a>
-                </div>
-            ` : ''}
-            <p class="mural-post-content">${linkify(post.mensagem)}</p>
+            ${(post.imageUrls && post.imageUrls.length > 0) ? `
+                <div class="mural-post-images-grid">
+                    <!-- As imagens são carregadas com 'lazy loading' -->
+                    ${post.imageUrls.map((url, index) => `
+                        <a href="${url}" class="mural-post-image-link" data-gallery="gallery-${post.id}" data-index="${index}" title="Ver imagem em tamanho real">
+                            <img src="${url}" alt="Imagem ${index + 1} de ${escapeHTML(post.nome)}" class="mural-post-image" loading="lazy">
+                        </a>
+                    `).join('')}
+                </div>` : ''
+            }
+            <p class="mural-post-content">${linkify(escapeHTML(post.mensagem))}</p>
             ${linkPreviewHTML}
             <div class="mural-post-footer">
                 <div class="mural-post-author" id="post-author-${post.id}">${avatarElement.outerHTML} <span style="color: ${avatarInfo.bgColor};">${escapeHTML(post.nome)}</span></div>
@@ -601,6 +650,22 @@ function startMuralScript() {
 
         return postElement;
     }
+
+    function getTopReactions(reactions, limit) {
+        if (!reactions || Object.keys(reactions).length === 0) return '';
+
+        const emojiMap = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+
+        // Converte o objeto de reações num array, ordena por contagem e pega o topo
+        const sortedReactions = Object.entries(reactions)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, limit);
+
+        return sortedReactions.map(([reactionIndex, count]) =>
+            `<span class="reaction-pill" title="${count} reações">${emojiMap[reactionIndex]} ${count}</span>`
+        ).join('');
+    }
+
 
     /**
      * Processa um post para encontrar um link e exibir uma pré-visualização.
@@ -766,6 +831,8 @@ function startMuralScript() {
         const reportBtn = target.closest('.mural-report-btn');
         const copyBtn = target.closest('.mural-copy-btn'); // Novo
         const removePreviewBtn = target.closest('.mural-remove-preview-btn');
+        const reactionBtn = target.closest('.mural-reaction-btn');
+        const imageLink = target.closest('.mural-post-image-link');
 
         if (deleteBtn) handleDeleteClick(event);
         if (editBtn) handleEditClick(event);
@@ -776,6 +843,13 @@ function startMuralScript() {
         if (reportBtn) handleReportClick(event);
         if (copyBtn) handleCopyClick(event); // Novo
         if (removePreviewBtn) handleRemovePreviewClick(event);
+        if (reactionBtn) handleReactionClick(event);
+        if (imageLink) {
+            event.preventDefault();
+            const galleryName = imageLink.dataset.gallery;
+            const startIndex = parseInt(imageLink.dataset.index, 10);
+            openLightbox(galleryName, startIndex);
+        }
     }
 
     /**
@@ -812,6 +886,79 @@ function startMuralScript() {
             console.error('Falha ao copiar texto: ', err);
             showNotification('Não foi possível copiar o texto.', 'error');
         });
+    }
+
+    function handleReactionClick(event) {
+        const reactionBtnContainer = event.target.closest('.mural-reaction-button-container');
+        const picker = reactionBtnContainer.querySelector('.mural-emoji-picker');
+        picker.classList.toggle('visible');
+
+        // Adiciona um listener para fechar o picker se clicar fora dele
+        const closePicker = (e) => {
+            if (!reactionBtnContainer.contains(e.target)) {
+                picker.classList.remove('visible');
+                document.removeEventListener('click', closePicker);
+            }
+        };
+        document.addEventListener('click', closePicker, { capture: true });
+
+        // Lida com o clique num emoji
+        picker.addEventListener('click', async (e) => {
+            const emojiBtn = e.target.closest('.emoji-option');
+            if (emojiBtn) {
+                e.stopPropagation(); // Impede que o evento de fechar seja acionado
+                const postId = reactionBtnContainer.querySelector('.mural-reaction-btn').dataset.postId;
+                const reactionIndex = emojiBtn.dataset.reaction;
+                await handleVoteClick(postId, reactionIndex);
+                picker.classList.remove('visible');
+                document.removeEventListener('click', closePicker);
+            }
+        });
+    }
+
+    async function openLightbox(galleryName, startIndex) {
+        const imageLinks = Array.from(document.querySelectorAll(`a[data-gallery="${galleryName}"]`));
+        const images = imageLinks.map(link => ({ src: link.href, title: link.title }));
+
+        if (images.length === 0) return;
+
+        let currentIndex = startIndex;
+
+        const lightbox = document.createElement('div');
+        lightbox.id = 'image-lightbox';
+        lightbox.className = 'image-lightbox-overlay';
+        lightbox.innerHTML = `
+            <button class="lightbox-close">&times;</button>
+            <button class="lightbox-prev">&lsaquo;</button>
+            <div class="lightbox-content">
+                <img src="${images[currentIndex].src}" alt="${images[currentIndex].title}">
+            </div>
+            <button class="lightbox-next">&rsaquo;</button>
+        `;
+        document.body.appendChild(lightbox);
+        document.body.style.overflow = 'hidden'; // Impede o scroll do fundo
+
+        const imgElement = lightbox.querySelector('img');
+        const prevBtn = lightbox.querySelector('.lightbox-prev');
+        const nextBtn = lightbox.querySelector('.lightbox-next');
+
+        const updateImage = (index) => {
+            imgElement.src = images[index].src;
+            imgElement.alt = images[index].title;
+            currentIndex = index;
+            prevBtn.style.display = (currentIndex === 0) ? 'none' : 'block';
+            nextBtn.style.display = (currentIndex === images.length - 1) ? 'none' : 'block';
+        };
+
+        prevBtn.addEventListener('click', () => updateImage(currentIndex - 1));
+        nextBtn.addEventListener('click', () => updateImage(currentIndex + 1));
+
+        const closeLightbox = () => {
+            document.body.removeChild(lightbox);
+            document.body.style.overflow = 'auto';
+        };
+        lightbox.addEventListener('click', (e) => (e.target === lightbox || e.target.classList.contains('lightbox-close')) && closeLightbox());
+        updateImage(currentIndex); // Inicializa os botões
     }
 
     async function handleVoteClick(event) {

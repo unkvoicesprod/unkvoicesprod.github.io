@@ -746,6 +746,119 @@
     opacity: 0.8;
 }
 
+/* --- ESTILOS PARA UPLOAD DE MÚLTIPLAS IMAGENS --- */
+.form-group-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.images-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.image-preview-wrapper {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.image-preview-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.remove-single-image-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    background: var(--color-accent-pink);
+    color: var(--color-white);
+    border: 1px solid var(--color-white);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    line-height: 1;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+}
+
+.remove-single-image-btn:hover {
+    background: var(--color-accent-pink-hover);
+    transform: scale(1.1);
+}
+
+/* --- GALERIA LIGHTBOX --- */
+.image-lightbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: post-fade-in 0.3s ease;
+}
+
+.lightbox-content {
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.lightbox-content img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.lightbox-close,
+.lightbox-prev,
+.lightbox-next {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+}
+
+.lightbox-close {
+    top: 20px;
+    right: 20px;
+}
+
+.lightbox-prev {
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.lightbox-next {
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
 .mural-form textarea:focus+.char-counter {
     opacity: 1;
     /* Torna o contador mais visível ao digitar */
@@ -832,15 +945,25 @@
 }
 
 /* --- Estilos para a imagem dentro do post --- */
-.mural-post-image-container {
+.mural-post-images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
     margin-bottom: 1rem;
+}
+
+.mural-post-image-link {
+    width: 150px;
+    height: 150px;
     border-radius: 12px;
     overflow: hidden;
+    display: block;
 }
 
 .mural-post-image {
-    max-width: 100%;
-    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     cursor: pointer;
 }
 
@@ -971,13 +1094,31 @@
     padding-top: 0.5rem;
 }
 
-/* Container específico para os botões de voto */
-.mural-post-votes {
+/* --- NOVO SISTEMA DE REAÇÕES --- */
+.mural-reactions-wrapper {
     display: flex;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 1rem;
 }
 
-.mural-vote-btn {
+.mural-reactions-summary {
+    display: flex;
+    gap: 4px;
+}
+
+.reaction-pill {
+    background: var(--color-surface-hover);
+    padding: 4px 8px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    border: 1px solid var(--color-accent-purple);
+}
+
+.mural-reaction-button-container {
+    position: relative;
+}
+
+.mural-reaction-btn {
     background: transparent;
     border: 1px solid var(--glass-border);
     color: var(--color-text-secondary);
@@ -990,12 +1131,51 @@
     transition: all 0.2s ease-in-out;
 }
 
-.mural-vote-btn:hover {
-    background: var(--color-surface-hover);
-    color: var(--color-white);
+.mural-reaction-btn:hover,
+.mural-reaction-btn.active {
+    color: var(--color-accent-green);
+    border-color: var(--color-accent-green);
 }
 
-.mural-vote-btn.like-btn:hover,
+.mural-emoji-picker {
+    position: absolute;
+    bottom: 120%;
+    /* Aparece acima do botão */
+    left: 0;
+    background: var(--color-surface-1);
+    border: 1px solid var(--glass-border);
+    border-radius: 25px;
+    padding: 8px;
+    display: flex;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+
+.mural-emoji-picker.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.emoji-option {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.emoji-option:hover {
+    transform: scale(1.2);
+    background-color: var(--color-surface-hover);
+}
+
 .mural-vote-btn.like-btn.active {
     color: var(--color-accent-green);
     border-color: var(--color-accent-green);
