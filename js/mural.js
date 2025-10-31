@@ -48,7 +48,7 @@ function startMuralScript() {
     let editTimerInterval = null; // Para guardar o intervalo do temporizador de edição
     let allPosts = new Map(); // Para guardar todos os posts e facilitar a construção da árvore de respostas
     let userVotes = JSON.parse(localStorage.getItem('muralUserVotes')) || {}; // Para guardar os votos do utilizador
-    let userReports = JSON.parse(localStorage.getItem('muralUserReports')) || {}; // Para guardar os posts reportados pelo utilizador
+    let userReports = JSON.parse(localStorage.getItem('muralUserReports')) || []; // Deve ser um array para usar .includes() e .push()
     let resizedImageDataURL = null; // Para guardar a imagem redimensionada
 
     let currentPage = 1;
