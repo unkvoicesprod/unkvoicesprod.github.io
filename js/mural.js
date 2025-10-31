@@ -32,7 +32,8 @@ function startMuralScript() {
 
     // --- Lógica do Contador de Caracteres ---
     if (mensagemInput && charCounter) {
-        const maxLength = mensagemInput.maxLength;
+        const maxLength = 1000; // Aumentado para 1000 caracteres
+        mensagemInput.maxLength = maxLength; // Define o atributo no elemento
         charCounter.textContent = `${mensagemInput.value.length} / ${maxLength}`; // Estado inicial
 
         mensagemInput.addEventListener('input', () => {
@@ -49,6 +50,7 @@ function startMuralScript() {
     let allPosts = new Map(); // Para guardar todos os posts e facilitar a construção da árvore de respostas
     let userVotes = JSON.parse(localStorage.getItem('muralUserVotes')) || {}; // Para guardar os votos do utilizador
     let userReports = JSON.parse(localStorage.getItem('muralUserReports')) || []; // Deve ser um array para usar .includes() e .push()
+    let unsubscribeFromNotifications = null; // Para as notificações
     let resizedImageDataURL = null; // Para guardar a imagem redimensionada
 
     let currentPage = 1;
@@ -187,6 +189,24 @@ function startMuralScript() {
         try {
             const location = await getUserLocation();
             const linkPreview = await getLinkPreview(mensagem);
+
+            // Se for uma resposta, notifica o autor do post original
+            if (parentId) {
+                const parentPost = allPosts.get(parentId);
+                const currentAuthorId = getOrCreateAuthorId();
+
+                // Só notifica se o autor da resposta for diferente do autor do post original
+                if (parentPost && parentPost.authorId !== currentAuthorId) {
+                    await addDoc(collection(db, 'mural_notifications'), {
+                        recipientId: parentPost.authorId,
+                        senderName: nome,
+                        type: 'reply',
+                        parentPostId: parentId,
+                        createdAt: serverTimestamp(),
+                        isRead: false
+                    });
+                }
+            }
 
             const postData = {
                 mensagem: mensagem,
@@ -366,13 +386,27 @@ function startMuralScript() {
             changes.forEach(change => {
                 const postData = { id: change.doc.id, ...change.doc.data() };
                 if (change.type === "added") {
-                    allPosts.set(postData.id, postData);
+                    allPosts.set(postData.id, postData); // Adiciona novo post ao mapa
                     // Notifica sobre o novo post se o mural não estiver visível
                     showNewPostNotification(postData.id);
                 } else if (change.type === "modified") {
-                    allPosts.set(postData.id, postData);
+                    const oldPostData = allPosts.get(postData.id) || {};
+                    allPosts.set(postData.id, postData); // Atualiza o post no mapa
+
+                    // Otimização: Se apenas as reações mudaram, atualiza só essa parte na UI
+                    if (JSON.stringify(oldPostData.reactions) !== JSON.stringify(postData.reactions)) {
+                        const postElement = postsContainer.querySelector(`.mural-post[data-id="${postData.id}"]`);
+                        if (postElement) {
+                            const reactionsSummary = postElement.querySelector('.mural-reactions-summary');
+                            if (reactionsSummary) {
+                                reactionsSummary.innerHTML = getTopReactions(postData.reactions, 3);
+                            }
+                            // Não chama renderAllPosts() para evitar redesenhar tudo
+                            return; // Pula para a próxima alteração
+                        }
+                    }
                 } else if (change.type === "removed") {
-                    allPosts.delete(postData.id);
+                    allPosts.delete(postData.id); // Remove o post do mapa
                 }
             });
 
@@ -381,6 +415,9 @@ function startMuralScript() {
 
             renderAllPosts();
         });
+
+        // Inicia o listener de notificações para o utilizador atual
+        listenForNotifications();
     }
 
     // --- Lógica de Ordenação ---
@@ -1293,7 +1330,103 @@ function startMuralScript() {
             });
         }, 1000);
     }
-} // Fecho da função handlePostControlsClick
+
+    /**
+     * Inicia o listener para notificações em tempo real destinadas ao utilizador atual.
+     */
+    function listenForNotifications() {
+        // Cancela qualquer listener anterior para evitar duplicados
+        if (unsubscribeFromNotifications) {
+            unsubscribeFromNotifications();
+        }
+
+        const currentAuthorId = localStorage.getItem('muralAuthorId');
+        if (!currentAuthorId) return; // Não pode escutar se não tiver um ID
+
+        const notificationsRef = collection(db, 'mural_notifications');
+        const q = query(notificationsRef, where('recipientId', '==', currentAuthorId), where('isRead', '==', false));
+
+        unsubscribeFromNotifications = onSnapshot(q, (snapshot) => {
+            const unreadCount = snapshot.size;
+            const notificationBell = document.getElementById('notification-bell');
+            const notificationBadge = document.getElementById('notification-badge');
+
+            if (notificationBell && notificationBadge) {
+                notificationBadge.textContent = unreadCount;
+                notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+            }
+
+            // Prepara os dados para o painel de notificações
+            const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setupNotificationPanel(notifications);
+        });
+    }
+
+    /**
+     * Configura o painel de notificações, seu conteúdo e eventos.
+     * @param {Array} notifications A lista de notificações não lidas.
+     */
+    function setupNotificationPanel(notifications) {
+        const bell = document.getElementById('notification-bell');
+        const panel = document.getElementById('notification-panel');
+        const list = document.getElementById('notification-list');
+
+        if (!bell || !panel || !list) return;
+
+        // Limpa a lista antiga
+        list.innerHTML = '';
+
+        if (notifications.length === 0) {
+            list.innerHTML = '<li class="no-notifications">Nenhuma notificação nova.</li>';
+        } else {
+            notifications.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis()); // Mais recentes primeiro
+            notifications.forEach(notif => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <a href="chat.html?postId=${notif.parentPostId}#post-${notif.parentPostId}">
+                        <strong>${escapeHTML(notif.senderName)}</strong> respondeu à sua mensagem.
+                        <time>${timeAgo(notif.createdAt.toDate())}</time>
+                    </a>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // Lógica para abrir/fechar o painel
+        bell.onclick = (e) => {
+            e.stopPropagation();
+            const isVisible = panel.classList.toggle('visible');
+            if (isVisible && notifications.length > 0) {
+                // Marca as notificações como lidas quando o painel é aberto
+                markNotificationsAsRead(notifications);
+            }
+        };
+
+        // Fecha o painel se clicar fora
+        document.addEventListener('click', (e) => {
+            if (!bell.contains(e.target) && !panel.contains(e.target)) {
+                panel.classList.remove('visible');
+            }
+        });
+    }
+
+    /**
+     * Marca uma lista de notificações como lidas no Firestore.
+     * @param {Array} notifications A lista de notificações a serem atualizadas.
+     */
+    async function markNotificationsAsRead(notifications) {
+        const batch = writeBatch(db);
+        notifications.forEach(notif => {
+            const notifRef = doc(db, 'mural_notifications', notif.id);
+            batch.update(notifRef, { isRead: true });
+        });
+        try {
+            await batch.commit();
+        } catch (error) {
+            console.error("Erro ao marcar notificações como lidas:", error);
+        }
+    }
+} // Fim da função startMuralScript
 
 // Função simples para evitar XSS, movida para o escopo global.
 function escapeHTML(str) {
@@ -1321,4 +1454,30 @@ function linkify(text) {
 }
 
 // O script do mural só deve correr depois dos componentes HTML serem carregados
-document.addEventListener('componentsLoaded', startMuralScript, { once: true });
+document.addEventListener('componentsLoaded', () => {
+    startMuralScript();
+    // Adiciona o listener para o sino de notificação que está no header.html
+    const bell = document.getElementById('notification-bell');
+    const panel = document.getElementById('notification-panel');
+    if (bell && panel) {
+        bell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            panel.classList.toggle('visible');
+        });
+    }
+});
+
+function timeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + " anos";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + " meses";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + " dias";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + " horas";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + " min";
+    return Math.floor(seconds) + " seg";
+}

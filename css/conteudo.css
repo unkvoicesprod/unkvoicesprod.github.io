@@ -1756,3 +1756,106 @@
     white-space: nowrap;
     border-width: 0;
 }
+
+/* --- SISTEMA DE NOTIFICAÇÕES (NO HEADER) --- */
+.notification-bell-wrapper {
+    position: relative;
+    margin-left: 1rem;
+    /* Espaço entre o sino e outros itens */
+}
+
+#notification-bell {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 1.5rem;
+    /* Tamanho do ícone do sino */
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+#notification-bell:hover {
+    color: var(--color-accent-green);
+}
+
+#notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background-color: var(--color-accent-pink);
+    color: var(--color-white);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--color-surface-1);
+    /* Borda para destacar do fundo */
+    display: none;
+    /* Escondido por padrão */
+}
+
+#notification-panel {
+    position: absolute;
+    top: 140%;
+    /* Abaixo do sino */
+    right: 0;
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--color-surface-2);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    z-index: 1100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+
+#notification-panel.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+#notification-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#notification-list li a {
+    display: block;
+    padding: 1rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid var(--glass-border);
+    transition: background-color 0.2s ease;
+}
+
+#notification-list li:last-child a {
+    border-bottom: none;
+}
+
+#notification-list li a:hover {
+    background-color: var(--color-surface-hover);
+    color: var(--color-text-primary);
+}
+
+#notification-list .no-notifications {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+#notification-list time {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--color-accent-purple);
+    margin-top: 4px;
+}
