@@ -908,7 +908,7 @@ function startMuralScript() {
             if (emojiBtn) {
                 e.stopPropagation(); // Impede que o evento de fechar seja acionado
                 const postId = reactionBtnContainer.querySelector('.mural-reaction-btn').dataset.postId;
-                const reactionIndex = emojiBtn.dataset.reaction;
+                const reactionIndex = emojiBtn.dataset.reaction; // 'reactionIndex' é o 'voteType'
                 await handleVoteClick(postId, reactionIndex);
                 picker.classList.remove('visible');
                 document.removeEventListener('click', closePicker);
@@ -961,44 +961,49 @@ function startMuralScript() {
         updateImage(currentIndex); // Inicializa os botões
     }
 
-    async function handleVoteClick(event) {
-        const voteBtn = event.target.closest('.mural-vote-btn');
-        const postElement = event.target.closest('.mural-post');
-        const postId = postElement.dataset.id;
-        const voteType = voteBtn.dataset.vote; // 'like' ou 'dislike'
+    /**
+     * Lida com o clique para votar ou reagir a um post.
+     * Pode ser chamado de duas maneiras:
+     * 1. handleVoteClick(event) - a partir de um clique direto no botão de voto (não usado atualmente).
+     * 2. handleVoteClick(postId, voteType) - a partir do seletor de emojis.
+     * @param {Event|string} eventOrPostId O evento de clique ou o ID do post.
+     * @param {string} [voteType] O tipo de voto/reação (índice do emoji).
+     */
+    async function handleVoteClick(eventOrPostId, voteType) {
+        let postId, postElement;
 
-        const currentVote = userVotes[postId];
-        let updates = {};
-        let optimisticUpdates = {};
+        if (typeof eventOrPostId === 'string') {
+            postId = eventOrPostId;
+            postElement = postsContainer.querySelector(`.mural-post[data-id="${postId}"]`);
+        }
+
+        if (!postElement) return; // Sai se o post não for encontrado na página
+
+        const currentVote = userVotes[postId]; // O voto/reação atual do utilizador para este post
+        let updates = {}; // Declaração única de updates
 
         // Desativa os botões para evitar cliques duplos
-        postElement.querySelectorAll('.mural-vote-btn').forEach(b => b.disabled = true);
+        const reactionBtn = postElement.querySelector('.mural-reaction-btn');
+        if (reactionBtn) reactionBtn.disabled = true;
 
-        if (currentVote === voteType) {
-            // O utilizador está a remover o seu voto
-            delete userVotes[postId];
-            updates[`${voteType}s`] = increment(-1);
-            optimisticUpdates[voteType] = -1;
+        if (currentVote === voteType) { // Se o utilizador clica na mesma reação, remove-a
+            delete userVotes[postId]; // Remove do objeto local
+            updates[`reactions.${voteType}`] = increment(-1); // Decrementa no Firestore
         } else {
-            // O utilizador está a votar ou a mudar o seu voto
-            if (currentVote) {
-                // Remove o voto anterior (ex: remove 'like' para adicionar 'dislike')
-                const oppositeVote = currentVote === 'like' ? 'dislikes' : 'likes';
-                updates[oppositeVote] = increment(-1);
-                optimisticUpdates[oppositeVote === 'likes' ? 'like' : 'dislike'] = -1;
+            // O utilizador está a adicionar uma nova reação ou a mudar a existente
+            if (currentVote !== undefined) {
+                // Se já existia uma reação, remove-a primeiro
+                updates[`reactions.${currentVote}`] = increment(-1);
             }
-            // Adiciona o novo voto
+            // Adiciona a nova reação ou atualiza para a nova
             userVotes[postId] = voteType;
-            updates[`${voteType}s`] = increment(1);
-            optimisticUpdates[voteType] = 1;
+            updates[`reactions.${voteType}`] = increment(1);
         }
 
         // Atualiza o localStorage
         localStorage.setItem('muralUserVotes', JSON.stringify(userVotes));
 
-        // Atualiza a UI imediatamente com a contagem otimista
-        updateVoteCountUI(postElement, optimisticUpdates);
-        // Atualiza o estado (cores) dos botões
+        // Atualiza a UI do botão imediatamente para uma melhor experiência.
         updateVoteUI(postElement, postId);
 
         try {
@@ -1006,35 +1011,27 @@ function startMuralScript() {
             await updateDoc(postRef, updates);
         } catch (error) {
             console.error("Erro ao registar o voto:", error);
-            // Reverte a alteração local se o update falhar
-            // (Esta parte pode ser complexa, por agora apenas logamos o erro)
+            // Reverte a alteração local se o update falhar (opcional, por agora apenas logamos)
         } finally {
-            // Reativa os botões
-            postElement.querySelectorAll('.mural-vote-btn').forEach(b => b.disabled = false);
+            if (reactionBtn) reactionBtn.disabled = false;
         }
     }
-
-    function updateVoteCountUI(postElement, changes) {
-        if (changes.like) {
-            const likeSpan = postElement.querySelector('.like-btn span');
-            const currentLikes = parseInt(likeSpan.textContent, 10);
-            likeSpan.textContent = currentLikes + changes.like;
-        }
-        if (changes.dislike) {
-            const dislikeSpan = postElement.querySelector('.dislike-btn span');
-            const currentDislikes = parseInt(dislikeSpan.textContent, 10);
-            dislikeSpan.textContent = currentDislikes + changes.dislike;
-        }
-    }
-
 
     function updateVoteUI(postElement, postId) {
-        const post = allPosts.get(postId);
-        if (!post) return;
+        const reactionBtn = postElement.querySelector('.mural-reaction-btn');
+        if (!reactionBtn) return; // Se o botão não existir, sai da função
 
-        const userVote = userVotes[postId];
-        postElement.querySelector('.like-btn').classList.toggle('active', userVote === 'like');
-        postElement.querySelector('.dislike-btn').classList.toggle('active', userVote === 'dislike');
+        const reactions = ['👍', '❤️', '😂', '😮', '😢', '😡'];
+        const userVote = userVotes[postId]; // O voto/reação atual do utilizador para este post
+        const reactionBtnSpan = reactionBtn.querySelector('span');
+
+        if (userVote !== undefined) {
+            reactionBtn.classList.add('active');
+            if (reactionBtnSpan) reactionBtnSpan.textContent = reactions[userVote];
+        } else {
+            reactionBtn.classList.remove('active');
+            if (reactionBtnSpan) reactionBtnSpan.textContent = 'Reagir';
+        }
     }
 
     function handleReportClick(event) {
@@ -1296,10 +1293,11 @@ function startMuralScript() {
             });
         }, 1000);
     }
-}
+} // Fecho da função handlePostControlsClick
 
-// Função simples para evitar XSS
+// Função simples para evitar XSS, movida para o escopo global.
 function escapeHTML(str) {
+    if (typeof str !== 'string') return '';
     const div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;

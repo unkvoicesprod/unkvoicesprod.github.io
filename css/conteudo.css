@@ -980,6 +980,8 @@
     line-height: 1.6;
     margin: 0 0 1rem 0;
     word-wrap: break-word;
+    /* Garante que palavras muito longas (como URLs) quebrem a linha e não estourem o container */
+    overflow-wrap: break-word;
 }
 
 /* --- Avatar do Utilizador no Mural --- */
@@ -1064,10 +1066,17 @@
 .mural-post-meta {
     grid-area: meta;
     justify-self: end;
+    /* Ajustado para alinhar à direita e quebrar linha em telas pequenas */
     display: flex;
     flex-wrap: wrap;
     /* Permite que os itens de meta quebrem a linha se necessário */
     justify-content: flex-end;
+    flex-wrap: wrap;
+    /* Permite que os itens quebrem linha */
+    justify-content: flex-end;
+    /* Alinha os itens à direita */
+    text-align: right;
+    /* Alinha o texto à direita */
     gap: 1rem;
     font-size: 0.85rem;
 }
