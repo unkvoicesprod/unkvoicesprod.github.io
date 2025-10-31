@@ -15,9 +15,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (elementId === 'header-placeholder') {
                     setActiveNavLink();
                     handleHeaderScroll();
+                    setupMobileMenu(); // Configura o menu mobile
                 }
+                // Adicione outras lógicas pós-carregamento aqui se necessário
             } catch (error) {
                 console.error(`Error loading component:`, error);
+                element.innerHTML = `<p style="color:red; text-align:center;">Falha ao carregar ${filePath}</p>`;
             }
         }
     };
@@ -27,15 +30,29 @@ document.addEventListener("DOMContentLoaded", () => {
         const navLinks = document.querySelectorAll('.navbar .menu a');
         const currentPage = window.location.pathname.split('/').pop();
 
-        navLinks.forEach(link => {
+        let isDropdownActive = false;
+
+        navLinks.forEach(link => { // Itera sobre todos os links
             const linkPage = link.getAttribute('href').split('/').pop();
+            const parentDropdown = link.closest('.dropdown');
+
+            link.classList.remove('active'); // Limpa a classe 'active' de todos os links primeiro
+
             // Trata o caso da página inicial (index.html ou /)
             if (linkPage === currentPage || (currentPage === '' && linkPage === 'index.html')) {
                 link.classList.add('active');
-            } else {
-                link.classList.remove('active');
+                // Se o link ativo está dentro de um dropdown, marca o dropdown como ativo também
+                if (parentDropdown) {
+                    isDropdownActive = true;
+                }
             }
         });
+
+        // Adiciona a classe 'active' ao link do dropdown se um de seus filhos estiver ativo
+        const dropdownToggle = document.querySelector('.dropdown-toggle');
+        if (dropdownToggle) { // Garante que o elemento existe
+            dropdownToggle.classList.toggle('active', isDropdownActive);
+        }
     };
 
     let lastScrollY = 0; // Mover a variável para fora da função para que não seja reiniciada
@@ -62,6 +79,55 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; // Atualiza a última posição
+        });
+    };
+
+    // Função para configurar o menu mobile (hambúrguer)
+    const setupMobileMenu = () => {
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const menu = document.querySelector('.navbar .menu');
+        const dropdownToggle = document.querySelector('.dropdown-toggle');
+
+        if (!hamburgerBtn || !menu) return;
+
+        hamburgerBtn.addEventListener('click', () => {
+            const isOpen = menu.classList.toggle('is-open');
+            document.body.classList.toggle('menu-open', isOpen);
+            hamburgerBtn.setAttribute('aria-expanded', isOpen);
+            // Troca o ícone
+            const icon = hamburgerBtn.querySelector('i');
+            if (isOpen) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-xmark');
+            } else {
+                icon.classList.remove('fa-xmark');
+                icon.classList.add('fa-bars');
+            }
+        });
+
+        // Comportamento do dropdown em mobile
+        if (dropdownToggle) {
+            dropdownToggle.addEventListener('click', (e) => {
+                // Previne o comportamento padrão apenas em telas menores
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    const dropdownMenu = dropdownToggle.nextElementSibling;
+                    // Alterna a visibilidade do submenu
+                    const isVisible = dropdownMenu.style.display === 'flex';
+                    dropdownMenu.style.display = isVisible ? 'none' : 'flex';
+                }
+            });
+        }
+
+        // Fecha o menu se um link for clicado
+        menu.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' && !e.target.classList.contains('dropdown-toggle')) {
+                menu.classList.remove('is-open');
+                document.body.classList.remove('menu-open');
+                hamburgerBtn.setAttribute('aria-expanded', 'false');
+                hamburgerBtn.querySelector('i').classList.remove('fa-xmark');
+                hamburgerBtn.querySelector('i').classList.add('fa-bars');
+            }
         });
     };
 
@@ -103,5 +169,5 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     loadAllComponents();
-    createBackToTopButton();
+    createBackToTopButton(); // Certifica-se de que esta função é chamada
 });
