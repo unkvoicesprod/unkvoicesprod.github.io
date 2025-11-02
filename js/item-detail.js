@@ -88,11 +88,12 @@ async function processYouTubePosts(posts) {
                 id: postId,
                 videoId: videoId,
                 titulo: data.title || `Post do YouTube #${index + 1}`,
-                capa: data.thumbnail_url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                capa: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                dataPublicacao: data.upload_date, // Adiciona a data de publicação
                 genero: "Beats", // Considerar todos os vídeos como gênero "Beats"
                 categoria: "Beats", // Considerar todos os vídeos como categoria "Beats"
-                ano: new Date().getFullYear(),
-                isYouTubePost: true,
+                ano: data.upload_date ? new Date(data.upload_date).getFullYear() : new Date().getFullYear(), // Extrai o ano ou usa o ano atual como fallback
+                isYouTubePost: true, // Adiciona um identificador para estes itens
                 preco: 0,
                 link: post.youtubeUrl,
                 descricao: data.title || `Um vídeo do canal ${data.author_name || 'UNKVOICES'}.`

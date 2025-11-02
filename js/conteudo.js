@@ -197,13 +197,14 @@ function startContentScript() {
                     titulo: data.title || `Post do YouTube #${index + 1}`,
                     capa: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
                     capaPlaceholder: `https://i.ytimg.com/vi/${videoId}/sddefault.jpg`,
+                    dataPublicacao: data.upload_date, // Adiciona a data de publicação
                     genero: "Beats", // Considerar todos os vídeos como gênero "Beats"
                     categoria: "Beats", // Considerar todos os vídeos como categoria "Beats"
-                    ano: new Date().getFullYear(),
+                    ano: data.upload_date ? new Date(data.upload_date).getFullYear() : new Date().getFullYear(), // Extrai o ano ou usa o ano atual como fallback
                     isYouTubePost: true, // Adiciona um identificador para estes itens
                     preco: 0,
                     link: post.youtubeUrl,
-                    descricao: `Um vídeo do canal ${data.author_name || 'UNKVOICES'}. Clique para assistir no YouTube.`
+                    descricao: data.title || `Um vídeo do canal ${data.author_name || 'UNKVOICES'}. Clique para assistir no YouTube.`
                 };
             } catch (error) {
                 console.error(`Falha ao buscar dados do vídeo: ${post.youtubeUrl}`, error);
@@ -402,12 +403,12 @@ function startContentScript() {
                 ordem: elements.filtroOrdem ? elements.filtroOrdem.value : 'recent', // Obtém o valor da ordem, com fallback
             };
 
-            const filtered = filterContent(searchTerm, selected);
+            const filtered = filterContent(searchTerm, selected); // A ordenação agora é feita aqui dentro
 
             currentFilteredContent = filtered;
             currentPage = 1;
 
-            updateResultsCounter();
+            updateResultsCounter(); // Atualiza o contador com o número de itens filtrados
             setupLoadMoreButton();
             displayPage(currentPage); // A primeira exibição não precisa destacar nada
             updateURL(); // Atualiza a URL com os filtros atuais
@@ -415,7 +416,7 @@ function startContentScript() {
     }
 
     function filterContent(searchTerm, selected, sortOrder) {
-        return allContent.filter(item => {
+        const filteredItems = allContent.filter(item => {
             if (!itemMatchesPageConfig(item)) return false;
 
             // 2. Aplicar filtros do usuário (pesquisa e selects)
@@ -429,15 +430,23 @@ function startContentScript() {
                 (selected.ano === "" || item.ano.toString() === selected.ano);
 
             return matchesSearch && matchesFilters;
-        }).sort((a, b) => {
+        });
+
+        return filteredItems.sort((a, b) => {
             // Aplica a ordenação após a filtragem
             switch (selected.ordem) {
                 case 'popular':
-                    // Ordena por mais likes, decrescente
-                    return (likeCounts[b.id] || 0) - (likeCounts[a.id] || 0);
-                case 'recent':
-                    // Ordena por ano, decrescente
-                    return (b.ano || 0) - (a.ano || 0);
+                    // Nova lógica de popularidade: Score = (Likes * 10) + Views
+                    // Um like tem um peso 10x maior que uma visualização.
+                    const scoreA = ((likeCounts[a.id] || 0) * 10) + (viewCounts[a.id] || 0);
+                    const scoreB = ((likeCounts[b.id] || 0) * 10) + (viewCounts[b.id] || 0);
+
+                    // Ordena pelo score, decrescente (mais popular primeiro)
+                    return scoreB - scoreA;
+
+                case 'recent': // Agora ordena pela data de publicação exata
+                    // Ordena pela data de publicação, decrescente (mais recentes primeiro)
+                    return new Date(b.dataPublicacao || 0) - new Date(a.dataPublicacao || 0);
                 case 'title_asc':
                     return a.titulo.localeCompare(b.titulo);
                 default:
