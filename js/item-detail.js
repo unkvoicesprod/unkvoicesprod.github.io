@@ -230,15 +230,14 @@ function renderItemDetails(item, viewCount = 0, likeCount = 0) {
 
     // Preenche os dados básicos
     if (item.isYouTubePost && item.videoId) {
-        // Se for um post do YouTube, substitui a imagem por um player embutido.
+        // Adiciona a classe para a proporção de vídeo e insere o iframe
+        imageWrapper.classList.add('video-wrapper');
         imageWrapper.innerHTML = `
-            <div class="youtube-player-container">
-                <iframe src="https://www.youtube.com/embed/${item.videoId}?autoplay=0&rel=0&controls=1" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                </iframe>
-            </div>`;
+            <iframe src="https://www.youtube.com/embed/${item.videoId}?autoplay=0&rel=0&controls=1" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+            </iframe>`;
     } else {
         // Para outros itens, mantém a imagem.
         imageWrapper.innerHTML = `<img class="item-image" src="${item.capa}" alt="${item.titulo}">`;

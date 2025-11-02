@@ -71,14 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 header.classList.remove('scrolled');
             }
 
-            // Lógica para esconder/mostrar a navbar
-            if (currentScrollY > lastScrollY && currentScrollY > 50) { // Rolando para baixo
-                header.classList.add('hidden');
-            } else { // Rolando para cima
-                header.classList.remove('hidden');
-            }
-
-            lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; // Atualiza a última posição
         });
     };
 

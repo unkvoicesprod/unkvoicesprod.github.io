@@ -71,24 +71,24 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       border: 1px solid var(--glass-border);
       margin: 0 auto; /* Garante a centralização dentro do wrapper */
     }
-    .item-image {
-      width: 350px;
-      height: 350px;
-      object-fit: cover;
-      border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    .item-image-wrapper {
+      position: relative;
+      flex-shrink: 0; /* Impede que o container encolha */
+      width: 100%;
+      max-width: 450px; /* Largura máxima para a imagem/vídeo */
       animation: image-load-animation 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     }
-    .youtube-player-container {
-        position: relative;
-        width: 350px;
-        height: 350px;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        animation: image-load-animation 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    .item-image, .youtube-player-container iframe {
+      width: 100%;
+      height: auto; /* A altura se ajustará à proporção */
+      display: block;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
-    .youtube-player-container iframe {
+    .item-image-wrapper.video-wrapper {
+      padding-top: 56.25%; /* Proporção 16:9 para vídeos */
+    }
+    .item-image-wrapper.video-wrapper iframe {
         position: absolute;
         top: 0;
         left: 0;
@@ -187,17 +187,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         padding: 1.5rem; /* Reduz o padding interno */
         gap: 1.5rem; /* Reduz o espaçamento entre imagem e info */
       }
-      .item-image, .youtube-player-container {
-        width: 100%;
-        /* O max-width e height fixos foram removidos para permitir que a imagem 
-           se ajuste melhor à largura do container, mantendo a proporção. 
-           O player do YouTube já é responsivo por padrão.
-        */
-        max-width: 300px;
-        display: block;
-        margin: 0 auto 2rem; /* Centraliza a imagem e adiciona espaço abaixo */
-        height: 300px; /* Define uma altura fixa para manter a proporção quadrada */
-        object-fit: cover; /* Garante que a imagem preencha o espaço sem distorcer */
+      .item-image-wrapper {
+        max-width: 100%; /* Permite ocupar a largura total em mobile */
+        margin: 0 auto 1rem; /* Centraliza e ajusta a margem inferior */
       }
       .item-info {
         text-align: center;
