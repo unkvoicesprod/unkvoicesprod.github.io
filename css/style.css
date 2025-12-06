@@ -642,3 +642,8 @@ footer {
     color: var(--color-text-secondary);
     padding: 2rem;
 }
+
+/* Highlight Primary - Green accent color */
+.highlight-primary {
+    color: #00C853;
+}
