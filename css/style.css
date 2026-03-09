@@ -1,4 +1,4 @@
-/* Reset básico */
+/* Reset b?sico */
 * {
     margin: 0;
     padding: 0;
@@ -72,15 +72,16 @@ body.welcome-active {
 
 /* Navbar */
 header {
+    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 1001;
     /* Acima do player e outros elementos */
     background: transparent;
-    /* Começa transparente */
+    /* Come?a transparente */
     padding: 1rem 2rem;
     border-bottom: 1px solid transparent;
-    /* Começa sem borda */
+    /* Come?a sem borda */
     transition: background-color 0.4s ease, padding 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease, transform 0.4s ease;
 }
 
@@ -182,7 +183,7 @@ header.scrolled {
     color: var(--color-text-secondary);
 }
 
-/* --- Botão Hamburger --- */
+/* --- Bot?o Hamburger --- */
 .hamburger-btn {
     display: none;
     /* Escondido em telas grandes */
@@ -207,7 +208,7 @@ header.scrolled {
 
     body.menu-open {
         overflow: hidden;
-        /* Impede o scroll do corpo quando o menu está aberto */
+        /* Impede o scroll do corpo quando o menu est? aberto */
     }
     body.menu-open::before {
         content: "";
@@ -220,7 +221,7 @@ header.scrolled {
         pointer-events: none;
     }
 
-    /* --- CABEÇALHO --- */
+    /* --- CABE?ALHO --- */
     header {
         padding: 0.75rem 1rem;
         justify-content: space-between;
@@ -228,14 +229,14 @@ header.scrolled {
 
     .hamburger-btn {
         display: block;
-        /* Mostra o botão em telas pequenas */
+        /* Mostra o bot?o em telas pequenas */
     }
 
     .navbar .menu {
         position: fixed;
         top: 0;
         right: -100%;
-        /* Começa fora da tela */
+        /* Come?a fora da tela */
         width: 70%;
         max-width: 300px;
         height: 100vh;
@@ -405,7 +406,7 @@ footer {
     position: relative;
     width: 100%;
     padding-top: 56.25%;
-    /* Proporção 16:9 */
+    /* Propor??o 16:9 */
     border-radius: 12px;
     overflow: hidden;
     /* Garante que o iframe respeite o border-radius */
@@ -470,7 +471,7 @@ footer {
     }
 }
 
-/* ================= BOTÃO VOLTAR AO TOPO ================= */
+/* ================= BOT?O VOLTAR AO TOPO ================= */
 .back-to-top-btn {
     position: fixed;
     bottom: 20px;
