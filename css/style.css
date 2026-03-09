@@ -9,6 +9,11 @@ html {
     scroll-behavior: smooth;
 }
 
+body,
+html {
+    overflow-x: hidden;
+}
+
 :root {
     /* Palette */
     --color-background: #111;
@@ -237,8 +242,9 @@ header.scrolled {
         top: 0;
         right: -100%;
         /* Come?a fora da tela */
-        width: 70%;
-        max-width: 300px;
+        left: auto;
+        width: min(78vw, 320px);
+        max-width: calc(100vw - 1rem);
         height: 100vh;
         background: rgba(10, 10, 10, 0.8);
         -webkit-backdrop-filter: blur(15px);
