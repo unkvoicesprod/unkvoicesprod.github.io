@@ -3,7 +3,7 @@
 Chaves do JSON
 Beats   /   Kits    /   Posts
 */
-import { db } from "./firebase-init.js";
+import { db, auth } from "./firebase-init.js";
 import { collection, onSnapshot, doc, setDoc, increment } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 function startContentScript() {
@@ -11,6 +11,8 @@ function startContentScript() {
     let allContent = [];
     let pageConfig = {};
     let viewCounts = {}; // Novo: para armazenar as contagens de views
+    let viewsUnsubscribe = null;
+    let viewsPermissionDenied = false;
     let currentFilteredContent = [];
     let currentPage = 1;
     const itemsPerPage = 8;
@@ -74,7 +76,9 @@ function startContentScript() {
             }
 
             // Inicia o listener para as visualizações em tempo real
-            listenForViewCounts();
+            if (auth?.currentUser) {
+                listenForViewCounts();
+            }
 
         } catch (error) {
             console.error("Falha ao carregar o conteúdo:", error);
@@ -86,9 +90,9 @@ function startContentScript() {
      * Inicia um listener em tempo real para as contagens de visualizações do Firestore.
      */
     function listenForViewCounts() {
-        if (!db) return;
+        if (!db || viewsUnsubscribe || viewsPermissionDenied) return;
         try {
-            onSnapshot(
+            viewsUnsubscribe = onSnapshot(
                 collection(db, "views"),
                 (querySnapshot) => {
                     querySnapshot.forEach((doc) => {
@@ -100,6 +104,11 @@ function startContentScript() {
                 (error) => {
                     if (error?.code === "permission-denied") {
                         console.warn("Sem permissao para ler 'views' no Firestore. Contagem em tempo real desativada.");
+                        viewsPermissionDenied = true;
+                        if (viewsUnsubscribe) {
+                            viewsUnsubscribe();
+                            viewsUnsubscribe = null;
+                        }
                         return;
                     }
                     console.error("Erro ao ouvir contagens de views:", error);
@@ -128,7 +137,7 @@ function startContentScript() {
      * @param {string} itemId O ID do item.
      */
     async function incrementViewCount(itemId) {
-        if (!db || !itemId) return;
+        if (!db || !itemId || !auth?.currentUser) return;
         try {
             const viewRef = doc(db, "views", itemId.toString());
             await setDoc(viewRef, { count: increment(1) }, { merge: true });
@@ -431,6 +440,12 @@ function startContentScript() {
         if (elements.clearFiltersBtn) {
             elements.clearFiltersBtn.addEventListener('click', resetFilters);
         }
+
+        window.addEventListener('authStateChanged', (event) => {
+            if (event?.detail?.user) {
+                listenForViewCounts();
+            }
+        });
 
     }
 

@@ -26,15 +26,20 @@ try {
     auth = getAuth(app); // Inicializa a autenticação
 
     // App Check opcional: defina globalThis.FIREBASE_APPCHECK_SITE_KEY no HTML para ativar.
-    const appCheckSiteKey = globalThis.FIREBASE_APPCHECK_SITE_KEY || "6LcMioQsAAAAAEGp28yvU219KE-RZb1zmYco-jd9";
+    const appCheckSiteKey = globalThis.FIREBASE_APPCHECK_SITE_KEY;
     if (appCheckSiteKey) {
-        appCheck = initializeAppCheck(app, {
-            provider: new ReCaptchaV3Provider(appCheckSiteKey),
-            isTokenAutoRefreshEnabled: true
-        });
-        console.log("✅ App Check inicializado.");
+        try {
+            appCheck = initializeAppCheck(app, {
+                provider: new ReCaptchaV3Provider(appCheckSiteKey),
+                isTokenAutoRefreshEnabled: true
+            });
+            console.log("✅ App Check inicializado.");
+        } catch (appCheckError) {
+            appCheck = null;
+            console.warn("⚠️ Falha ao inicializar App Check. Continuando sem App Check.", appCheckError);
+        }
     } else {
-        console.warn("⚠️ App Check sem chave de site (FIREBASE_APPCHECK_SITE_KEY).");
+        console.warn("ℹ️ App Check desativado (defina FIREBASE_APPCHECK_SITE_KEY para ativar).");
     }
 
     console.log("✅ Firebase inicializado com sucesso!");

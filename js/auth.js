@@ -5,6 +5,17 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-
 let currentUser = null;
 let anonymousSignInInFlight = false;
 let lastAuthError = null;
+let disableAnonymousSignIn = false;
+
+function isAppCheckRelatedError(error) {
+    const code = String(error?.code || "");
+    const message = String(error?.message || "");
+    return (
+        code.includes("firebase-app-check-token-is-invalid") ||
+        code.includes("auth/app-check-token-is-invalid") ||
+        message.includes("appCheck/recaptcha-error")
+    );
+}
 
 /**
  * Inicia o sistema de autenticação, escutando por mudanças de estado.
@@ -31,7 +42,7 @@ function initializeAuth() {
         let isAdmin = false;
 
         // Garante uma sessão anônima quando não existe utilizador autenticado.
-        if (!user && !anonymousSignInInFlight) {
+        if (!user && !anonymousSignInInFlight && !disableAnonymousSignIn) {
             anonymousSignInInFlight = true;
             try {
                 await signInAnonymously(auth);
@@ -39,6 +50,10 @@ function initializeAuth() {
             } catch (error) {
                 console.error("Erro ao iniciar sessão anónima:", error);
                 lastAuthError = error;
+                if (isAppCheckRelatedError(error)) {
+                    disableAnonymousSignIn = true;
+                    console.warn("Login anónimo pausado devido a erro de App Check.");
+                }
             } finally {
                 anonymousSignInInFlight = false;
             }

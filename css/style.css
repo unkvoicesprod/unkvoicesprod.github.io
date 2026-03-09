@@ -175,6 +175,25 @@ header.scrolled {
     text-align: center;
     padding: 4rem 2rem;
     background: linear-gradient(to right, var(--color-background), var(--color-border));
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+.hero-home {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.55)), url("../assets/img/004.jpg");
+}
+
+.hero-beats {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.55)), url("../assets/img/002.jpg");
+}
+
+.hero-loja {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.55)), url("../assets/img/003.jpg");
+}
+
+.hero-kits {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.55)), url("../assets/img/005.jpg");
 }
 
 .hero h1 {
