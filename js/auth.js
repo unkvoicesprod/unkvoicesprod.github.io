@@ -1,8 +1,10 @@
 import { auth, db } from "./firebase-init.js";
-import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 let currentUser = null;
+let anonymousSignInInFlight = false;
+let lastAuthError = null;
 
 /**
  * Inicia o sistema de autenticação, escutando por mudanças de estado.
@@ -28,18 +30,37 @@ function initializeAuth() {
         currentUser = user;
         let isAdmin = false;
 
+        // Garante uma sessão anônima quando não existe utilizador autenticado.
+        if (!user && !anonymousSignInInFlight) {
+            anonymousSignInInFlight = true;
+            try {
+                await signInAnonymously(auth);
+                lastAuthError = null;
+            } catch (error) {
+                console.error("Erro ao iniciar sessão anónima:", error);
+                lastAuthError = error;
+            } finally {
+                anonymousSignInInFlight = false;
+            }
+            // Continua para disparar evento com estado atualizado.
+        }
+
         if (user) {
-            // Verifica se o utilizador é um admin consultando a coleção 'admins'
-            const adminDocRef = doc(db, 'admins', user.uid);
-            const adminDoc = await getDoc(adminDocRef);
-            isAdmin = adminDoc.exists();
+            // Utilizadores anónimos não precisam verificar permissões de admin.
+            if (!user.isAnonymous) {
+                // Verifica se o utilizador é um admin consultando a coleção 'admins'
+                const adminDocRef = doc(db, 'admins', user.uid);
+                const adminDoc = await getDoc(adminDocRef);
+                isAdmin = adminDoc.exists();
+            }
         }
 
         // Dispara um evento global com os detalhes do utilizador
         window.dispatchEvent(new CustomEvent('authStateChanged', {
             detail: {
                 user: currentUser,
-                isAdmin: isAdmin
+                isAdmin: isAdmin,
+                authError: lastAuthError
             }
         }));
     });

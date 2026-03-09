@@ -1,5 +1,5 @@
 import { db } from './firebase-init.js';
-import { doc, getDoc, setDoc, increment, collection, getDocs, query, where, documentId, onSnapshot } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { doc, setDoc, increment, collection, getDocs, query, where, documentId } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 async function initializeItemDetail() {
     const container = document.getElementById("item-detail-view");
@@ -48,19 +48,16 @@ async function initializeItemDetail() {
         // 5. Otimização: Buscar contagens de visualizações para o item atual e os relacionados
         const relatedItems = getRelatedItems(item, allContent);
         const idsToFetchViews = [itemId, ...relatedItems.map(i => i.id)];
-        const [viewCounts, likeCounts] = await Promise.all([
-            fetchSpecificCounts(idsToFetchViews, "views"),
-            fetchSpecificCounts(idsToFetchViews, "likes")
-        ]);
+        const viewCounts = await fetchSpecificCounts(idsToFetchViews, "views");
 
         // 6. Atualizar as meta tags da página dinamicamente
         updateMetaTags(item);
 
         // 7. Renderizar os detalhes do item na página, agora com a contagem de views
-        renderItemDetails(item, viewCounts[itemId] || 0, likeCounts[itemId] || 0);
+        renderItemDetails(item, viewCounts[itemId] || 0);
 
         // 8. Renderizar itens relacionados, passando as contagens
-        renderRelatedItems(item, allContent, { views: viewCounts, likes: likeCounts });
+        renderRelatedItems(item, allContent, { views: viewCounts });
 
     } catch (error) {
         console.error("Erro ao carregar detalhes do item:", error);
@@ -137,33 +134,9 @@ async function incrementViewCount(itemId) {
 }
 
 /**
- * Decrementa a contagem de "likes" de um item no Firestore.
- * @param {string} itemId O ID do item.
- */
-async function decrementLikeCount(itemId) {
-    if (!db || !itemId) return;
-    try {
-        const likeRef = doc(db, "likes", itemId.toString());
-        await setDoc(likeRef, { count: increment(-1) }, { merge: true });
-    } catch (error) { console.error("Falha ao decrementar like:", error); }
-}
-
-/**
- * Incrementa a contagem de "likes" de um item no Firestore.
- * @param {string} itemId O ID do item.
- */
-async function incrementLikeCount(itemId) {
-    if (!db || !itemId) return;
-    try {
-        const likeRef = doc(db, "likes", itemId.toString());
-        await setDoc(likeRef, { count: increment(1) }, { merge: true });
-    } catch (error) { console.error("Falha ao incrementar like:", error); }
-}
-
-/**
- * Otimização: Busca contagens (views ou likes) apenas para uma lista específica de IDs.
+ * Otimização: Busca contagens (ex: views) apenas para uma lista específica de IDs.
  * @param {string[]} itemIds Array de IDs dos itens.
- * @param {string} collectionName O nome da coleção ('views' ou 'likes').
+ * @param {string} collectionName O nome da coleção.
  * @returns {Promise<Object<string, number>>} Um objeto mapeando ID para contagem.
  */
 async function fetchSpecificCounts(itemIds = [], collectionName) {
@@ -211,7 +184,7 @@ function updateMetaTags(item) {
     document.querySelector('meta[property="twitter:url"]').setAttribute('content', fullUrl);
 }
 
-function renderItemDetails(item, viewCount = 0, likeCount = 0) {
+function renderItemDetails(item, viewCount = 0) {
     const container = document.getElementById("item-detail-view");
     const template = document.getElementById("item-detail-template");
 
@@ -252,17 +225,6 @@ function renderItemDetails(item, viewCount = 0, likeCount = 0) {
     clone.querySelector('.item-genre span').textContent = item.genero || 'N/A';
     const viewsSpan = clone.querySelector('.item-views span');
     viewsSpan.textContent = `${viewCount.toLocaleString('pt-PT')} visualizações`;
-
-    // Likes
-    const likesContainer = clone.querySelector('.item-likes');
-    likesContainer.dataset.itemId = item.id; // Adiciona o ID do item ao elemento
-    const likedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
-    const isLiked = likedItems.includes(item.id.toString());
-    const likeIcon = likesContainer.querySelector('i');
-    likeIcon.className = isLiked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
-    if (isLiked) likesContainer.classList.add('is-liked');
-    const likeCountText = likesContainer.querySelector('.like-count');
-    likeCountText.textContent = likeCount.toLocaleString('pt-PT');
 
     clone.querySelector('.item-year span').textContent = item.ano || 'N/A';
 
@@ -344,41 +306,6 @@ function renderItemDetails(item, viewCount = 0, likeCount = 0) {
     socialButtons.querySelector('.twitter').href = `https://twitter.com/intent/tweet?url=${encodedPageUrl}&text=${shareText}`;
     socialButtons.querySelector('.facebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodedPageUrl}`;
     socialButtons.querySelector('.whatsapp').href = `https://api.whatsapp.com/send?text=${shareText}%20${encodedPageUrl}`;
-
-    // Event listener para o botão de like
-    likesContainer.addEventListener('click', (event) => {
-        if (event.target.tagName !== 'I') return; // Ação só ocorre se clicar no ícone
-        const itemId = likesContainer.dataset.itemId;
-        if (!itemId) return;
-
-        let currentLikedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
-        const isLiked = currentLikedItems.includes(itemId);
-
-        // Adiciona a classe para a animação e remove-a quando a animação terminar
-        likesContainer.classList.add('is-animating');
-        likesContainer.addEventListener('animationend', () => {
-            likesContainer.classList.remove('is-animating');
-        }, { once: true });
-
-        if (isLiked) {
-            // Se já gostou, remove o gosto (dislike)
-            decrementLikeCount(itemId);
-            currentLikedItems = currentLikedItems.filter(id => id !== itemId);
-            likesContainer.classList.remove('is-liked');
-            likesContainer.querySelector('i').className = 'fa-regular fa-thumbs-up';
-            const currentCount = parseInt(likeCountText.textContent.replace(/\./g, ''), 10) || 1;
-            likeCountText.textContent = (currentCount - 1).toLocaleString('pt-PT');
-        } else {
-            // Se não gostou, adiciona o gosto (like)
-            incrementLikeCount(itemId);
-            currentLikedItems.push(itemId);
-            likesContainer.classList.add('is-liked');
-            likesContainer.querySelector('i').className = 'fa-solid fa-thumbs-up';
-            const currentCount = parseInt(likeCountText.textContent.replace(/\./g, ''), 10) || 0;
-            likeCountText.textContent = (currentCount + 1).toLocaleString('pt-PT');
-        }
-        localStorage.setItem('unkvoices_liked_items', JSON.stringify(currentLikedItems));
-    });
 
     // Adiciona o conteúdo clonado e preenchido ao container
     container.appendChild(clone);
@@ -476,7 +403,7 @@ function observeCards(cards) {
     document.querySelectorAll('#related-items-container .card-image-container').forEach(img => imageObserver.observe(img));
 }
 
-function createRelatedItemCard(item, counts = { views: {}, likes: {} }) {
+function createRelatedItemCard(item, counts = { views: {} }) {
     const template = document.getElementById('card-template');
     if (!template) return null;
 
@@ -505,16 +432,6 @@ function createRelatedItemCard(item, counts = { views: {}, likes: {} }) {
 
     // Views
     clone.querySelector('.card-views').innerHTML = `<i class="fa-solid fa-eye"></i> ${(counts.views[item.id] || 0).toLocaleString('pt-PT')}`;
-
-    // Likes
-    const likeElement = clone.querySelector('.card-likes');
-    const likedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
-    const isLiked = likedItems.includes(item.id.toString());
-    const likeIcon = isLiked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
-    likeElement.innerHTML = `<i class="${likeIcon}"></i> ${(counts.likes[item.id] || 0).toLocaleString('pt-PT')}`;
-    likeElement.classList.toggle('is-liked', isLiked);
-    // O card de relacionado não terá a funcionalidade de clique para dar like para simplificar.
-    likeElement.style.cursor = 'default';
 
     return clone;
 }

@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app-check.js";
 import { initializeAuth } from "./auth.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -16,13 +17,26 @@ const firebaseConfig = {
     appId: "1:745742457945:web:05bf2241d1d6676f26a548"
 };
 
-let app, db, auth;
+let app, db, auth, appCheck;
 
 try {
     // Initialize Firebase
     app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     auth = getAuth(app); // Inicializa a autenticação
+
+    // App Check opcional: defina globalThis.FIREBASE_APPCHECK_SITE_KEY no HTML para ativar.
+    const appCheckSiteKey = globalThis.FIREBASE_APPCHECK_SITE_KEY || "6LcMioQsAAAAAEGp28yvU219KE-RZb1zmYco-jd9";
+    if (appCheckSiteKey) {
+        appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider(appCheckSiteKey),
+            isTokenAutoRefreshEnabled: true
+        });
+        console.log("✅ App Check inicializado.");
+    } else {
+        console.warn("⚠️ App Check sem chave de site (FIREBASE_APPCHECK_SITE_KEY).");
+    }
+
     console.log("✅ Firebase inicializado com sucesso!");
 
     // Inicia o sistema de autenticação para que o login funcione em todo o site
@@ -33,4 +47,4 @@ try {
 }
 
 // Exporta as instâncias para serem usadas em outros módulos
-export { app, db, auth };
+export { app, db, auth, appCheck };

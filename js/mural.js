@@ -30,6 +30,12 @@ function startMuralScript() {
         nomeInput.value = savedName;
     }
 
+    const initialSubmitButton = form.querySelector('button[type="submit"]');
+    if (initialSubmitButton && !auth.currentUser?.uid) {
+        initialSubmitButton.disabled = true;
+        initialSubmitButton.textContent = 'Aguardando autenticacao...';
+    }
+
     // --- Lógica do Contador de Caracteres ---
     if (mensagemInput && charCounter) {
         const maxLength = 1000; // Aumentado para 1000 caracteres
@@ -56,8 +62,9 @@ function startMuralScript() {
     let currentPage = 1;
     const postsPerPage = 10;
     let currentSortOrder = 'recent'; // 'recent' ou 'popular'
+    let authUnavailableReason = null;
 
-    const muralCollection = collection(db, 'mural_mensagens');
+    const muralCollection = collection(db, 'mural');
 
     let uploadedImages = []; // Array para guardar as imagens redimensionadas
 
@@ -187,20 +194,24 @@ function startMuralScript() {
         const animationPromise = new Promise(resolve => setTimeout(resolve, 2000));
 
         try {
+            const currentAuthorId = getOrCreateAuthorId();
+            if (!currentAuthorId) {
+                throw new Error("Sessão de autenticação ainda não disponível.");
+            }
+
             const location = await getUserLocation();
             const linkPreview = await getLinkPreview(mensagem);
 
             // Se for uma resposta, notifica o autor do post original
             if (parentId) {
                 const parentPost = allPosts.get(parentId);
-                const currentAuthorId = getOrCreateAuthorId();
 
                 // Só notifica se o autor da resposta for diferente do autor do post original
                 if (parentPost && parentPost.authorId !== currentAuthorId) {
                     await addDoc(collection(db, 'mural_notifications'), {
                         recipientId: parentPost.authorId,
+                        senderId: currentAuthorId,
                         senderName: nome,
-                        type: 'reply',
                         parentPostId: parentId,
                         createdAt: serverTimestamp(),
                         isRead: false
@@ -212,7 +223,7 @@ function startMuralScript() {
                 mensagem: mensagem,
                 createdAt: serverTimestamp(), // Usa o timestamp do servidor
                 nome: nome,
-                authorId: getOrCreateAuthorId(), // ID anónimo para o autor
+                authorId: currentAuthorId,
                 reactions: {}, // Objeto para guardar as contagens de reações
                 imageUrls: uploadedImages // Adiciona o array de imagens
             };
@@ -253,7 +264,13 @@ function startMuralScript() {
             submitButton.classList.remove('is-submitting');
             submitButton.classList.add('is-error');
             submitButton.textContent = 'Erro!';
-            showToastNotification('Falha ao enviar a mensagem.', 'error');
+            if (authUnavailableReason?.code === 'auth/firebase-app-check-token-is-invalid') {
+                showToastNotification('Falha de App Check. Configure FIREBASE_APPCHECK_SITE_KEY e publique no Firebase.', 'error');
+            } else if (error?.message?.includes('autenticação') || error?.message?.includes('autenticacao')) {
+                showToastNotification('Autenticacao indisponivel. Aguarde alguns segundos e tente novamente.', 'error');
+            } else {
+                showToastNotification('Falha ao enviar a mensagem.', 'error');
+            }
         } finally {
             // Reativa o botão após um tempo para o utilizador ver o resultado
             setTimeout(() => {
@@ -275,13 +292,7 @@ function startMuralScript() {
      * @returns {string} O ID do autor.
      */
     function getOrCreateAuthorId() {
-        let authorId = localStorage.getItem('muralAuthorId');
-        if (!authorId) {
-            // Gera um ID "único" simples
-            authorId = 'anon_' + Date.now().toString(36) + Math.random().toString(36).substring(2);
-            localStorage.setItem('muralAuthorId', authorId);
-        }
-        return authorId;
+        return auth.currentUser?.uid || null;
     }
 
     /**
@@ -371,6 +382,25 @@ function startMuralScript() {
 
     // Inicia a escuta por posts assim que o script começa
     listenForPosts();
+    window.addEventListener('authStateChanged', () => {
+        authUnavailableReason = null;
+        listenForNotifications();
+        renderAllPosts(); // Reavalia permissões de edição após auth mudar
+    });
+    window.addEventListener('authStateChanged', (event) => {
+        const submitButton = form.querySelector('button[type="submit"]');
+        const authUid = auth.currentUser?.uid;
+        authUnavailableReason = event?.detail?.authError || null;
+
+        if (!submitButton) return;
+        if (authUid) {
+            submitButton.disabled = false;
+            submitButton.textContent = form.dataset.parentId ? 'Submeter Resposta' : 'Submeter Mensagem';
+        } else {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Aguardando autenticacao...';
+        }
+    });
 
     function listenForPosts() {
         // Se já houver um listener ativo, cancela-o antes de criar um novo
@@ -414,6 +444,12 @@ function startMuralScript() {
             document.querySelectorAll('.mural-post').forEach(processPostForLinkPreview);
 
             renderAllPosts();
+        }, (error) => {
+            if (error?.code === 'permission-denied') {
+                console.warn("Sem permissao para ler a colecao 'mural'. Verifique as regras do Firestore.");
+                return;
+            }
+            console.error("Erro no listener de posts do mural:", error);
         });
 
         // Inicia o listener de notificações para o utilizador atual
@@ -444,11 +480,11 @@ function startMuralScript() {
                 if (hasReplies) {
                     const repliesToDelete = Array.from(allPosts.values()).filter(p => p.parentId && p.parentId === postId);
                     for (const reply of repliesToDelete) {
-                        await deleteDoc(doc(db, 'mural_mensagens', reply.id));
+                        await deleteDoc(doc(db, 'mural', reply.id));
                     }
                 }
                 // Apaga o post principal
-                await deleteDoc(doc(db, 'mural_mensagens', postId));
+                await deleteDoc(doc(db, 'mural', postId));
                 showNotification('Mensagem apagada com sucesso.', 'success');
             } catch (error) {
                 console.error("Erro ao apagar mensagem:", error);
@@ -900,7 +936,7 @@ function startMuralScript() {
 
         removeBtn.disabled = true; // Desativa para evitar cliques múltiplos
 
-        const postRef = doc(db, 'mural_mensagens', postId);
+        const postRef = doc(db, 'mural', postId);
         try { await updateDoc(postRef, { linkPreview: null }); }
         catch (error) { console.error("Erro ao remover pré-visualização:", error); }
     }
@@ -1044,7 +1080,7 @@ function startMuralScript() {
         updateVoteUI(postElement, postId);
 
         try {
-            const postRef = doc(db, 'mural_mensagens', postId);
+            const postRef = doc(db, 'mural', postId);
             await updateDoc(postRef, updates);
         } catch (error) {
             console.error("Erro ao registar o voto:", error);
@@ -1080,14 +1116,7 @@ function startMuralScript() {
 
         showConfirmationModal('Tem a certeza que quer reportar esta mensagem como inapropriada?', async () => {
             try {
-                // Adiciona o report à coleção no Firestore
-                await addDoc(collection(db, 'mural_reports'), {
-                    postId: postId,
-                    reportedBy: getOrCreateAuthorId(),
-                    reportedAt: serverTimestamp()
-                });
-
-                // Adiciona o ID do post à lista local de reports e ao localStorage
+                // Report local por utilizador (evita escrita em coleções sem regra dedicada).
                 userReports.push(postId);
                 localStorage.setItem('muralUserReports', JSON.stringify(userReports));
 
@@ -1131,7 +1160,7 @@ function startMuralScript() {
         const newMessage = textarea.value.trim();
 
         if (newMessage) {
-            const postRef = doc(db, 'mural_mensagens', postId);
+            const postRef = doc(db, 'mural', postId);
             const saveButton = postElement.querySelector('.mural-save-btn');
             saveButton.disabled = true;
             saveButton.textContent = 'A guardar...';
@@ -1340,7 +1369,7 @@ function startMuralScript() {
             unsubscribeFromNotifications();
         }
 
-        const currentAuthorId = localStorage.getItem('muralAuthorId');
+        const currentAuthorId = getOrCreateAuthorId();
         if (!currentAuthorId) return; // Não pode escutar se não tiver um ID
 
         const notificationsRef = collection(db, 'mural_notifications');
@@ -1359,6 +1388,12 @@ function startMuralScript() {
             // Prepara os dados para o painel de notificações
             const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setupNotificationPanel(notifications);
+        }, (error) => {
+            if (error?.code === 'permission-denied') {
+                console.warn("Sem permissao para ler 'mural_notifications'. Verifique as regras do Firestore.");
+                return;
+            }
+            console.error("Erro no listener de notificacoes do mural:", error);
         });
     }
 
@@ -1481,3 +1516,4 @@ function timeAgo(date) {
     if (interval > 1) return Math.floor(interval) + " min";
     return Math.floor(seconds) + " seg";
 }
+

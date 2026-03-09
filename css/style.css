@@ -209,6 +209,16 @@ header.scrolled {
         overflow: hidden;
         /* Impede o scroll do corpo quando o menu está aberto */
     }
+    body.menu-open::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+        z-index: 1000;
+        pointer-events: none;
+    }
 
     /* --- CABEÇALHO --- */
     header {

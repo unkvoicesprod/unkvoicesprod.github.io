@@ -30,32 +30,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const navLinks = document.querySelectorAll('.navbar .menu a');
         const currentPage = window.location.pathname.split('/').pop();
 
-        let isDropdownActive = false;
-
         navLinks.forEach(link => { // Itera sobre todos os links
             const linkPage = link.getAttribute('href').split('/').pop();
-            const parentDropdown = link.closest('.dropdown');
 
             link.classList.remove('active'); // Limpa a classe 'active' de todos os links primeiro
 
             // Trata o caso da página inicial (index.html ou /)
             if (linkPage === currentPage || (currentPage === '' && linkPage === 'index.html')) {
                 link.classList.add('active');
-                // Se o link ativo está dentro de um dropdown, marca o dropdown como ativo também
-                if (parentDropdown) {
-                    isDropdownActive = true;
-                }
             }
         });
-
-        // Adiciona a classe 'active' ao link do dropdown se um de seus filhos estiver ativo
-        const dropdownToggle = document.querySelector('.dropdown-toggle');
-        if (dropdownToggle) { // Garante que o elemento existe
-            dropdownToggle.classList.toggle('active', isDropdownActive);
-        }
     };
-
-    let lastScrollY = 0; // Mover a variável para fora da função para que não seja reiniciada
 
     // Função para controlar a aparência do header ao rolar
     const handleHeaderScroll = () => {
@@ -63,8 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!header) return;
 
         window.addEventListener('scroll', () => {
-            const currentScrollY = window.scrollY;
-
             if (window.scrollY > 50) { // Adiciona a classe após rolar 50px
                 header.classList.add('scrolled');
             } else {
@@ -78,7 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const setupMobileMenu = () => {
         const hamburgerBtn = document.getElementById('hamburger-btn');
         const menu = document.querySelector('.navbar .menu');
-        const dropdownToggle = document.querySelector('.dropdown-toggle');
 
         if (!hamburgerBtn || !menu) return;
 
@@ -97,23 +79,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        // Comportamento do dropdown em mobile
-        if (dropdownToggle) {
-            dropdownToggle.addEventListener('click', (e) => {
-                // Previne o comportamento padrão apenas em telas menores
-                if (window.innerWidth <= 768) {
-                    e.preventDefault();
-                    const dropdownMenu = dropdownToggle.nextElementSibling;
-                    // Alterna a visibilidade do submenu
-                    const isVisible = dropdownMenu.style.display === 'flex';
-                    dropdownMenu.style.display = isVisible ? 'none' : 'flex';
-                }
-            });
-        }
-
         // Fecha o menu se um link for clicado
         menu.addEventListener('click', (e) => {
-            if (e.target.tagName === 'A' && !e.target.classList.contains('dropdown-toggle')) {
+            if (e.target.tagName === 'A') {
                 menu.classList.remove('is-open');
                 document.body.classList.remove('menu-open');
                 hamburgerBtn.setAttribute('aria-expanded', 'false');

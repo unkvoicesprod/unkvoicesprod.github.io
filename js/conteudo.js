@@ -11,8 +11,6 @@ function startContentScript() {
     let allContent = [];
     let pageConfig = {};
     let viewCounts = {}; // Novo: para armazenar as contagens de views
-    let likeCounts = {}; // Para armazenar as contagens de likes
-    let likedItems = []; // Para armazenar os IDs dos itens que o utilizador gostou
     let currentFilteredContent = [];
     let currentPage = 1;
     const itemsPerPage = 8;
@@ -40,7 +38,6 @@ function startContentScript() {
         // elements.container.innerHTML = `<div class="loader"></div>`;
 
         // Carrega os itens que o utilizador já gostou a partir do localStorage
-        likedItems = JSON.parse(localStorage.getItem('unkvoices_liked_items')) || [];
 
         loadPageConfig();
         applyPageUiSettings(); // Aplica configurações de UI, como esconder filtros
@@ -78,7 +75,6 @@ function startContentScript() {
 
             // Inicia o listener para as visualizações em tempo real
             listenForViewCounts();
-            listenForLikeCounts();
 
         } catch (error) {
             console.error("Falha ao carregar o conteúdo:", error);
@@ -92,30 +88,26 @@ function startContentScript() {
     function listenForViewCounts() {
         if (!db) return;
         try {
-            onSnapshot(collection(db, "views"), (querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    viewCounts[doc.id] = doc.data().count;
-                });
-                // Atualiza as contagens nos cards que já estão na tela
-                updateDisplayedViewCounts();
-            });
+            onSnapshot(
+                collection(db, "views"),
+                (querySnapshot) => {
+                    querySnapshot.forEach((doc) => {
+                        viewCounts[doc.id] = doc.data().count;
+                    });
+                    // Atualiza as contagens nos cards que já estão na tela
+                    updateDisplayedViewCounts();
+                },
+                (error) => {
+                    if (error?.code === "permission-denied") {
+                        console.warn("Sem permissao para ler 'views' no Firestore. Contagem em tempo real desativada.");
+                        return;
+                    }
+                    console.error("Erro ao ouvir contagens de views:", error);
+                }
+            );
         } catch (error) { console.error("Erro ao buscar contagens de views:", error); }
     }
 
-    /**
-     * Inicia um listener em tempo real para as contagens de "likes" do Firestore.
-     */
-    function listenForLikeCounts() {
-        if (!db) return;
-        try {
-            onSnapshot(collection(db, "likes"), (querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    likeCounts[doc.id] = doc.data().count;
-                });
-                updateDisplayedLikeCounts();
-            });
-        } catch (error) { console.error("Erro ao buscar contagens de likes:", error); }
-    }
     /**
      * Atualiza o texto da contagem de visualizações nos cards visíveis na página.
      */
@@ -124,23 +116,9 @@ function startContentScript() {
         cards.forEach(card => {
             const itemId = card.dataset.id;
             const viewCountSpan = card.querySelector('.card-views');
-            if (itemId && viewCounts[itemId] && viewCountSpan) {
-                viewCountSpan.innerHTML = `<i class="fa-solid fa-eye"></i> ${viewCounts[itemId].toLocaleString('pt-PT')}`;
-            }
-        });
-    }
-
-    /**
-     * Atualiza o texto e o estado da contagem de "likes" nos cards visíveis.
-     */
-    function updateDisplayedLikeCounts() {
-        const cards = elements.container.querySelectorAll('.card');
-        cards.forEach(card => {
-            const itemId = card.dataset.id;
-            const likeElement = card.querySelector('.card-likes');
-            if (itemId && likeCounts[itemId] && likeElement) {
-                likeElement.innerHTML = `<i class="fa-solid fa-thumbs-up"></i> ${likeCounts[itemId].toLocaleString('pt-PT')}`;
-                likeElement.classList.toggle('is-liked', likedItems.includes(itemId));
+            if (itemId && viewCountSpan) {
+                const count = viewCounts[itemId] ?? 0;
+                viewCountSpan.innerHTML = `<i class="fa-solid fa-eye"></i> ${count.toLocaleString('pt-PT')}`;
             }
         });
     }
@@ -156,31 +134,6 @@ function startContentScript() {
             await setDoc(viewRef, { count: increment(1) }, { merge: true });
         } catch (error) { console.error("Falha ao incrementar visualização:", error); }
     }
-
-    /**
-     * Decrementa a contagem de "likes" de um item no Firestore.
-     * @param {string} itemId O ID do item.
-     */
-    async function decrementLikeCount(itemId) {
-        if (!db || !itemId) return;
-        try {
-            const likeRef = doc(db, "likes", itemId.toString());
-            await setDoc(likeRef, { count: increment(-1) }, { merge: true });
-        } catch (error) { console.error("Falha ao decrementar like:", error); }
-    }
-
-    /**
-     * Incrementa a contagem de "likes" de um item no Firestore.
-     * @param {string} itemId O ID do item.
-     */
-    async function incrementLikeCount(itemId) {
-        if (!db || !itemId) return;
-        try {
-            const likeRef = doc(db, "likes", itemId.toString());
-            await setDoc(likeRef, { count: increment(1) }, { merge: true });
-        } catch (error) { console.error("Falha ao incrementar like:", error); }
-    }
-
 
     async function processYouTubePosts(posts) {
         const postPromises = posts.map(async (post, index) => {
@@ -238,6 +191,7 @@ function startContentScript() {
 
     function itemMatchesPageConfig(item) {
         return (
+            (!pageConfig.showOnlyYouTube || !!item.isYouTubePost) &&
             (!pageConfig.categorias || pageConfig.categorias.includes(item.categoria)) &&
             (!pageConfig.precoMin || item.preco >= pageConfig.precoMin)
         );
@@ -300,14 +254,6 @@ function startContentScript() {
 
             // --- Contagem de Views ---
             cardClone.querySelector('.card-views').innerHTML = `<i class="fa-solid fa-eye"></i> ${(viewCounts[item.id] || 0).toLocaleString('pt-PT')}`;
-
-            // --- Contagem de Likes ---
-            const likeElement = cardClone.querySelector('.card-likes');
-            const likeCount = likeCounts[item.id] || 0;
-            const isLiked = likedItems.includes(item.id.toString());
-            const likeIcon = isLiked ? 'fa-solid fa-thumbs-up' : 'fa-regular fa-thumbs-up';
-            likeElement.innerHTML = `<i class="${likeIcon}"></i> ${likeCount.toLocaleString('pt-PT')}`;
-            likeElement.classList.toggle('is-liked', isLiked);
 
             fragment.appendChild(cardClone);
         });
@@ -415,7 +361,7 @@ function startContentScript() {
         }, cards.length > 0 ? animationDuration : 0); // Se não houver cards, executa imediatamente
     }
 
-    function filterContent(searchTerm, selected, sortOrder) {
+    function filterContent(searchTerm, selected) {
         const filteredItems = allContent.filter(item => {
             if (!itemMatchesPageConfig(item)) return false;
 
@@ -436,13 +382,8 @@ function startContentScript() {
             // Aplica a ordenação após a filtragem
             switch (selected.ordem) {
                 case 'popular':
-                    // Nova lógica de popularidade: Score = (Likes * 10) + Views
-                    // Um like tem um peso 10x maior que uma visualização.
-                    const scoreA = ((likeCounts[a.id] || 0) * 10) + (viewCounts[a.id] || 0);
-                    const scoreB = ((likeCounts[b.id] || 0) * 10) + (viewCounts[b.id] || 0);
-
-                    // Ordena pelo score, decrescente (mais popular primeiro)
-                    return scoreB - scoreA;
+                    // Popularidade agora baseada apenas em visualizações.
+                    return (viewCounts[b.id] || 0) - (viewCounts[a.id] || 0);
 
                 case 'recent': // Agora ordena pela data de publicação exata
                     // Ordena pela data de publicação, decrescente (mais recentes primeiro)
@@ -495,45 +436,8 @@ function startContentScript() {
 
     function handleCardClick(event) {
         const card = event.target.closest('.card');
-        const likeBtn = event.target.closest('.card-likes');
 
-        // Ação de like/dislike só é acionada se o clique for diretamente no ícone (tag <i>)
-        if (likeBtn && event.target.tagName === 'I') {
-            event.preventDefault(); // Previne a navegação do link do card
-            const itemId = card.dataset.id;
-            const isLiked = likedItems.includes(itemId);
-
-            // Adiciona a classe para a animação e remove-a quando a animação terminar
-            likeBtn.classList.add('is-animating');
-            likeBtn.addEventListener('animationend', () => {
-                likeBtn.classList.remove('is-animating');
-            }, { once: true });
-
-            if (isLiked) {
-                // O utilizador quer remover o like (dislike)
-                decrementLikeCount(itemId);
-                likedItems = likedItems.filter(id => id !== itemId);
-                likeBtn.classList.remove('is-liked');
-                likeCounts[itemId] = (likeCounts[itemId] || 1) - 1;
-                likeBtn.innerHTML = `<i class="fa-regular fa-thumbs-up"></i> ${likeCounts[itemId].toLocaleString('pt-PT')}`;
-            } else {
-                // O utilizador quer dar like
-                // Incrementa no Firebase
-                incrementLikeCount(itemId);
-                // Adiciona à lista local e ao localStorage
-                likedItems.push(itemId);
-                // Atualiza a UI imediatamente
-                likeBtn.classList.add('is-liked');
-                likeCounts[itemId] = (likeCounts[itemId] || 0) + 1;
-                // Atualiza o HTML interno para garantir que o ícone e o texto sejam mantidos
-                likeBtn.innerHTML = `<i class="fa-solid fa-thumbs-up"></i> ${likeCounts[itemId].toLocaleString('pt-PT')}`;
-            }
-            // Salva o estado atualizado no localStorage
-            localStorage.setItem('unkvoices_liked_items', JSON.stringify(likedItems));
-            return;
-        }
-
-        if (card) { // Ação de clique no card (fora do botão de like)
+        if (card) { // Ação de clique no card
             // Ação: Incrementar a visualização a cada clique no card.
             // O modal não é mais necessário, pois o clique no card inteiro leva ao YouTube.
             const itemId = card.dataset.id;
