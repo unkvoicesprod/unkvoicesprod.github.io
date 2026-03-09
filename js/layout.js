@@ -102,15 +102,23 @@ document.addEventListener("DOMContentLoaded", () => {
             element.textContent = '';
             element.classList.add('typing-caret');
 
-            const speed = window.innerWidth <= 768 ? 16 : 22;
-            const delay = 220 + (index * 120);
+            const speed = window.innerWidth <= 768 ? 68 : 82;
+            const delay = 700 + (index * 320);
             let currentIndex = 0;
 
             const typeNextCharacter = () => {
                 if (currentIndex < fullText.length) {
-                    element.textContent += fullText.charAt(currentIndex);
+                    const currentChar = fullText.charAt(currentIndex);
+                    element.textContent += currentChar;
                     currentIndex += 1;
-                    setTimeout(typeNextCharacter, speed);
+
+                    let nextDelay = speed;
+                    if (currentChar === "," || currentChar === ";") nextDelay += 160;
+                    if (currentChar === "." || currentChar === "!" || currentChar === "?") nextDelay += 280;
+                    if (currentChar === "\n") nextDelay += 220;
+                    if (currentChar === " ") nextDelay += 40;
+
+                    setTimeout(typeNextCharacter, nextDelay);
                 } else {
                     element.classList.remove('typing-caret');
                 }

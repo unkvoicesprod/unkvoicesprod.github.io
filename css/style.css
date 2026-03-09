@@ -56,8 +56,26 @@ html {
 body {
     font-family: 'Segoe UI', sans-serif;
     line-height: 1.6;
-    background: linear-gradient(135deg, var(--color-background-gradient-start), var(--color-background), var(--color-background-gradient-end));
+    background: var(--color-background);
     color: var(--color-text-primary);
+    position: relative;
+    isolation: isolate;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.68)),
+        url("../assets/img/bg.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(6px);
+    transform: scale(1.04);
+    z-index: -1;
+    pointer-events: none;
 }
 
 body.welcome-active {
