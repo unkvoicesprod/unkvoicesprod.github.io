@@ -1,3 +1,68 @@
 <footer class="glass">
-    <p>&copy; <span id="current-year"></span> UNKVOICES</p>
+  <p>&copy; <span id="current-year"></span> UNKVOICES</p>
+  <div class="gridFooter">
+    <ul class="id_user">
+      <h3>Kas Cranky</h3>
+
+      <i class="owner">
+        <a href="https://instagram.com/kascranky"> instagram</a> </i
+      ><span class="separator"></span>
+      <i class="owner">
+        <a href="https://facebook.com/kascranky"> facebook</a>
+      </i>
+    </ul>
+    <ul class="id_user">
+      <h3>&copy; SoftSafe</h3>
+
+      <i class="owner">
+        <a href="https://softsafecompany.github.io/"> Website</a>
+      </i>
+      <span class="separator"></span>
+
+      <i class="owner">
+        <a href="https://www.instagram.com/softsafecore"> instagram</a>
+      </i>
+      <i class="owner">
+        <a href="https://www.facebook.com/softsafecore"> facebook</a>
+      </i>
+    </ul>
+
+    <ul class="id_user">
+      <h3>&copy; Viva Leve</h3>
+
+      <i class="owner">
+        <a href="https://vivalevee.online/"> Website</a>
+      </i>
+      <span class="separator"></span>
+
+      <i class="owner">
+        <a href="https://instagram.com/vivaleve_mz"> instagram</a>
+      </i>
+      <i class="owner">
+        <a href="https://facebook.com/vivalevemz"> facebook</a>
+      </i>
+    </ul>
+  </div>
+
+  <style>
+    .gridFooter {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 5px;
+      padding: 10px;
+    }
+
+    .separator {
+      display: inline-block;
+      width: 1px;
+      height: 10px;
+      background-color: #fff;
+      margin: 0 5px;
+    }
+    .id_user .owner a {
+      text-decoration: none;
+      color: #fff;
+    }
+  </style>
 </footer>
