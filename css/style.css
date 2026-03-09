@@ -204,7 +204,20 @@ header.scrolled {
 .hero p {
     margin-bottom: 2rem;
     font-size: 1.2rem;
-    color: var(--color-text-secondary);
+    color: #fff;
+    white-space: pre-line;
+}
+
+.hero p.typing-caret::after {
+    content: "|";
+    margin-left: 2px;
+    animation: typing-caret-blink 0.9s steps(1, end) infinite;
+}
+
+@keyframes typing-caret-blink {
+    50% {
+        opacity: 0;
+    }
 }
 
 /* --- Bot?o Hamburger --- */

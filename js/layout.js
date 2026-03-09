@@ -91,6 +91,35 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
+    const setupHeroTypingEffect = () => {
+        const descriptions = document.querySelectorAll('.hero p');
+        if (!descriptions.length) return;
+
+        descriptions.forEach((element, index) => {
+            const fullText = element.innerText || element.textContent || '';
+            if (!fullText.trim()) return;
+
+            element.textContent = '';
+            element.classList.add('typing-caret');
+
+            const speed = window.innerWidth <= 768 ? 16 : 22;
+            const delay = 220 + (index * 120);
+            let currentIndex = 0;
+
+            const typeNextCharacter = () => {
+                if (currentIndex < fullText.length) {
+                    element.textContent += fullText.charAt(currentIndex);
+                    currentIndex += 1;
+                    setTimeout(typeNextCharacter, speed);
+                } else {
+                    element.classList.remove('typing-caret');
+                }
+            };
+
+            setTimeout(typeNextCharacter, delay);
+        });
+    };
+
     // Carrega todos os componentes e depois dispara um evento
     const loadAllComponents = async () => {
         await Promise.all([
@@ -128,5 +157,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     loadAllComponents();
+    setupHeroTypingEffect();
     createBackToTopButton(); // Certifica-se de que esta função é chamada
 });
